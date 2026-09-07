@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
+        <link rel="stylesheet" href="assets/css/launcher.css">
+    </head>
+    <body>
+        <div class="bg-container">
+            <div id="bg-animated-image" class="bg-animated-image"></div>
+            <div class="bg-toxic-fog"></div>
+            <div class="bg-toxic-fog fog-layer-2"></div>
+            <canvas id="spores-canvas" class="spores-canvas"></canvas>
+        </div>
+        <div class="crt-overlay"></div>
+        <div class="vignette-overlay"></div>
+        <div class="dragbar"></div>
+        <div class="darwin">
+            <div class="frame">
+                <div id="close" class="button-frame darwin-icon-close"></div>
+                <div id="minimize" class="button-frame darwin-icon-minimize"></div>
+                <div id="maximize" class="button-frame darwin-icon-maximize"></div>
+
+            </div>
+        </div>
+        <div class="other">
+            <div class="frame">
+                <div id="minimize" class="button-frame icon-minimize"></div>
+                <div id="maximize" class="button-frame icon-maximize"></div>
+                <div id="close" class="button-frame icon-close"></div>
+            </div>
+        </div>
+
+        <div class="popup">
+            <div class="popup-tab">
+                <div class="popup-title"></div>
+                <div class="popup-content"></div>
+                <div class="popup-options">
+                    <button class="popup-button">OK</button>
+                </div>
+            </div>
+        </div>
+        <div class="panels"></div>
+        <script src="assets/js/launcher.js" type="module"></script>
+    </body>
+</html>

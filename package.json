@@ -1,0 +1,50 @@
+{
+    "name": "DeltaZone-Launcher",
+    "preductname": "DeltaZone Launcher",
+    "version": "1.0.0",
+    "description": "Launcher Officiel DeltaZone - Serveur Minecraft Zombie Apocalypse",
+    "main": "src/app.js",
+    "author": {
+        "name": "DeltaZone Team"
+    },
+    "url": "http://192.168.1.149:8088",
+    "scripts": {
+        "start": "cross-env-shell NODE_ENV=dev electron .",
+        "dev": "cross-env-shell DEV_TOOL=open nodemon --exec npm start",
+        "build": "node build.js --obf=true --build=platform",
+        "icon": "node build.js --icon"
+    },
+    "nodemonConfig": {
+        "watch": [
+            "src/"
+        ],
+        "ext": "js,html,css",
+        "ignore": [
+            "data/**",
+            "node_modules/**",
+            "build/**",
+            "dist/**"
+        ]
+    },
+    "dependencies": {
+        "discord-rpc": "^4.0.1",
+        "electron-store": "^8.2.0",
+        "electron-updater": "^6.7.3",
+        "minecraft-java-core": "^4.2.5",
+        "node-fetch": "^2.7.0",
+        "xml-js": "^1.6.11"
+    },
+    "devDependencies": {
+        "cross-env": "^10.1.0",
+        "electron": "^40.0.0",
+        "electron-builder": "^26.0.12",
+        "javascript-obfuscator": "^5.1.0",
+        "jimp": "^1.6.0",
+        "nodemon": "^3.1.11",
+        "png2icons": "^2.0.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/luuxis/Selvania-Launcher.git"
+    }
+}
