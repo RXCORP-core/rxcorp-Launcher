@@ -120,25 +120,39 @@
                     <div class="cloud-hero-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                     </div>
-                    <h2 class="cloud-hero-title">Synchronisation Pelican Cloud</h2>
+                    <h2 class="cloud-hero-title">Connexion RXCORP Cloud</h2>
                     <p class="cloud-hero-desc">
-                        Connectez votre compte pour détecter vos serveurs Minecraft hébergés sur l'infrastructure RXCORP, synchroniser vos mods en 1 clic et vous connecter automatiquement.
+                        Reliez votre compte pour détecter vos serveurs Minecraft, synchroniser automatiquement vos mods et vous connecter directement en 1 clic.
                     </p>
                     
                     <div style="max-width: 440px; margin: 0 auto;">
-                        <div class="form-group">
-                            <label class="form-label">Clé API Client Pelican (pacc_...)</label>
-                            <input id="input-panel-key" type="password" class="form-input" placeholder="pacc_xxxxxxxxxxxxxxxxxxxxxxxx">
-                            <input id="input-panel-url" type="hidden" value="https://panel.rxcorp.fr">
-                            <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px; text-align: left;">
-                                Obtenez votre clé en 1 clic sur <a href="#" id="link-create-key" style="color: var(--cyan); text-decoration: none; font-weight: 600;">panel.rxcorp.fr/account/api ↗</a>
-                            </div>
+                        <button id="btn-start-web-auth" class="rx-btn rx-btn-primary" style="width: 100%; height: 48px; font-size: 14px; font-weight: 700; margin-bottom: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            <span>⚡ Connexion en 1 Clic (Web SSO)</span>
+                        </button>
+
+                        <button id="btn-open-direct-login" class="rx-btn rx-btn-secondary" style="width: 100%; height: 40px; font-size: 13px; font-weight: 600; margin-bottom: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Connexion par Identifiants</span>
+                        </button>
+
+                        <div style="font-size: 12px; color: var(--text-dim); text-align: center; cursor: pointer; text-decoration: underline;" id="btn-toggle-manual-key">
+                            Options avancées (Clé API manuelle)
                         </div>
 
-                        <button id="btn-login-cloud" class="rx-btn rx-btn-primary" style="width: 100%; height: 44px; margin-top: 8px;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                            <span>Valider la Connexion</span>
-                        </button>
+                        <div id="manual-key-container" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: left;">
+                            <div class="form-group">
+                                <label class="form-label">Clé API Client Pelican (pacc_...)</label>
+                                <input id="input-panel-key" type="password" class="form-input" placeholder="pacc_xxxxxxxxxxxxxxxxxxxxxxxx">
+                                <input id="input-panel-url" type="hidden" value="https://panel.rxcorp.fr">
+                                <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
+                                    Obtenez votre clé sur <a href="#" id="link-create-key" style="color: var(--primary); text-decoration: none; font-weight: 600;">panel.rxcorp.fr/account/api ↗</a>
+                                </div>
+                            </div>
+                            <button id="btn-login-cloud" class="rx-btn rx-btn-primary" style="width: 100%; height: 40px; margin-top: 6px;">
+                                <span>Valider la Clé</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -385,6 +399,39 @@
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
                 <button class="rx-btn rx-btn-secondary" data-close="modal-add-offline">Annuler</button>
                 <button id="btn-confirm-add-offline" class="rx-btn rx-btn-primary">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Direct Login (Email & Password) -->
+    <div id="modal-direct-login" class="rx-modal-overlay">
+        <div class="rx-modal" style="max-width: 420px;">
+            <div class="modal-header">
+                <h2>Connexion Panel RXCORP</h2>
+                <button class="modal-close" data-close="modal-direct-login">✕</button>
+            </div>
+            
+            <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px;">
+                Connectez-vous directement avec vos identifiants du panel RXCORP.
+            </p>
+
+            <div id="direct-login-error" style="display: none; margin-bottom: 14px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: var(--danger); padding: 10px 14px; border-radius: 8px; font-size: 13px;"></div>
+
+            <div class="form-group">
+                <label class="form-label">Identifiant ou Email</label>
+                <input id="input-direct-login" type="text" class="form-input" placeholder="ex: chatdoo ou salem@..." autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <input id="input-direct-password" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button class="rx-btn rx-btn-secondary" data-close="modal-direct-login">Annuler</button>
+                <button id="btn-submit-direct-login" class="rx-btn rx-btn-primary">
+                    <span>Se connecter</span>
+                </button>
             </div>
         </div>
     </div>

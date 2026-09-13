@@ -3,12 +3,17 @@
  * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
  */
 
-const { app, ipcMain, nativeTheme, Notification, dialog } = require('electron');
+const { app, ipcMain, nativeTheme, Notification, dialog, shell } = require('electron');
 const { Microsoft } = require('minecraft-java-core');
 const { autoUpdater } = require('electron-updater');
+const http = require('http');
 
 try {
     app.setAppUserModelId("RXCORP.Launcher");
+} catch (e) {}
+
+try {
+    app.setAsDefaultProtocolClient('rxcorp');
 } catch (e) {}
 
 const path = require('path');
@@ -35,13 +40,22 @@ Store.initRenderer();
 
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
-    app.on('second-instance', () => {
+    app.on('second-instance', (event, commandLine) => {
         let win = MainWindow.getWindow() || UpdateWindow.getWindow();
         if (win) {
             if (win.isMinimized()) win.restore();
             win.show();
             win.focus();
         }
+        if (Array.isArray(commandLine)) {
+            const deepLink = commandLine.find(arg => arg.startsWith('rxcorp://'));
+            if (deepLink) handleProtocolUrl(deepLink);
+        }
+    });
+
+    app.on('open-url', (event, url) => {
+        event.preventDefault();
+        handleProtocolUrl(url);
     });
 
     app.whenReady().then(() => {
@@ -265,4 +279,78 @@ autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err ? err.message : err);
     const win = MainWindow.getWindow();
     if (win) win.webContents.send('updater-event', { status: 'error', error: err ? err.message : 'Unknown' });
+});
+
+// ==========================================
+// RXCORP CLOUD WEB SSO & LOOPBACK SERVER
+// ==========================================
+let authLoopbackServer = null;
+
+function handleWebAuthSuccess(token, username, email) {
+    if (!token) return;
+    console.log('[WebAuth] Successfully linked account:', username, 'token:', token.substring(0, 8) + '...');
+    const win = MainWindow.getWindow();
+    if (win) {
+        win.webContents.send('web-auth-success', { token, username, email });
+        if (win.isMinimized()) win.restore();
+        win.show();
+        win.focus();
+    }
+}
+
+function handleProtocolUrl(urlStr) {
+    try {
+        if (!urlStr || !urlStr.startsWith('rxcorp://')) return;
+        const u = new URL(urlStr);
+        const token = u.searchParams.get('token');
+        const username = u.searchParams.get('username') || '';
+        const email = u.searchParams.get('email') || '';
+        handleWebAuthSuccess(token, username, email);
+    } catch (e) {
+        console.error('[Protocol Handler Error]', e);
+    }
+}
+
+ipcMain.on('start-web-auth', () => {
+    if (authLoopbackServer) {
+        try { authLoopbackServer.close(); } catch(e) {}
+    }
+
+    const state = Math.random().toString(36).substring(2, 15);
+    authLoopbackServer = http.createServer((req, res) => {
+        try {
+            const reqUrl = new URL(req.url, 'http://127.0.0.1');
+            if (reqUrl.pathname === '/callback') {
+                const token = reqUrl.searchParams.get('token');
+                const username = reqUrl.searchParams.get('username') || '';
+                const email = reqUrl.searchParams.get('email') || '';
+
+                res.writeHead(200, {
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Access-Control-Allow-Origin': '*'
+                });
+                res.end(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>RXCORP</title><style>body{background:#08090d;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;} .box{background:#10131a;border:1px solid #f43f5e;border-radius:12px;padding:32px;text-align:center;box-shadow:0 0 30px rgba(244,63,94,0.3);max-width:400px;} h1{color:#f43f5e;font-size:20px;margin-bottom:10px;} p{color:#94a3b8;font-size:14px;}</style></head><body><div class="box"><h1>Connexion réussie</h1><p>Votre compte <strong>\${username || 'RXCORP'}</strong> est connecté au Launcher.</p><p style="color:#64748b;font-size:12px;margin-top:16px;">Vous pouvez fermer cet onglet et revenir sur le Launcher.</p></div><script>setTimeout(()=>{try{window.close();}catch(e){}},2500);</script></body></html>`);
+
+                handleWebAuthSuccess(token, username, email);
+
+                setTimeout(() => {
+                    try {
+                        if (authLoopbackServer) {
+                            authLoopbackServer.close();
+                            authLoopbackServer = null;
+                        }
+                    } catch(e) {}
+                }, 3000);
+            }
+        } catch (err) {
+            console.error('[WebAuth Callback Error]', err);
+        }
+    });
+
+    authLoopbackServer.listen(0, '127.0.0.1', () => {
+        const port = authLoopbackServer.address().port;
+        const targetUrl = `https://panel.rxcorp.fr/launcher/connect?port=\${port}&state=\${state}`;
+        console.log('[WebAuth] Loopback listening on port', port, 'Opening URL:', targetUrl);
+        shell.openExternal(targetUrl);
+    });
 });

@@ -59,6 +59,7 @@ class RxcorpApp {
         this.initPvP();
         this.initLaunchDock();
         this.initUpdater();
+        this.initWebAuth();
 
         // Load initial instance
         await this.loadInstances();
@@ -188,12 +189,14 @@ class RxcorpApp {
 
         const res = await pelicanService.getServers(apiKey, panelUrl);
         if (!res.success) {
+            authCard.style.display = 'block';
             grid.innerHTML = `
-                <div class="rx-card" style="grid-column: 1/-1; color: var(--danger);">
-                    <p>Impossible de contacter le Panel (${res.error}). Vérifiez votre clé API dans les Paramètres.</p>
+                <div class="rx-card" style="grid-column: 1/-1; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); margin-bottom: 20px; text-align: center; padding: 20px;">
+                    <p style="color: var(--danger); font-weight: 700; margin-bottom: 6px;">Session expirée ou non autorisée</p>
+                    <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 0;">Cliquez sur <strong>« Connexion en 1 Clic »</strong> ci-dessus pour associer votre compte automatiquement.</p>
                 </div>
             `;
-            pillText.innerText = 'Erreur Panel';
+            pillText.innerText = 'Non connecté';
             pillDot.className = 'status-dot offline';
             return;
         }
@@ -830,6 +833,114 @@ class RxcorpApp {
             if (inputKey) inputKey.value = '';
             this.loadCloudServers();
             alert('Déconnecté du Panel.');
+        });
+    }
+
+    // ==========================================
+    // RXCORP CLOUD WEB SSO & DIRECT AUTH
+    // ==========================================
+    initWebAuth() {
+        ipcRenderer.on('web-auth-success', (event, data) => {
+            console.log('[RXCORP] Web Auth success received:', data);
+            if (data.token) {
+                store.set('apiKey', data.token);
+                if (data.username) {
+                    store.set('activeAccountName', data.username);
+                    const accounts = store.get('accounts') || [];
+                    if (!accounts.some(a => a.name === data.username)) {
+                        accounts.push({
+                            name: data.username,
+                            uuid: 'offline-' + data.username,
+                            meta: { type: 'RXCORP', online: false, email: data.email || '' }
+                        });
+                        store.set('accounts', accounts);
+                    }
+                }
+                this.showNotification('Connexion Cloud Réussie', `Bienvenue ${data.username || ''} ! Vos serveurs sont prêts.`);
+                this.renderAccountsList();
+                this.loadCloudServers();
+            }
+        });
+
+        // 1-Click Web SSO Button
+        document.getElementById('btn-start-web-auth')?.addEventListener('click', () => {
+            this.showNotification('Connexion Web', 'Ouverture de votre navigateur pour validation...');
+            ipcRenderer.send('start-web-auth');
+        });
+
+        // Open Direct Login Modal
+        document.getElementById('btn-open-direct-login')?.addEventListener('click', () => {
+            this.openModal('modal-direct-login');
+        });
+
+        // Toggle Manual API Key Container
+        document.getElementById('btn-toggle-manual-key')?.addEventListener('click', () => {
+            const container = document.getElementById('manual-key-container');
+            if (container) {
+                container.style.display = container.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        // Submit Direct Login Modal
+        document.getElementById('btn-submit-direct-login')?.addEventListener('click', async () => {
+            const login = document.getElementById('input-direct-login')?.value.trim();
+            const password = document.getElementById('input-direct-password')?.value;
+            const errBox = document.getElementById('direct-login-error');
+            const btn = document.getElementById('btn-submit-direct-login');
+
+            if (!login || !password) {
+                if (errBox) {
+                    errBox.textContent = 'Veuillez saisir votre identifiant et mot de passe.';
+                    errBox.style.display = 'block';
+                }
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>Connexion...</span>';
+            if (errBox) errBox.style.display = 'none';
+
+            try {
+                const response = await fetch('https://panel.rxcorp.fr/api/launcher/direct-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login, password })
+                });
+                const resData = await response.json();
+
+                if (resData.success && resData.token) {
+                    store.set('apiKey', resData.token);
+                    if (resData.user?.username) {
+                        store.set('activeAccountName', resData.user.username);
+                        const accounts = store.get('accounts') || [];
+                        if (!accounts.some(a => a.name === resData.user.username)) {
+                            accounts.push({
+                                name: resData.user.username,
+                                uuid: 'offline-' + resData.user.username,
+                                meta: { type: 'RXCORP', online: false, email: resData.user.email || '' }
+                            });
+                            store.set('accounts', accounts);
+                        }
+                    }
+                    this.closeModal('modal-direct-login');
+                    this.showNotification('Connexion réussie', `Bienvenue ${resData.user?.username || ''} !`);
+                    this.renderAccountsList();
+                    this.loadCloudServers();
+                } else {
+                    if (errBox) {
+                        errBox.textContent = resData.error || 'Identifiants invalides.';
+                        errBox.style.display = 'block';
+                    }
+                }
+            } catch (e) {
+                if (errBox) {
+                    errBox.textContent = 'Erreur de connexion : ' + e.message;
+                    errBox.style.display = 'block';
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Se connecter</span>';
+            }
         });
     }
 
