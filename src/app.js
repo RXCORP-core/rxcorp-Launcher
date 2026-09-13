@@ -8,7 +8,7 @@ const { Microsoft } = require('minecraft-java-core');
 const { autoUpdater } = require('electron-updater');
 
 try {
-    app.setAppUserModelId("DeltaZone.Launcher");
+    app.setAppUserModelId("RXCORP.Launcher");
 } catch (e) {}
 
 const path = require('path');
@@ -94,7 +94,7 @@ ipcMain.on('send-notification', (event, data) => {
     if (Notification && Notification.isSupported()) {
         try {
             const notif = new Notification({
-                title: data.title || '☣ DELTAZONE SURVIE',
+                title: data.title || 'RXCORP Launcher',
                 body: data.body || '',
                 icon: path.join(__dirname, 'assets/images/icon/icon.png'),
                 silent: data.silent === true

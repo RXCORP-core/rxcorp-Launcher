@@ -1,13 +1,13 @@
 {
-    "name": "DeltaZone-Launcher",
-    "preductname": "DeltaZone Launcher",
-    "version": "1.0.0",
-    "description": "Launcher Officiel DeltaZone - Serveur Minecraft Zombie Apocalypse",
+    "name": "rxcorp-launcher",
+    "productName": "RXCORP Launcher",
+    "version": "2.0.0",
+    "description": "Launcher Tout-en-1 RXCORP - Gestionnaire d'instances, Synchronisation Pelican Cloud, Navigateur Modrinth et Mode PvP",
     "main": "src/app.js",
     "author": {
-        "name": "DeltaZone Team"
+        "name": "RXCORP Team"
     },
-    "url": "http://192.168.1.149:8088",
+    "url": "https://rxcorp.fr",
     "scripts": {
         "start": "cross-env-shell NODE_ENV=dev electron .",
         "dev": "cross-env-shell DEV_TOOL=open nodemon --exec npm start",
@@ -45,6 +45,6 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/luuxis/Selvania-Launcher.git"
+        "url": "git+https://github.com/RXCORP-core/rxcorp-Launcher.git"
     }
 }

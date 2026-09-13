@@ -1,45 +1,356 @@
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
-        <link rel="stylesheet" href="assets/css/launcher.css">
-    </head>
-    <body>
-        <div class="bg-container">
-            <div id="bg-animated-image" class="bg-animated-image"></div>
-            <div class="bg-toxic-fog"></div>
-            <div class="bg-toxic-fog fog-layer-2"></div>
-            <canvas id="spores-canvas" class="spores-canvas"></canvas>
-        </div>
-        <div class="crt-overlay"></div>
-        <div class="vignette-overlay"></div>
-        <div class="dragbar"></div>
-        <div class="darwin">
-            <div class="frame">
-                <div id="close" class="button-frame darwin-icon-close"></div>
-                <div id="minimize" class="button-frame darwin-icon-minimize"></div>
-                <div id="maximize" class="button-frame darwin-icon-maximize"></div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RXCORP Launcher</title>
+    <link rel="stylesheet" href="assets/css/rxcorp.css">
+</head>
+<body>
+    <!-- Background glowing orbs -->
+    <div class="app-background">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+    </div>
 
-            </div>
+    <!-- Custom Window Titlebar -->
+    <header class="app-titlebar">
+        <div class="brand-section">
+            <div class="brand-logo">RX</div>
+            <span class="brand-title">RXCORP</span>
+            <span class="brand-badge">2.0</span>
         </div>
-        <div class="other">
-            <div class="frame">
-                <div id="minimize" class="button-frame icon-minimize"></div>
-                <div id="maximize" class="button-frame icon-maximize"></div>
-                <div id="close" class="button-frame icon-close"></div>
+
+        <div class="titlebar-center">
+            <div id="cloud-pill" class="cloud-status-pill" title="Statut de l'intégration Pelican Cloud">
+                <span class="status-dot online"></span>
+                <span id="cloud-pill-text">RXCORP Cloud</span>
             </div>
         </div>
 
-        <div class="popup">
-            <div class="popup-tab">
-                <div class="popup-title"></div>
-                <div class="popup-content"></div>
-                <div class="popup-options">
-                    <button class="popup-button">OK</button>
+        <div class="titlebar-controls">
+            <div id="user-pill" class="user-pill" title="Compte Minecraft actif">
+                <img id="user-avatar" class="user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
+                <span id="user-name">Joueur</span>
+            </div>
+
+            <div class="window-btns">
+                <button id="btn-minimize" class="win-btn" title="Réduire">−</button>
+                <button id="btn-maximize" class="win-btn" title="Agrandir">□</button>
+                <button id="btn-close" class="win-btn btn-close" title="Fermer">✕</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="app-sidebar">
+            <div class="nav-label">Navigation</div>
+            <div class="nav-item active" data-view="cloud">
+                <span class="nav-icon">🌐</span>
+                <span>RXCORP Cloud</span>
+            </div>
+            <div class="nav-item" data-view="instances">
+                <span class="nav-icon">🎮</span>
+                <span>Mes Instances</span>
+            </div>
+            <div class="nav-item" data-view="modrinth">
+                <span class="nav-icon">🔍</span>
+                <span>Mods & Addons</span>
+            </div>
+            <div class="nav-item" data-view="pvp">
+                <span class="nav-icon">⚔️</span>
+                <span>Mode PvP & FPS</span>
+            </div>
+
+            <div class="sidebar-spacer"></div>
+
+            <div class="nav-label">Configuration</div>
+            <div class="nav-item" data-view="settings">
+                <span class="nav-icon">⚙️</span>
+                <span>Paramètres</span>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+            <!-- VIEW 1: RXCORP CLOUD -->
+            <section id="view-cloud" class="view-container active">
+                <div class="view-header">
+                    <div class="view-header-left">
+                        <h1>🌐 RXCORP Cloud - Mes Serveurs</h1>
+                        <p>Vos serveurs hébergés sur l'infrastructure RXCORP. Synchronisation 1-clic des mods et connexion directe.</p>
+                    </div>
+                    <div class="view-header-actions">
+                        <button id="btn-refresh-cloud" class="rx-btn rx-btn-secondary">
+                            <span>🔄 Rafraîchir</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Auth box if no API key is set -->
+                <div id="cloud-auth-card" class="rx-card" style="display: none; max-width: 550px; margin: 40px auto;">
+                    <h2 style="font-size: 18px; margin-bottom: 8px;">🔑 Connecter votre compte RXCORP</h2>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+                        Entrez votre clé API Client Pelican pour synchroniser automatiquement vos serveurs et leurs mods.
+                    </p>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label">URL du Panel</label>
+                        <input id="input-panel-url" type="text" class="form-input" value="https://panel.rxcorp.fr">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label">Clé API Client (pacc_...)</label>
+                        <input id="input-panel-key" type="password" class="form-input" placeholder="Collez votre clé API ici">
+                        <span style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">
+                            Générez votre clé sur <a href="#" id="link-create-key" style="color: var(--accent); text-decoration: none;">panel.rxcorp.fr/account/api</a>
+                        </span>
+                    </div>
+                    <button id="btn-login-cloud" class="rx-btn rx-btn-primary btn-full">
+                        <span>Se connecter et charger mes serveurs</span>
+                    </button>
+                </div>
+
+                <!-- Server Grid -->
+                <div id="cloud-servers-grid" class="servers-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- VIEW 2: INSTANCES -->
+            <section id="view-instances" class="view-container">
+                <div class="view-header">
+                    <div class="view-header-left">
+                        <h1>🎮 Mes Instances & Modpacks</h1>
+                        <p>Gérez vos profils de jeu indépendants, modloaders et configurations locales.</p>
+                    </div>
+                    <div class="view-header-actions">
+                        <button id="btn-new-instance" class="rx-btn rx-btn-primary">
+                            <span>+ Nouvelle Instance</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="instances-grid" class="servers-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- VIEW 3: MODRINTH MODS -->
+            <section id="view-modrinth" class="view-container">
+                <div class="view-header">
+                    <div class="view-header-left">
+                        <h1>🔍 Navigateur de Mods Modrinth</h1>
+                        <p>Explorez et installez des milliers de mods en 1 clic directement dans vos instances.</p>
+                    </div>
+                </div>
+
+                <!-- Search & Filters bar -->
+                <div class="rx-card" style="padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px;">
+                    <input id="input-mod-search" type="text" class="form-input" placeholder="Rechercher un mod (ex: Sodium, Voice Chat, JEI, Iris...)" style="flex: 1;">
+                    
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label class="form-label" style="white-space: nowrap; margin: 0;">Installer dans :</label>
+                        <select id="select-target-instance" class="form-select" style="min-width: 180px;">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <button id="btn-search-mods" class="rx-btn rx-btn-accent">
+                        <span>Rechercher</span>
+                    </button>
+                </div>
+
+                <div id="modrinth-mods-grid" class="mods-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- VIEW 4: PVP & FPS BOOST -->
+            <section id="view-pvp" class="view-container">
+                <div class="view-header">
+                    <div class="view-header-left">
+                        <h1>⚔️ Mode PvP & Optimisation FPS</h1>
+                        <p>Activez ou désactivez les meilleurs mods d'optimisation et PvP sans toucher aux fichiers.</p>
+                    </div>
+                    <div class="view-header-actions" style="display: flex; align-items: center; gap: 8px;">
+                        <label class="form-label" style="white-space: nowrap; margin: 0;">Instance cible :</label>
+                        <select id="select-pvp-instance" class="form-select" style="min-width: 180px;">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div id="pvp-mods-grid" class="pvp-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- VIEW 5: SETTINGS -->
+            <section id="view-settings" class="view-container">
+                <div class="view-header">
+                    <div class="view-header-left">
+                        <h1>⚙️ Paramètres Généraux</h1>
+                        <p>Configuration de l'allocation mémoire, de Java et de vos comptes de jeu.</p>
+                    </div>
+                    <div class="view-header-actions">
+                        <button id="btn-save-settings" class="rx-btn rx-btn-primary">
+                            <span>Enregistrer les modifications</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 20px; max-width: 720px;">
+                    <!-- Java & RAM Card -->
+                    <div class="rx-card">
+                        <h3 style="font-size: 16px; margin-bottom: 16px; color: white;">💾 Mémoire Vive (RAM) & Java</h3>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label class="form-label">RAM Allouée Maximale</label>
+                                <span id="label-ram-max" style="font-size: 13px; font-weight: 700; color: var(--primary);">4 GB</span>
+                            </div>
+                            <input id="range-ram-max" type="range" min="2" max="16" step="1" value="4" style="accent-color: var(--primary); width: 100%; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Chemin de l'exécutable Java (optionnel)</label>
+                            <input id="input-java-path" type="text" class="form-input" placeholder="Automatique (Détection automatique du système)">
+                        </div>
+                    </div>
+
+                    <!-- Cloud Connection Settings -->
+                    <div class="rx-card">
+                        <h3 style="font-size: 16px; margin-bottom: 16px; color: white;">🌐 Intégration Pelican Cloud</h3>
+                        
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="form-label">Adresse du Panel</label>
+                            <input id="settings-panel-url" type="text" class="form-input" value="https://panel.rxcorp.fr">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label class="form-label">Clé API Client</label>
+                            <input id="settings-panel-key" type="password" class="form-input" placeholder="pacc_...">
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-test-panel" class="rx-btn rx-btn-secondary">Tester la connexion</button>
+                            <button id="btn-disconnect-panel" class="rx-btn rx-btn-danger">Déconnecter</button>
+                        </div>
+                    </div>
+
+                    <!-- Accounts Card -->
+                    <div class="rx-card">
+                        <h3 style="font-size: 16px; margin-bottom: 16px; color: white;">👤 Comptes Minecraft</h3>
+                        
+                        <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-add-microsoft" class="rx-btn rx-btn-primary">
+                                <span>+ Compte Microsoft (Officiel)</span>
+                            </button>
+                            <button id="btn-add-offline" class="rx-btn rx-btn-secondary">
+                                <span>+ Compte Hors-Ligne (Pseudo)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Bottom Launch Dock -->
+    <footer class="launch-dock">
+        <div class="dock-left">
+            <div id="dock-instance-pill" class="instance-selector" title="Cliquer pour changer d'instance active">
+                <span class="instance-icon">🎮</span>
+                <div class="instance-info">
+                    <span id="dock-instance-name" class="instance-name">Aucune instance</span>
+                    <span id="dock-instance-sub" class="instance-version">Sélectionnez une instance</span>
                 </div>
             </div>
         </div>
-        <div class="panels"></div>
-        <script src="assets/js/launcher.js" type="module"></script>
-    </body>
+
+        <div class="dock-center">
+            <span id="dock-status" class="dock-status-text">Prêt à jouer</span>
+            <div id="dock-progress-container" class="dock-progress-bar">
+                <div id="dock-progress-fill" class="dock-progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="dock-right">
+            <button id="btn-launch-game" class="btn-launch-big">
+                <span>▶ JOUER</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- MODAL: Create Instance -->
+    <div id="modal-create-instance" class="rx-modal-overlay">
+        <div class="rx-modal">
+            <div class="modal-header">
+                <h2>Créer une nouvelle instance</h2>
+                <button class="modal-close" data-close="modal-create-instance">✕</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nom de l'instance</label>
+                <input id="input-new-name" type="text" class="form-input" placeholder="ex: Survie Moddée 1.21.1">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Version de Minecraft</label>
+                <select id="select-new-version" class="form-select">
+                    <option value="1.21.1">Minecraft 1.21.1 (Dernière version stable)</option>
+                    <option value="1.20.4">Minecraft 1.20.4</option>
+                    <option value="1.20.1">Minecraft 1.20.1 (Très populaire pour mods)</option>
+                    <option value="1.19.4">Minecraft 1.19.4</option>
+                    <option value="1.16.5">Minecraft 1.16.5</option>
+                    <option value="1.12.2">Minecraft 1.12.2 (Classique moddé)</option>
+                    <option value="1.8.9">Minecraft 1.8.9 (PvP Standard)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">ModLoader</label>
+                <select id="select-new-loader" class="form-select">
+                    <option value="fabric">Fabric (Recommandé, rapide & léger)</option>
+                    <option value="forge">Forge (Idéal pour gros modpacks)</option>
+                    <option value="neoforge">NeoForge (Nouvelle génération)</option>
+                    <option value="vanilla">Vanilla (Pur jeu officiel sans mods)</option>
+                </select>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button class="rx-btn rx-btn-secondary" data-close="modal-create-instance">Annuler</button>
+                <button id="btn-confirm-create-instance" class="rx-btn rx-btn-primary">Créer l'instance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Offline Account -->
+    <div id="modal-add-offline" class="rx-modal-overlay">
+        <div class="rx-modal" style="max-width: 420px;">
+            <div class="modal-header">
+                <h2>Ajouter un pseudo (Hors-ligne)</h2>
+                <button class="modal-close" data-close="modal-add-offline">✕</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Pseudo en jeu</label>
+                <input id="input-offline-username" type="text" class="form-input" placeholder="ex: Steve">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button class="rx-btn rx-btn-secondary" data-close="modal-add-offline">Annuler</button>
+                <button id="btn-confirm-add-offline" class="rx-btn rx-btn-primary">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Controller -->
+    <script src="assets/js/rxcorp-app.js"></script>
+</body>
 </html>

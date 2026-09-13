@@ -1,0 +1,951 @@
+/**
+ * RXCORP Launcher - Master Application Controller
+ * Handles UI interactions, services coordination and state management
+ */
+
+const { ipcRenderer, shell } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const Store = require('electron-store');
+
+// Services
+const pelicanService = require('./services/pelicanService');
+const instanceService = require('./services/instanceService');
+const modrinthService = require('./services/modrinthService');
+const pvpService = require('./services/pvpService');
+const gameLauncher = require('./services/gameLauncher');
+
+// Local storage
+const store = new Store({
+    defaults: {
+        panelUrl: 'https://panel.rxcorp.fr',
+        apiKey: '',
+        activeInstanceId: null,
+        ramMax: 4,
+        javaPath: '',
+        accounts: [
+            {
+                name: 'Player',
+                uuid: '00000000-0000-0000-0000-000000000000',
+                meta: { type: 'Mojang', online: false }
+            }
+        ],
+        activeAccountName: 'Player'
+    }
+});
+
+class RxcorpApp {
+    constructor() {
+        this.activeView = 'cloud';
+        this.activeInstance = null;
+        this.cloudServers = [];
+        this.isSyncing = false;
+    }
+
+    async init() {
+        console.log('[RXCORP] Initializing Launcher 2.0...');
+        this.initWindowControls();
+        this.initNavigation();
+        this.initModals();
+        this.initSettings();
+        this.initAccounts();
+        this.initModrinth();
+        this.initPvP();
+        this.initLaunchDock();
+
+        // Load initial instance
+        await this.loadInstances();
+
+        // Load cloud servers
+        await this.loadCloudServers();
+
+        console.log('[RXCORP] Launcher ready.');
+    }
+
+    // ==========================================
+    // WINDOW CONTROLS & TITLEBAR
+    // ==========================================
+    initWindowControls() {
+        document.getElementById('btn-minimize')?.addEventListener('click', () => {
+            ipcRenderer.send('main-window-minimize');
+        });
+
+        document.getElementById('btn-maximize')?.addEventListener('click', () => {
+            ipcRenderer.send('main-window-maximize');
+        });
+
+        document.getElementById('btn-close')?.addEventListener('click', () => {
+            ipcRenderer.send('main-window-close');
+        });
+
+        document.getElementById('link-create-key')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            shell.openExternal('https://panel.rxcorp.fr/account/api');
+        });
+    }
+
+    // ==========================================
+    // NAVIGATION (VIEW SWITCHING)
+    // ==========================================
+    initNavigation() {
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetView = item.dataset.view;
+                this.switchView(targetView);
+            });
+        });
+    }
+
+    switchView(viewName) {
+        this.activeView = viewName;
+
+        // Update sidebar active classes
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.view === viewName);
+        });
+
+        // Update view containers
+        document.querySelectorAll('.view-container').forEach(view => {
+            view.classList.toggle('active', view.id === `view-${viewName}`);
+        });
+
+        // Trigger view-specific refreshes
+        if (viewName === 'cloud') {
+            this.loadCloudServers();
+        } else if (viewName === 'instances') {
+            this.loadInstances();
+        } else if (viewName === 'pvp') {
+            this.renderPvPMods();
+        }
+    }
+
+    // ==========================================
+    // RXCORP CLOUD (PELICAN INTEGRATION)
+    // ==========================================
+    async loadCloudServers() {
+        const apiKey = store.get('apiKey');
+        const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+
+        const authCard = document.getElementById('cloud-auth-card');
+        const grid = document.getElementById('cloud-servers-grid');
+        const pillText = document.getElementById('cloud-pill-text');
+        const pillDot = document.querySelector('#cloud-pill .status-dot');
+
+        if (!apiKey) {
+            authCard.style.display = 'block';
+            grid.innerHTML = '';
+            pillText.innerText = 'Non connecté';
+            pillDot.className = 'status-dot offline';
+            return;
+        }
+
+        authCard.style.display = 'none';
+        pillText.innerText = 'Connexion...';
+        pillDot.className = 'status-dot';
+
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
+                <span>Chargement de vos serveurs RXCORP...</span>
+            </div>
+        `;
+
+        const res = await pelicanService.getServers(apiKey, panelUrl);
+        if (!res.success) {
+            grid.innerHTML = `
+                <div class="rx-card" style="grid-column: 1/-1; color: var(--danger);">
+                    <p>Impossible de contacter le Panel (${res.error}). Vérifiez votre clé API dans les Paramètres.</p>
+                </div>
+            `;
+            pillText.innerText = 'Erreur Panel';
+            pillDot.className = 'status-dot offline';
+            return;
+        }
+
+        this.cloudServers = res.servers.filter(s => s.isMinecraft);
+        pillText.innerText = `${this.cloudServers.length} Serveur(s)`;
+        pillDot.className = 'status-dot online';
+
+        if (this.cloudServers.length === 0) {
+            grid.innerHTML = `
+                <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                    <p style="color: var(--text-muted); margin-bottom: 12px;">Aucun serveur Minecraft actif trouvé sur votre compte.</p>
+                    <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
+                        Commander un serveur Minecraft
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = '';
+        for (const server of this.cloudServers) {
+            const card = this.createServerCard(server);
+            grid.appendChild(card);
+            // Fetch live status in background
+            this.fetchServerLiveStatus(server, card);
+        }
+    }
+
+    createServerCard(server) {
+        const card = document.createElement('div');
+        card.className = 'server-card';
+        card.id = `server-card-${server.id}`;
+
+        card.innerHTML = `
+            <div class="server-card-top">
+                <div class="server-name-box">
+                    <h3>${server.name}</h3>
+                    <div class="server-address" title="Cliquer pour copier">
+                        <span>${server.ip}:${server.port}</span>
+                        <span style="font-size: 10px;">📋</span>
+                    </div>
+                </div>
+                <div class="server-badge offline" id="badge-${server.id}">
+                    <span class="status-dot"></span>
+                    <span class="badge-text">Vérification...</span>
+                </div>
+            </div>
+
+            <div class="server-stats-row">
+                <div class="stat-item">
+                    <span class="stat-label">RAM Allouée</span>
+                    <span class="stat-value">${server.limits.memory > 0 ? (server.limits.memory / 1024).toFixed(1) + ' GB' : 'Illimitée'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">RAM Utilisée</span>
+                    <span class="stat-value" id="ram-used-${server.id}">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">CPU</span>
+                    <span class="stat-value" id="cpu-used-${server.id}">-</span>
+                </div>
+            </div>
+
+            <div class="server-actions">
+                <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1;" data-id="${server.id}">
+                    <span>⚡ Rejoindre</span>
+                </button>
+                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" data-id="${server.id}">
+                    <span>🔄 Sync Mods</span>
+                </button>
+                <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" data-id="${server.id}">
+                    <span>🌐</span>
+                </button>
+            </div>
+        `;
+
+        // Click to copy address
+        card.querySelector('.server-address').addEventListener('click', () => {
+            navigator.clipboard.writeText(`${server.ip}:${server.port}`);
+            this.showNotification('Adresse copiée !', `${server.ip}:${server.port} dans le presse-papier`);
+        });
+
+        // Join server button (Sync + Launch + Connect)
+        card.querySelector('.btn-join-server').addEventListener('click', () => {
+            this.handleJoinServer(server);
+        });
+
+        // Sync mods only button
+        card.querySelector('.btn-sync-mods').addEventListener('click', () => {
+            this.handleSyncServerMods(server);
+        });
+
+        // Open in panel button
+        card.querySelector('.btn-open-panel').addEventListener('click', () => {
+            shell.openExternal(`https://panel.rxcorp.fr/server/${server.id}`);
+        });
+
+        return card;
+    }
+
+    async fetchServerLiveStatus(server, card) {
+        const apiKey = store.get('apiKey');
+        const panelUrl = store.get('panelUrl');
+        const res = await pelicanService.getServerResources(server.id, apiKey, panelUrl);
+
+        const badge = card.querySelector(`#badge-${server.id}`);
+        const badgeText = badge.querySelector('.badge-text');
+        const ramValue = card.querySelector(`#ram-used-${server.id}`);
+        const cpuValue = card.querySelector(`#cpu-used-${server.id}`);
+
+        if (res.success && res.state === 'running') {
+            badge.className = 'server-badge online';
+            badgeText.innerText = 'En ligne';
+            ramValue.innerText = `${(res.resources.memoryBytes / (1024 * 1024)).toFixed(0)} MB`;
+            cpuValue.innerText = `${res.resources.cpuAbsolute}%`;
+        } else if (res.state === 'starting') {
+            badge.className = 'server-badge online';
+            badgeText.innerText = 'Démarrage...';
+        } else {
+            badge.className = 'server-badge offline';
+            badgeText.innerText = 'Hors-ligne';
+            ramValue.innerText = '0 MB';
+            cpuValue.innerText = '0%';
+        }
+    }
+
+    async handleSyncServerMods(server) {
+        if (this.isSyncing) return;
+        this.isSyncing = true;
+
+        const apiKey = store.get('apiKey');
+        const panelUrl = store.get('panelUrl');
+        const instance = instanceService.getOrCreateServerInstance(server);
+
+        this.updateDockStatus(`Synchronisation avec ${server.name}...`, 0);
+
+        try {
+            await pelicanService.syncModsToInstance(
+                server.id,
+                instance.modsPath,
+                apiKey,
+                panelUrl,
+                (progress) => {
+                    this.updateDockStatus(progress.message, progress.percent || 0);
+                }
+            );
+
+            this.showNotification('Synchronisation réussie', `Les mods de ${server.name} sont à jour.`);
+            this.loadInstances();
+        } catch (err) {
+            console.error('[Sync error]:', err);
+            this.showNotification('Erreur de synchronisation', err.message);
+        } finally {
+            this.isSyncing = false;
+            setTimeout(() => this.updateDockStatus('Prêt à jouer', 0), 3000);
+        }
+    }
+
+    async handleJoinServer(server) {
+        // 1. Sync mods first
+        await this.handleSyncServerMods(server);
+
+        // 2. Select the server instance
+        const instance = instanceService.getOrCreateServerInstance(server);
+        this.selectInstance(instance.id);
+
+        // 3. Launch game with server auto-connect!
+        await this.launchCurrentInstance();
+    }
+
+    // ==========================================
+    // INSTANCES MANAGEMENT
+    // ==========================================
+    async loadInstances() {
+        const instances = instanceService.getInstances();
+        const grid = document.getElementById('instances-grid');
+        const selectTarget = document.getElementById('select-target-instance');
+        const selectPvp = document.getElementById('select-pvp-instance');
+
+        // Populate dropdowns
+        if (selectTarget) {
+            selectTarget.innerHTML = instances.map(i => `<option value="${i.id}">${i.name} (${i.version})</option>`).join('');
+        }
+        if (selectPvp) {
+            selectPvp.innerHTML = instances.map(i => `<option value="${i.id}">${i.name} (${i.version})</option>`).join('');
+        }
+
+        // If no active instance, select the first one or default
+        let activeId = store.get('activeInstanceId');
+        if (!activeId && instances.length > 0) {
+            activeId = instances[0].id;
+            store.set('activeInstanceId', activeId);
+        }
+
+        if (activeId) {
+            this.activeInstance = instanceService.getInstance(activeId);
+        } else {
+            // If zero instances exist, create a default one
+            this.activeInstance = instanceService.createInstance({
+                name: 'Vanilla 1.21.1',
+                version: '1.21.1',
+                loader: 'fabric'
+            });
+            store.set('activeInstanceId', this.activeInstance.id);
+            return this.loadInstances();
+        }
+
+        this.updateDockInstancePill();
+
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        for (const inst of instances) {
+            const card = document.createElement('div');
+            card.className = 'server-card';
+            if (inst.id === this.activeInstance?.id) {
+                card.style.borderColor = 'var(--primary)';
+                card.style.boxShadow = '0 0 16px var(--primary-glow)';
+            }
+
+            card.innerHTML = `
+                <div class="server-card-top">
+                    <div class="server-name-box">
+                        <h3>${inst.name}</h3>
+                        <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version} • ${inst.loader.toUpperCase()}</span>
+                    </div>
+                    <div class="server-badge online" style="background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.3);">
+                        <span>${inst.modCount} Mod(s)</span>
+                    </div>
+                </div>
+
+                <div class="server-stats-row">
+                    <div class="stat-item">
+                        <span class="stat-label">Type</span>
+                        <span class="stat-value">${inst.loader.toUpperCase()}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Version</span>
+                        <span class="stat-value">${inst.version}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Dossier</span>
+                        <span class="stat-value" style="font-size: 11px; cursor: pointer; color: var(--accent);" title="Ouvrir dans l'explorateur">Ouvrir ↗</span>
+                    </div>
+                </div>
+
+                <div class="server-actions">
+                    <button class="rx-btn rx-btn-primary btn-select-instance" style="flex: 1;" data-id="${inst.id}">
+                        <span>${inst.id === this.activeInstance?.id ? '✓ Sélectionnée' : 'Sélectionner'}</span>
+                    </button>
+                    <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier" data-id="${inst.id}">
+                        <span>📁</span>
+                    </button>
+                    <button class="rx-btn rx-btn-danger btn-delete-instance" title="Supprimer l'instance" data-id="${inst.id}">
+                        <span>🗑</span>
+                    </button>
+                </div>
+            `;
+
+            card.querySelector('.btn-select-instance').addEventListener('click', () => {
+                this.selectInstance(inst.id);
+            });
+
+            card.querySelector('.btn-folder-instance').addEventListener('click', () => {
+                instanceService.openFolder(inst.id);
+            });
+
+            card.querySelector('.stat-value[style*="cursor: pointer"]').addEventListener('click', () => {
+                instanceService.openFolder(inst.id);
+            });
+
+            card.querySelector('.btn-delete-instance').addEventListener('click', () => {
+                if (confirm(`Voulez-vous vraiment supprimer l'instance "${inst.name}" ?`)) {
+                    instanceService.deleteInstance(inst.id);
+                    this.loadInstances();
+                }
+            });
+
+            grid.appendChild(card);
+        }
+    }
+
+    selectInstance(id) {
+        this.activeInstance = instanceService.getInstance(id);
+        store.set('activeInstanceId', id);
+        this.updateDockInstancePill();
+        this.loadInstances();
+        this.renderPvPMods();
+    }
+
+    updateDockInstancePill() {
+        const nameElem = document.getElementById('dock-instance-name');
+        const subElem = document.getElementById('dock-instance-sub');
+
+        if (this.activeInstance) {
+            nameElem.innerText = this.activeInstance.name;
+            subElem.innerText = `MC ${this.activeInstance.version} • ${this.activeInstance.loader.toUpperCase()}`;
+        } else {
+            nameElem.innerText = 'Aucune instance';
+            subElem.innerText = 'Cliquez pour sélectionner';
+        }
+    }
+
+    // ==========================================
+    // MODRINTH MOD BROWSER
+    // ==========================================
+    initModrinth() {
+        const searchInput = document.getElementById('input-mod-search');
+        const searchBtn = document.getElementById('btn-search-mods');
+
+        const doSearch = async () => {
+            const query = searchInput.value;
+            const targetInstId = document.getElementById('select-target-instance')?.value;
+            const targetInst = targetInstId ? instanceService.getInstance(targetInstId) : this.activeInstance;
+
+            const grid = document.getElementById('modrinth-mods-grid');
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
+                    Recherche sur Modrinth en cours...
+                </div>
+            `;
+
+            const res = await modrinthService.searchMods({
+                query: query,
+                version: targetInst?.version,
+                loader: targetInst?.loader,
+                limit: 24
+            });
+
+            if (!res.success || !res.mods.length) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
+                        Aucun mod trouvé pour cette recherche.
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+            for (const mod of res.mods) {
+                const card = document.createElement('div');
+                card.className = 'mod-card';
+
+                const iconSrc = mod.iconUrl || 'assets/images/icon/icon.png';
+                const downloadsFormatted = mod.downloads > 1000000 
+                    ? (mod.downloads / 1000000).toFixed(1) + 'M' 
+                    : (mod.downloads / 1000).toFixed(0) + 'k';
+
+                card.innerHTML = `
+                    <div class="mod-card-header">
+                        <img class="mod-icon" src="${iconSrc}" alt="Mod icon" onerror="this.src='assets/images/icon/icon.png'">
+                        <div class="mod-info-box">
+                            <div class="mod-title">${mod.title}</div>
+                            <div class="mod-author">par ${mod.author}</div>
+                        </div>
+                    </div>
+                    <div class="mod-desc">${mod.description || 'Aucune description fournie.'}</div>
+                    <div class="mod-footer">
+                        <div class="mod-stats">
+                            <span>⬇ ${downloadsFormatted}</span>
+                            <span>★ ${mod.follows}</span>
+                        </div>
+                        <button class="rx-btn rx-btn-primary btn-install-mod" data-slug="${mod.slug}">
+                            <span>📥 Installer</span>
+                        </button>
+                    </div>
+                `;
+
+                card.querySelector('.btn-install-mod').addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.innerText = 'Installation...';
+
+                    const currentTargetId = document.getElementById('select-target-instance')?.value || this.activeInstance?.id;
+                    const inst = instanceService.getInstance(currentTargetId);
+
+                    try {
+                        const versionsRes = await modrinthService.getCompatibleVersions(mod.slug, inst.version, inst.loader);
+                        if (!versionsRes.success || !versionsRes.versions.length) {
+                            alert(`Aucune version compatible avec MC ${inst.version} (${inst.loader})`);
+                            btn.disabled = false;
+                            btn.innerText = '📥 Installer';
+                            return;
+                        }
+
+                        const file = versionsRes.versions[0];
+                        await modrinthService.installMod(inst.modsPath, file.downloadUrl, file.fileName);
+                        btn.innerText = '✓ Installé';
+                        btn.classList.remove('rx-btn-primary');
+                        btn.classList.add('rx-btn-secondary');
+                        this.showNotification('Mod installé !', `${mod.title} ajouté à ${inst.name}`);
+                        this.loadInstances();
+                    } catch (err) {
+                        alert('Erreur: ' + err.message);
+                        btn.disabled = false;
+                        btn.innerText = '📥 Installer';
+                    }
+                });
+
+                grid.appendChild(card);
+            }
+        };
+
+        searchBtn?.addEventListener('click', doSearch);
+        searchInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doSearch();
+        });
+
+        // Trigger initial search
+        setTimeout(doSearch, 1000);
+    }
+
+    // ==========================================
+    // PVP & PERFORMANCE MODS
+    // ==========================================
+    initPvP() {
+        const selectPvp = document.getElementById('select-pvp-instance');
+        selectPvp?.addEventListener('change', () => {
+            this.renderPvPMods();
+        });
+    }
+
+    renderPvPMods() {
+        const grid = document.getElementById('pvp-mods-grid');
+        const selectPvp = document.getElementById('select-pvp-instance');
+        const targetId = selectPvp?.value || this.activeInstance?.id;
+
+        if (!grid || !targetId) return;
+
+        const catalog = pvpService.getCatalog();
+        const installedStatus = pvpService.checkInstalledMods(targetId);
+
+        grid.innerHTML = '';
+        for (const item of catalog) {
+            const status = installedStatus[item.id] || { installed: false, enabled: false };
+            const card = document.createElement('div');
+            card.className = 'pvp-card';
+
+            card.innerHTML = `
+                <div class="pvp-card-left">
+                    <div class="pvp-icon-box">${item.icon}</div>
+                    <div class="pvp-text">
+                        <h4>${item.name}</h4>
+                        <p>${item.description}</p>
+                    </div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" class="pvp-toggle" data-id="${item.id}" ${status.installed ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+            `;
+
+            const checkbox = card.querySelector('.pvp-toggle');
+            checkbox.addEventListener('change', async (e) => {
+                const checked = e.target.checked;
+                checkbox.disabled = true;
+
+                try {
+                    if (checked) {
+                        this.updateDockStatus(`Installation de ${item.name}...`, 0);
+                        await pvpService.installMod(targetId, item.id, (prog) => {
+                            this.updateDockStatus(prog.message, prog.percent || 0);
+                        });
+                        this.showNotification('Mod PvP activé', `${item.name} installé.`);
+                    } else {
+                        pvpService.removeMod(targetId, item.id);
+                        this.showNotification('Mod PvP retiré', `${item.name} désinstallé.`);
+                    }
+                    this.loadInstances();
+                } catch (err) {
+                    alert('Erreur: ' + err.message);
+                    e.target.checked = !checked;
+                } finally {
+                    checkbox.disabled = false;
+                    this.updateDockStatus('Prêt à jouer', 0);
+                }
+            });
+
+            grid.appendChild(card);
+        }
+    }
+
+    // ==========================================
+    // GAME LAUNCH DOCK
+    // ==========================================
+    initLaunchDock() {
+        const launchBtn = document.getElementById('btn-launch-game');
+        launchBtn?.addEventListener('click', () => {
+            this.launchCurrentInstance();
+        });
+
+        document.getElementById('dock-instance-pill')?.addEventListener('click', () => {
+            this.switchView('instances');
+        });
+    }
+
+    async launchCurrentInstance() {
+        if (!this.activeInstance) {
+            alert('Veuillez d\'abord sélectionner ou créer une instance.');
+            return;
+        }
+
+        const launchBtn = document.getElementById('btn-launch-game');
+        launchBtn.disabled = true;
+        launchBtn.innerHTML = '<span>LANCEMENT...</span>';
+
+        const ramMax = store.get('ramMax') || 4;
+        const javaPath = store.get('javaPath') || null;
+        const account = this.getActiveAccount();
+
+        try {
+            await gameLauncher.launch(
+                this.activeInstance,
+                account,
+                {
+                    ramMin: Math.max(1, Math.floor(ramMax / 2)),
+                    ramMax: ramMax,
+                    javaPath: javaPath
+                },
+                {
+                    onStatus: (msg) => this.updateDockStatus(msg),
+                    onProgress: (percent) => this.updateDockStatus(null, percent),
+                    onSpeed: (speed) => console.log(`Speed: ${speed} MB/s`),
+                    onGameStart: () => {
+                        this.updateDockStatus('Minecraft est en cours d\'exécution...', 100);
+                        launchBtn.innerHTML = '<span>EN JEU</span>';
+                    },
+                    onGameClose: () => {
+                        this.updateDockStatus('Prêt à jouer', 0);
+                        launchBtn.disabled = false;
+                        launchBtn.innerHTML = '<span>▶ JOUER</span>';
+                    },
+                    onError: (err) => {
+                        alert('Erreur lors du lancement du jeu:\n' + (err.message || err));
+                        this.updateDockStatus('Erreur de lancement', 0);
+                        launchBtn.disabled = false;
+                        launchBtn.innerHTML = '<span>▶ JOUER</span>';
+                    }
+                }
+            );
+        } catch (err) {
+            launchBtn.disabled = false;
+            launchBtn.innerHTML = '<span>▶ JOUER</span>';
+        }
+    }
+
+    updateDockStatus(message = null, percent = null) {
+        const statusText = document.getElementById('dock-status');
+        const progressContainer = document.getElementById('dock-progress-container');
+        const progressFill = document.getElementById('dock-progress-fill');
+
+        if (message !== null && statusText) {
+            statusText.innerText = message;
+        }
+
+        if (percent !== null && progressContainer && progressFill) {
+            if (percent > 0 && percent < 100) {
+                progressContainer.style.display = 'block';
+                progressFill.style.width = `${percent}%`;
+            } else {
+                progressContainer.style.display = 'none';
+                progressFill.style.width = '0%';
+            }
+        }
+    }
+
+    // ==========================================
+    // SETTINGS & ACCOUNTS
+    // ==========================================
+    initSettings() {
+        const rangeRam = document.getElementById('range-ram-max');
+        const labelRam = document.getElementById('label-ram-max');
+        const inputJava = document.getElementById('input-java-path');
+        const inputUrl = document.getElementById('settings-panel-url');
+        const inputKey = document.getElementById('settings-panel-key');
+        const btnSave = document.getElementById('btn-save-settings');
+
+        // Populate saved values
+        if (rangeRam) {
+            rangeRam.value = store.get('ramMax') || 4;
+            labelRam.innerText = `${rangeRam.value} GB`;
+            rangeRam.addEventListener('input', () => {
+                labelRam.innerText = `${rangeRam.value} GB`;
+            });
+        }
+
+        if (inputJava) inputJava.value = store.get('javaPath') || '';
+        if (inputUrl) inputUrl.value = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+        if (inputKey) inputKey.value = store.get('apiKey') || '';
+
+        btnSave?.addEventListener('click', () => {
+            store.set('ramMax', parseInt(rangeRam.value, 10));
+            store.set('javaPath', inputJava.value.trim());
+            store.set('panelUrl', inputUrl.value.trim());
+            store.set('apiKey', inputKey.value.trim());
+
+            this.showNotification('Paramètres sauvegardés', 'Vos réglages ont été mis à jour.');
+            this.loadCloudServers();
+        });
+
+        // Cloud login button on the cloud tab
+        document.getElementById('btn-login-cloud')?.addEventListener('click', () => {
+            const key = document.getElementById('input-panel-key').value.trim();
+            const url = document.getElementById('input-panel-url').value.trim();
+
+            if (!key) {
+                alert('Veuillez entrer une clé API Client valide.');
+                return;
+            }
+
+            store.set('apiKey', key);
+            store.set('panelUrl', url);
+            this.loadCloudServers();
+        });
+
+        // Test panel connection button
+        document.getElementById('btn-test-panel')?.addEventListener('click', async () => {
+            const key = inputKey.value.trim();
+            const url = inputUrl.value.trim();
+            const res = await pelicanService.testConnection(key, url);
+            if (res.success) {
+                alert(`Connexion réussie !\nConnecté en tant que: ${res.user.username} (${res.user.email})`);
+            } else {
+                alert(`Échec de connexion: ${res.error}`);
+            }
+        });
+
+        // Disconnect panel button
+        document.getElementById('btn-disconnect-panel')?.addEventListener('click', () => {
+            store.set('apiKey', '');
+            if (inputKey) inputKey.value = '';
+            this.loadCloudServers();
+            alert('Déconnecté du Panel.');
+        });
+    }
+
+    initAccounts() {
+        this.renderAccountsList();
+
+        document.getElementById('btn-add-offline')?.addEventListener('click', () => {
+            this.openModal('modal-add-offline');
+        });
+
+        document.getElementById('btn-confirm-add-offline')?.addEventListener('click', () => {
+            const input = document.getElementById('input-offline-username');
+            const username = (input.value || '').trim();
+            if (!username) {
+                alert('Veuillez entrer un pseudo.');
+                return;
+            }
+
+            const accounts = store.get('accounts') || [];
+            accounts.push({
+                name: username,
+                uuid: 'offline-' + Date.now(),
+                meta: { type: 'Mojang', online: false }
+            });
+
+            store.set('accounts', accounts);
+            store.set('activeAccountName', username);
+            input.value = '';
+            this.closeModal('modal-add-offline');
+            this.renderAccountsList();
+        });
+
+        document.getElementById('btn-add-microsoft')?.addEventListener('click', async () => {
+            try {
+                this.updateDockStatus('Connexion Microsoft en cours...');
+                const client_id = "00000000402b5328"; // Standard Minecraft Client ID
+                const auth = await ipcRenderer.invoke('Microsoft-window', client_id);
+                if (auth && auth.name) {
+                    const accounts = store.get('accounts') || [];
+                    accounts.push(auth);
+                    store.set('accounts', accounts);
+                    store.set('activeAccountName', auth.name);
+                    this.renderAccountsList();
+                    this.showNotification('Compte connecté', `Bienvenue ${auth.name} !`);
+                }
+            } catch (err) {
+                alert('Erreur Microsoft: ' + err.message);
+            } finally {
+                this.updateDockStatus('Prêt à jouer', 0);
+            }
+        });
+    }
+
+    getActiveAccount() {
+        const accounts = store.get('accounts') || [];
+        const activeName = store.get('activeAccountName');
+        return accounts.find(a => a.name === activeName) || accounts[0] || null;
+    }
+
+    renderAccountsList() {
+        const list = document.getElementById('accounts-list');
+        const activeAccount = this.getActiveAccount();
+        const userNameElem = document.getElementById('user-name');
+
+        if (userNameElem && activeAccount) {
+            userNameElem.innerText = activeAccount.name;
+        }
+
+        if (!list) return;
+        const accounts = store.get('accounts') || [];
+
+        list.innerHTML = accounts.map(acc => {
+            const isActive = acc.name === activeAccount?.name;
+            return `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); border: 1px solid ${isActive ? 'var(--primary)' : 'var(--border-color)'};">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://mc-heads.net/avatar/${acc.name}/24" style="width: 24px; height: 24px; border-radius: 4px;" onerror="this.src='assets/images/icon/icon.png'">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: white;">${acc.name}</div>
+                            <div style="font-size: 11px; color: var(--text-dim);">${acc.meta?.type === 'Xbox' ? 'Compte Microsoft Officiel' : 'Compte Hors-Ligne'}</div>
+                        </div>
+                    </div>
+                    <div>
+                        ${isActive 
+                            ? '<span style="color: var(--primary); font-size: 12px; font-weight: 700;">Actif</span>'
+                            : `<button class="rx-btn rx-btn-secondary btn-switch-account" data-name="${acc.name}" style="padding: 4px 10px; font-size: 11px;">Activer</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        list.querySelectorAll('.btn-switch-account').forEach(btn => {
+            btn.addEventListener('click', () => {
+                store.set('activeAccountName', btn.dataset.name);
+                this.renderAccountsList();
+            });
+        });
+    }
+
+    // ==========================================
+    // MODALS HANDLING
+    // ==========================================
+    initModals() {
+        document.querySelectorAll('[data-close]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modalId = btn.dataset.close;
+                this.closeModal(modalId);
+            });
+        });
+
+        document.getElementById('btn-new-instance')?.addEventListener('click', () => {
+            this.openModal('modal-create-instance');
+        });
+
+        document.getElementById('btn-confirm-create-instance')?.addEventListener('click', () => {
+            const name = document.getElementById('input-new-name').value.trim();
+            const version = document.getElementById('select-new-version').value;
+            const loader = document.getElementById('select-new-loader').value;
+
+            if (!name) {
+                alert('Veuillez donner un nom à votre instance.');
+                return;
+            }
+
+            const newInst = instanceService.createInstance({
+                name: name,
+                version: version,
+                loader: loader
+            });
+
+            this.closeModal('modal-create-instance');
+            document.getElementById('input-new-name').value = '';
+            this.selectInstance(newInst.id);
+            this.loadInstances();
+            this.showNotification('Instance créée', `"${name}" est prête à être personnalisée.`);
+        });
+    }
+
+    openModal(id) {
+        document.getElementById(id)?.classList.add('active');
+    }
+
+    closeModal(id) {
+        document.getElementById(id)?.classList.remove('active');
+    }
+
+    showNotification(title, body) {
+        ipcRenderer.send('send-notification', { title, body });
+    }
+}
+
+// Start application when DOM is ready
+window.addEventListener('DOMContentLoaded', () => {
+    const app = new RxcorpApp();
+    app.init();
+});

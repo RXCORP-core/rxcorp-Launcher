@@ -22,11 +22,12 @@ function destroyWindow() {
 function createWindow() {
     destroyWindow();
     mainWindow = new BrowserWindow({
-        title: "DeltaZone - Zombie Apocalypse Launcher",
-        width: 1280,
-        height: 720,
-        minWidth: 980,
-        minHeight: 552,
+        title: "RXCORP Launcher",
+        width: 1200,
+        height: 740,
+        minWidth: 960,
+        minHeight: 600,
+        backgroundColor: "#080b11",
         resizable: true,
         icon: `./src/assets/images/icon/icon.${os.platform() === "win32" ? "ico" : "png"}`,
         frame: false,
