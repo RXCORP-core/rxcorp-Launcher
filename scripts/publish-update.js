@@ -44,17 +44,28 @@ fs.copyFileSync(path.join(DIST_DIR, exeFile), path.join(TARGET_UPDATE_DIR, exeFi
 
 // Also copy as direct download root
 fs.copyFileSync(path.join(DIST_DIR, exeFile), TARGET_EXE);
+fs.copyFileSync(path.join(DIST_DIR, exeFile), '/var/www/landing/RXCORP-Launcher-v2.exe');
+
+const unpackedDir = path.join(DIST_DIR, 'win-unpacked');
+if (fs.existsSync(unpackedDir)) {
+    console.log('[3/4] Mise à jour du package portable RXCORP-Launcher-Portable.zip...');
+    try {
+        execSync(`cd "${unpackedDir}" && zip -r -q /var/www/landing/RXCORP-Launcher-Portable.zip .`);
+    } catch (e) {
+        console.warn('[AVERTISSEMENT] Erreur zip portable:', e.message);
+    }
+}
 
 if (blockmapFile) {
-    console.log(`[3/4] Copie de ${blockmapFile} pour mises à jour différentielles rapides...`);
+    console.log(`[3b/4] Copie de ${blockmapFile} pour mises à jour différentielles rapides...`);
     fs.copyFileSync(path.join(DIST_DIR, blockmapFile), path.join(TARGET_UPDATE_DIR, blockmapFile));
 }
 
 console.log('[4/4] Ajustement des permissions web (www-data)...');
 try {
-    execSync(`chown -R www-data:www-data /var/www/landing/launcher ${TARGET_EXE}`);
+    execSync(`chown -R www-data:www-data /var/www/landing/launcher /var/www/landing/*.exe /var/www/landing/*.zip`);
     execSync(`chmod -R 755 /var/www/landing/launcher`);
-    execSync(`chmod 644 ${TARGET_EXE}`);
+    execSync(`chmod 644 /var/www/landing/*.exe /var/www/landing/*.zip`);
 } catch (e) {
     console.warn('[AVERTISSEMENT] Erreur chown/chmod:', e.message);
 }

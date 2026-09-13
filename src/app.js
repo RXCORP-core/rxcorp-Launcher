@@ -3,7 +3,7 @@
  * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
  */
 
-const { app, ipcMain, nativeTheme, Notification } = require('electron');
+const { app, ipcMain, nativeTheme, Notification, dialog } = require('electron');
 const { Microsoft } = require('minecraft-java-core');
 const { autoUpdater } = require('electron-updater');
 
@@ -156,7 +156,21 @@ function checkLauncherUpdates() {
 }
 
 ipcMain.on('check-for-update', () => checkLauncherUpdates());
-ipcMain.on('install-update-now', () => autoUpdater.quitAndInstall());
+ipcMain.on('install-update-now', () => {
+    console.log('[AutoUpdater] Applying update now (quitAndInstall)...');
+    try {
+        setImmediate(() => {
+            try {
+                autoUpdater.quitAndInstall(false, true);
+            } catch (e) {
+                app.quit();
+            }
+        });
+    } catch (e) {
+        console.error('[AutoUpdater] quitAndInstall error:', e);
+        app.quit();
+    }
+});
 
 autoUpdater.on('checking-for-update', () => {
     const win = MainWindow.getWindow();
@@ -167,11 +181,14 @@ autoUpdater.on('update-available', (info) => {
     const win = MainWindow.getWindow();
     if (win) win.webContents.send('updater-event', { status: 'available', version: info ? info.version : '' });
     if (Notification && Notification.isSupported()) {
-        new Notification({
-            title: '⚡ RXCORP // MISE À JOUR DISPONIBLE',
-            body: `La version ${info ? info.version : ''} est en cours de téléchargement silencieux...`,
-            icon: path.join(__dirname, 'assets/images/icon/icon.png')
-        }).show();
+        try {
+            const notif = new Notification({
+                title: '⚡ RXCORP // MISE À JOUR DISPONIBLE',
+                body: `La version ${info ? info.version : ''} est en cours de téléchargement...`,
+                icon: path.join(__dirname, 'assets/images/icon/icon.png')
+            });
+            notif.show();
+        } catch (e) {}
     }
 });
 
@@ -191,13 +208,56 @@ autoUpdater.on('download-progress', (progress) => {
 
 autoUpdater.on('update-downloaded', (info) => {
     const win = MainWindow.getWindow();
-    if (win) win.webContents.send('updater-event', { status: 'ready', version: info ? info.version : '' });
+    const ver = info ? info.version : '';
+    if (win) win.webContents.send('updater-event', { status: 'ready', version: ver });
+
+    // Interactive Dialog prompt directly in app
+    try {
+        dialog.showMessageBox(win || null, {
+            type: 'info',
+            buttons: ['Redémarrer maintenant', 'Plus tard'],
+            defaultId: 0,
+            cancelId: 1,
+            title: 'RXCORP Launcher - Mise à jour prête',
+            message: `Mise à jour v${ver} téléchargée avec succès !`,
+            detail: 'Le launcher va redémarrer pour installer la nouvelle version.'
+        }).then(({ response }) => {
+            if (response === 0) {
+                console.log('[AutoUpdater] User accepted restart dialog -> quitAndInstall');
+                setImmediate(() => {
+                    try {
+                        autoUpdater.quitAndInstall(false, true);
+                    } catch (e) {
+                        app.quit();
+                    }
+                });
+            }
+        }).catch(e => console.error('[Dialog Error]', e));
+    } catch (e) {
+        console.error('[Dialog Error]', e);
+    }
+
     if (Notification && Notification.isSupported()) {
-        new Notification({
-            title: '🚀 RXCORP // MISE À JOUR PRÊTE !',
-            body: `La version ${info ? info.version : ''} a été installée. Cliquez pour relancer.`,
-            icon: path.join(__dirname, 'assets/images/icon/icon.png')
-        }).show();
+        try {
+            const notif = new Notification({
+                title: '🚀 RXCORP // MISE À JOUR PRÊTE !',
+                body: `Version ${ver} téléchargée. Cliquez ici pour redémarrer et appliquer.`,
+                icon: path.join(__dirname, 'assets/images/icon/icon.png')
+            });
+            notif.on('click', () => {
+                console.log('[AutoUpdater] User clicked notification -> quitAndInstall');
+                setImmediate(() => {
+                    try {
+                        autoUpdater.quitAndInstall(false, true);
+                    } catch (e) {
+                        app.quit();
+                    }
+                });
+            });
+            notif.show();
+        } catch (e) {
+            console.error('[Notification error]:', e);
+        }
     }
 });
 
