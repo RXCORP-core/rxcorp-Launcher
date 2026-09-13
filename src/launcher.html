@@ -7,13 +7,10 @@
     <link rel="stylesheet" href="assets/css/rxcorp.css">
 </head>
 <body>
-    <!-- Background glowing orbs -->
-    <div class="app-background">
-        <div class="glow-orb-1"></div>
-        <div class="glow-orb-2"></div>
-    </div>
+    <!-- Background cyber grid & glow effects -->
+    <div class="app-background"></div>
 
-    <!-- Custom Window Titlebar -->
+    <!-- Custom Window Titlebar (Draggable) -->
     <header class="app-titlebar">
         <div class="brand-section">
             <div class="brand-logo">RX</div>
@@ -22,24 +19,24 @@
         </div>
 
         <div class="titlebar-center">
-            <div id="cloud-pill" class="cloud-status-pill" title="Statut de l'intégration Pelican Cloud">
-                <span class="status-dot online"></span>
+            <div id="cloud-pill" class="status-pill" title="Statut de l'infrastructure Cloud">
+                <span class="status-dot"></span>
                 <span id="cloud-pill-text">RXCORP Cloud</span>
             </div>
-            <div id="update-pill" class="cloud-status-pill update-pill" style="display: none; cursor: pointer; border-color: #00f0ff; background: rgba(0,240,255,0.12);" title="Mise à jour">
-                <span class="status-dot" style="background: #00f0ff; box-shadow: 0 0 8px #00f0ff;"></span>
-                <span id="update-pill-text" style="color: #00f0ff; font-weight: bold;">MAJ disponible</span>
+            <div id="update-pill" class="status-pill" style="display: none; cursor: pointer; border-color: var(--cyan); background: rgba(0, 240, 255, 0.12);" title="Mise à jour">
+                <span class="status-dot" style="background: var(--cyan); box-shadow: 0 0 8px var(--cyan);"></span>
+                <span id="update-pill-text" style="color: var(--cyan); font-weight: 700;">MAJ DISPONIBLE</span>
             </div>
         </div>
 
         <div class="titlebar-controls">
             <div id="user-pill" class="user-pill" title="Compte Minecraft actif">
                 <img id="user-avatar" class="user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
-                <span id="user-name">Joueur</span>
+                <span id="user-name" class="user-name">Joueur</span>
             </div>
 
             <div class="window-btns">
-                <button id="btn-minimize" class="win-btn" title="Réduire">−</button>
+                <button id="btn-minimize" class="win-btn" title="Réduire">─</button>
                 <button id="btn-maximize" class="win-btn" title="Agrandir">□</button>
                 <button id="btn-close" class="win-btn btn-close" title="Fermer">✕</button>
             </div>
@@ -51,28 +48,49 @@
         <!-- Sidebar Navigation -->
         <nav class="app-sidebar">
             <div class="nav-label">Navigation</div>
+            
             <div class="nav-item active" data-view="cloud">
-                <span class="nav-icon">🌐</span>
-                <span>RXCORP Cloud</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                </svg>
+                <span>Serveurs Cloud</span>
             </div>
+
             <div class="nav-item" data-view="instances">
-                <span class="nav-icon">🎮</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
                 <span>Mes Instances</span>
             </div>
+
             <div class="nav-item" data-view="modrinth">
-                <span class="nav-icon">🔍</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
                 <span>Mods & Addons</span>
             </div>
+
             <div class="nav-item" data-view="pvp">
-                <span class="nav-icon">⚔️</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
                 <span>Mode PvP & FPS</span>
             </div>
 
             <div class="sidebar-spacer"></div>
 
-            <div class="nav-label">Configuration</div>
+            <div class="nav-label">Système</div>
             <div class="nav-item" data-view="settings">
-                <span class="nav-icon">⚙️</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
                 <span>Paramètres</span>
             </div>
         </nav>
@@ -82,254 +100,271 @@
             <!-- VIEW 1: RXCORP CLOUD -->
             <section id="view-cloud" class="view-container active">
                 <div class="view-header">
-                    <div class="view-header-left">
-                        <h1>🌐 RXCORP Cloud - Mes Serveurs</h1>
-                        <p>Vos serveurs hébergés sur l'infrastructure RXCORP. Synchronisation 1-clic des mods et connexion directe.</p>
+                    <div>
+                        <h1 class="view-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                            <span>Serveurs Détectés</span>
+                        </h1>
+                        <p class="view-subtitle">Infrastructure RXCORP Pelican Cloud • Synchronisation automatique des mods et connexion directe</p>
                     </div>
-                    <div class="view-header-actions">
+                    <div>
                         <button id="btn-refresh-cloud" class="rx-btn rx-btn-secondary">
-                            <span>🔄 Rafraîchir</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                            <span>Rafraîchir</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Auth box if no API key is set -->
-                <div id="cloud-auth-card" class="rx-card" style="display: none; max-width: 550px; margin: 40px auto;">
-                    <h2 style="font-size: 18px; margin-bottom: 8px;">🔑 Connecter votre compte RXCORP</h2>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-                        Entrez votre clé API Client Pelican pour synchroniser automatiquement vos serveurs et leurs mods.
+                <!-- Pro Onboarding Card if not connected -->
+                <div id="cloud-auth-card" class="cloud-hero-card" style="display: none;">
+                    <div class="cloud-hero-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                    </div>
+                    <h2 class="cloud-hero-title">Synchronisation Pelican Cloud</h2>
+                    <p class="cloud-hero-desc">
+                        Connectez votre compte pour détecter vos serveurs Minecraft hébergés sur l'infrastructure RXCORP, synchroniser vos mods en 1 clic et vous connecter automatiquement.
                     </p>
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label class="form-label">URL du Panel</label>
-                        <input id="input-panel-url" type="text" class="form-input" value="https://panel.rxcorp.fr">
+                    
+                    <div style="max-width: 440px; margin: 0 auto;">
+                        <div class="form-group">
+                            <label class="form-label">Clé API Client Pelican (pacc_...)</label>
+                            <input id="input-panel-key" type="password" class="form-input" placeholder="pacc_xxxxxxxxxxxxxxxxxxxxxxxx">
+                            <input id="input-panel-url" type="hidden" value="https://panel.rxcorp.fr">
+                            <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px; text-align: left;">
+                                Obtenez votre clé en 1 clic sur <a href="#" id="link-create-key" style="color: var(--cyan); text-decoration: none; font-weight: 600;">panel.rxcorp.fr/account/api ↗</a>
+                            </div>
+                        </div>
+
+                        <button id="btn-login-cloud" class="rx-btn rx-btn-primary" style="width: 100%; height: 44px; margin-top: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                            <span>Valider la Connexion</span>
+                        </button>
                     </div>
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label class="form-label">Clé API Client (pacc_...)</label>
-                        <input id="input-panel-key" type="password" class="form-input" placeholder="Collez votre clé API ici">
-                        <span style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">
-                            Générez votre clé sur <a href="#" id="link-create-key" style="color: var(--accent); text-decoration: none;">panel.rxcorp.fr/account/api</a>
-                        </span>
-                    </div>
-                    <button id="btn-login-cloud" class="rx-btn rx-btn-primary btn-full">
-                        <span>Se connecter et charger mes serveurs</span>
-                    </button>
                 </div>
 
-                <!-- Server Grid -->
-                <div id="cloud-servers-grid" class="servers-grid">
-                    <!-- Populated dynamically -->
-                </div>
+                <!-- Servers Grid -->
+                <div id="cloud-servers-grid" class="servers-grid"></div>
             </section>
 
             <!-- VIEW 2: INSTANCES -->
             <section id="view-instances" class="view-container">
                 <div class="view-header">
-                    <div class="view-header-left">
-                        <h1>🎮 Mes Instances & Modpacks</h1>
-                        <p>Gérez vos profils de jeu indépendants, modloaders et configurations locales.</p>
+                    <div>
+                        <h1 class="view-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            <span>Instances Locales</span>
+                        </h1>
+                        <p class="view-subtitle">Profils Minecraft isolés • Support Vanilla, Fabric, Forge et NeoForge</p>
                     </div>
-                    <div class="view-header-actions">
+                    <div>
                         <button id="btn-new-instance" class="rx-btn rx-btn-primary">
-                            <span>+ Nouvelle Instance</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span>Créer une Instance</span>
                         </button>
                     </div>
                 </div>
 
-                <div id="instances-grid" class="servers-grid">
-                    <!-- Populated dynamically -->
-                </div>
+                <div id="instances-grid" class="servers-grid"></div>
             </section>
 
             <!-- VIEW 3: MODRINTH MODS -->
             <section id="view-modrinth" class="view-container">
                 <div class="view-header">
-                    <div class="view-header-left">
-                        <h1>🔍 Navigateur de Mods Modrinth</h1>
-                        <p>Explorez et installez des milliers de mods en 1 clic directement dans vos instances.</p>
+                    <div>
+                        <h1 class="view-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+                            <span>Catalogue Modrinth</span>
+                        </h1>
+                        <p class="view-subtitle">Explorez et installez des milliers de mods vérifiés en 1 clic</p>
                     </div>
                 </div>
 
-                <!-- Search & Filters bar -->
-                <div class="rx-card" style="padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px;">
-                    <input id="input-mod-search" type="text" class="form-input" placeholder="Rechercher un mod (ex: Sodium, Voice Chat, JEI, Iris...)" style="flex: 1;">
+                <!-- Search Bar -->
+                <div class="rx-card" style="padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px;">
+                    <div style="position: relative; flex: 1;">
+                        <input id="input-mod-search" type="text" class="form-input" placeholder="Rechercher un mod (ex: Sodium, Voice Chat, Iris, JEI...)" style="padding-left: 36px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; top: 12px; width: 16px; height: 16px; stroke: var(--text-dim);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
                     
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label class="form-label" style="white-space: nowrap; margin: 0;">Installer dans :</label>
-                        <select id="select-target-instance" class="form-select" style="min-width: 180px;">
-                            <!-- Populated dynamically -->
-                        </select>
+                        <label class="form-label" style="white-space: nowrap; margin: 0;">Cible :</label>
+                        <select id="select-target-instance" class="form-select" style="min-width: 170px;"></select>
                     </div>
 
-                    <button id="btn-search-mods" class="rx-btn rx-btn-accent">
-                        <span>Rechercher</span>
-                    </button>
+                    <button id="btn-search-mods" class="rx-btn rx-btn-cyan">Rechercher</button>
                 </div>
 
-                <div id="modrinth-mods-grid" class="mods-grid">
-                    <!-- Populated dynamically -->
-                </div>
+                <div id="modrinth-mods-grid" class="servers-grid"></div>
             </section>
 
             <!-- VIEW 4: PVP & FPS BOOST -->
             <section id="view-pvp" class="view-container">
                 <div class="view-header">
-                    <div class="view-header-left">
-                        <h1>⚔️ Mode PvP & Optimisation FPS</h1>
-                        <p>Activez ou désactivez les meilleurs mods d'optimisation et PvP sans toucher aux fichiers.</p>
+                    <div>
+                        <h1 class="view-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <span>Optimisation & Mode PvP</span>
+                        </h1>
+                        <p class="view-subtitle">Toggles tactiques de performance, shaders et mods compétitifs</p>
                     </div>
-                    <div class="view-header-actions" style="display: flex; align-items: center; gap: 8px;">
-                        <label class="form-label" style="white-space: nowrap; margin: 0;">Instance cible :</label>
-                        <select id="select-pvp-instance" class="form-select" style="min-width: 180px;">
-                            <!-- Populated dynamically -->
-                        </select>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label class="form-label" style="margin: 0;">Instance cible :</label>
+                        <select id="select-pvp-instance" class="form-select" style="min-width: 170px;"></select>
                     </div>
                 </div>
 
-                <div id="pvp-mods-grid" class="pvp-grid">
-                    <!-- Populated dynamically -->
-                </div>
+                <div id="pvp-mods-grid" class="pvp-grid"></div>
             </section>
 
             <!-- VIEW 5: SETTINGS -->
             <section id="view-settings" class="view-container">
                 <div class="view-header">
-                    <div class="view-header-left">
-                        <h1>⚙️ Paramètres Généraux</h1>
-                        <p>Configuration de l'allocation mémoire, de Java et de vos comptes de jeu.</p>
-                    </div>
-                    <div class="view-header-actions">
-                        <button id="btn-save-settings" class="rx-btn rx-btn-primary">
-                            <span>Enregistrer les modifications</span>
-                        </button>
+                    <div>
+                        <h1 class="view-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <span>Configuration & Comptes</span>
+                        </h1>
+                        <p class="view-subtitle">Allocation mémoire, exécutable Java et identifiants Cloud</p>
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 20px; max-width: 720px;">
-                    <!-- Java & RAM Card -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+                    <!-- Gaming Settings -->
                     <div class="rx-card">
-                        <h3 style="font-size: 16px; margin-bottom: 16px; color: white;">💾 Mémoire Vive (RAM) & Java</h3>
-                        
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label class="form-label">RAM Allouée Maximale</label>
-                                <span id="label-ram-max" style="font-size: 13px; font-weight: 700; color: var(--primary);">4 GB</span>
+                        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="width: 18px; height: 18px;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                            <span>Paramètres de Jeu</span>
+                        </h2>
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <label class="form-label" style="margin: 0;">Mémoire RAM Maximale</label>
+                                <span id="label-ram-max" style="font-family: var(--font-mono); color: var(--cyan); font-weight: 700;">4 GB</span>
                             </div>
-                            <input id="range-ram-max" type="range" min="2" max="16" step="1" value="4" style="accent-color: var(--primary); width: 100%; cursor: pointer;">
+                            <input id="range-ram-max" type="range" min="2" max="16" step="1" value="4" style="width: 100%; accent-color: var(--primary);">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Chemin de l'exécutable Java (optionnel)</label>
-                            <input id="input-java-path" type="text" class="form-input" placeholder="Automatique (Détection automatique du système)">
+                            <label class="form-label">Chemin Java Personnalisé (Optionnel)</label>
+                            <input id="input-java-path" type="text" class="form-input" placeholder="Automatique (Java intégré)">
                         </div>
+
+                        <button id="btn-save-settings" class="rx-btn rx-btn-primary" style="width: 100%;">
+                            <span>Sauvegarder les Paramètres</span>
+                        </button>
                     </div>
 
-                    <!-- Cloud Connection Settings -->
+                    <!-- Cloud Settings -->
                     <div class="rx-card">
-                        <h3 style="font-size: 16px; margin-bottom: 16px; color: white;">🌐 Intégration Pelican Cloud</h3>
-                        
-                        <div class="form-group" style="margin-bottom: 14px;">
-                            <label class="form-label">Adresse du Panel</label>
+                        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" style="width: 18px; height: 18px;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                            <span>Identifiants Pelican Cloud</span>
+                        </h2>
+
+                        <div class="form-group">
+                            <label class="form-label">URL du Panel</label>
                             <input id="settings-panel-url" type="text" class="form-input" value="https://panel.rxcorp.fr">
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 16px;">
+                        <div class="form-group">
                             <label class="form-label">Clé API Client</label>
                             <input id="settings-panel-key" type="password" class="form-input" placeholder="pacc_...">
                         </div>
 
-                        <div style="display: flex; gap: 10px;">
-                            <button id="btn-test-panel" class="rx-btn rx-btn-secondary">Tester la connexion</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btn-test-panel" class="rx-btn rx-btn-secondary" style="flex: 1;">Tester</button>
                             <button id="btn-disconnect-panel" class="rx-btn rx-btn-danger">Déconnecter</button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Accounts Card -->
-                    <div class="rx-card">
-                        <h3 style="font-size: 16px; margin-bottom: 16px; color: white;">👤 Comptes Minecraft</h3>
-                        
-                        <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
-                            <!-- Populated dynamically -->
-                        </div>
-
-                        <div style="display: flex; gap: 10px;">
-                            <button id="btn-add-microsoft" class="rx-btn rx-btn-primary">
-                                <span>+ Compte Microsoft (Officiel)</span>
-                            </button>
-                            <button id="btn-add-offline" class="rx-btn rx-btn-secondary">
-                                <span>+ Compte Hors-Ligne (Pseudo)</span>
-                            </button>
+                <!-- Accounts Management -->
+                <div class="rx-card" style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-white);">Comptes Minecraft</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btn-add-offline" class="rx-btn rx-btn-secondary" style="font-size: 12px; padding: 6px 12px;">+ Hors-ligne</button>
+                            <button id="btn-add-microsoft" class="rx-btn rx-btn-primary" style="font-size: 12px; padding: 6px 12px;">+ Microsoft</button>
                         </div>
                     </div>
+                    <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Bottom Launch Dock -->
-    <footer class="launch-dock">
+    <!-- -----------------------------------------------------------------------
+         BOTTOM LAUNCH DOCK (THE MASTER CONTROL)
+         ----------------------------------------------------------------------- -->
+    <footer class="app-dock">
         <div class="dock-left">
-            <div id="dock-instance-pill" class="instance-selector" title="Cliquer pour changer d'instance active">
-                <span class="instance-icon">🎮</span>
-                <div class="instance-info">
-                    <span id="dock-instance-name" class="instance-name">Aucune instance</span>
-                    <span id="dock-instance-sub" class="instance-version">Sélectionnez une instance</span>
+            <div id="dock-instance-pill" class="dock-instance-card" title="Changer d'instance">
+                <div class="dock-instance-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </div>
+                <div class="dock-instance-meta">
+                    <span id="dock-instance-name" class="dock-instance-title">Vanilla 1.21.1</span>
+                    <span id="dock-instance-sub" class="dock-instance-sub">Minecraft 1.21.1 • FABRIC</span>
                 </div>
             </div>
         </div>
 
         <div class="dock-center">
-            <span id="dock-status" class="dock-status-text">Prêt à jouer</span>
+            <div id="dock-status" class="dock-status-readout">
+                <span class="status-dot online"></span>
+                <span>Prêt à jouer</span>
+            </div>
             <div id="dock-progress-container" class="dock-progress-bar">
                 <div id="dock-progress-fill" class="dock-progress-fill"></div>
             </div>
         </div>
 
         <div class="dock-right">
-            <button id="btn-launch-game" class="btn-launch-big">
-                <span>▶ JOUER</span>
+            <button id="btn-launch-game" class="btn-launch-game">
+                <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span>JOUER</span>
             </button>
         </div>
     </footer>
 
-    <!-- MODAL: Create Instance -->
+    <!-- MODAL: Create New Instance -->
     <div id="modal-create-instance" class="rx-modal-overlay">
         <div class="rx-modal">
             <div class="modal-header">
-                <h2>Créer une nouvelle instance</h2>
+                <h2>Nouvelle Instance</h2>
                 <button class="modal-close" data-close="modal-create-instance">✕</button>
             </div>
             
             <div class="form-group">
-                <label class="form-label">Nom de l'instance</label>
-                <input id="input-new-name" type="text" class="form-input" placeholder="ex: Survie Moddée 1.21.1">
+                <label class="form-label">Nom du Profil</label>
+                <input id="input-new-name" type="text" class="form-input" placeholder="ex: RX Survival 1.21">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Version de Minecraft</label>
                 <select id="select-new-version" class="form-select">
-                    <option value="1.21.1">Minecraft 1.21.1 (Dernière version stable)</option>
-                    <option value="1.20.4">Minecraft 1.20.4</option>
-                    <option value="1.20.1">Minecraft 1.20.1 (Très populaire pour mods)</option>
-                    <option value="1.19.4">Minecraft 1.19.4</option>
-                    <option value="1.16.5">Minecraft 1.16.5</option>
-                    <option value="1.12.2">Minecraft 1.12.2 (Classique moddé)</option>
-                    <option value="1.8.9">Minecraft 1.8.9 (PvP Standard)</option>
+                    <option value="1.21.4">1.21.4 (Dernière version)</option>
+                    <option value="1.21.1" selected>1.21.1 (Recommandée)</option>
+                    <option value="1.20.4">1.20.4</option>
+                    <option value="1.20.1">1.20.1 (Très stable mods)</option>
+                    <option value="1.19.4">1.19.4</option>
+                    <option value="1.16.5">1.16.5</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">ModLoader</label>
+                <label class="form-label">Modloader</label>
                 <select id="select-new-loader" class="form-select">
-                    <option value="fabric">Fabric (Recommandé, rapide & léger)</option>
-                    <option value="forge">Forge (Idéal pour gros modpacks)</option>
-                    <option value="neoforge">NeoForge (Nouvelle génération)</option>
-                    <option value="vanilla">Vanilla (Pur jeu officiel sans mods)</option>
+                    <option value="fabric" selected>Fabric (Performances & Mods modernes)</option>
+                    <option value="neoforge">NeoForge (Mods modernes)</option>
+                    <option value="forge">Forge (Compatibilité classique)</option>
+                    <option value="vanilla">Vanilla (Pur jeu original)</option>
                 </select>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                 <button class="rx-btn rx-btn-secondary" data-close="modal-create-instance">Annuler</button>
-                <button id="btn-confirm-create-instance" class="rx-btn rx-btn-primary">Créer l'instance</button>
+                <button id="btn-confirm-create-instance" class="rx-btn rx-btn-primary">Créer le Profil</button>
             </div>
         </div>
     </div>
@@ -338,16 +373,16 @@
     <div id="modal-add-offline" class="rx-modal-overlay">
         <div class="rx-modal" style="max-width: 420px;">
             <div class="modal-header">
-                <h2>Ajouter un pseudo (Hors-ligne)</h2>
+                <h2>Ajouter un Pseudo</h2>
                 <button class="modal-close" data-close="modal-add-offline">✕</button>
             </div>
             
             <div class="form-group">
                 <label class="form-label">Pseudo en jeu</label>
-                <input id="input-offline-username" type="text" class="form-input" placeholder="ex: Steve">
+                <input id="input-offline-username" type="text" class="form-input" placeholder="ex: Salem">
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
                 <button class="rx-btn rx-btn-secondary" data-close="modal-add-offline">Annuler</button>
                 <button id="btn-confirm-add-offline" class="rx-btn rx-btn-primary">Ajouter</button>
             </div>
@@ -355,6 +390,15 @@
     </div>
 
     <!-- Script Controller -->
-    <script src="assets/js/rxcorp-app.js"></script>
+    <script>
+        try {
+            require('./assets/js/rxcorp-app.js');
+        } catch (err) {
+            console.error('[RXCORP App Load Error]:', err);
+            const script = document.createElement('script');
+            script.src = 'assets/js/rxcorp-app.js';
+            document.head.appendChild(script);
+        }
+    </script>
 </body>
 </html>

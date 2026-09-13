@@ -17,7 +17,12 @@ class InstanceService {
      */
     getBaseDir() {
         if (!this.baseDir) {
-            const home = app ? app.getPath('userData') : path.join(process.env.HOME || process.env.USERPROFILE, '.rxcorp');
+            let home;
+            if (process.env.APPDATA) {
+                home = path.join(process.env.APPDATA, 'RXCORP-Launcher');
+            } else {
+                home = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.rxcorp');
+            }
             this.baseDir = path.join(home, 'instances');
             if (!fs.existsSync(this.baseDir)) {
                 fs.mkdirSync(this.baseDir, { recursive: true });

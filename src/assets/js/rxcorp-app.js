@@ -9,11 +9,17 @@ const fs = require('fs');
 const Store = require('electron-store');
 
 // Services
-const pelicanService = require('./services/pelicanService');
-const instanceService = require('./services/instanceService');
-const modrinthService = require('./services/modrinthService');
-const pvpService = require('./services/pvpService');
-const gameLauncher = require('./services/gameLauncher');
+const servicesDir = fs.existsSync(path.join(__dirname, 'services'))
+    ? path.join(__dirname, 'services')
+    : (fs.existsSync(path.join(__dirname, 'assets/js/services')) 
+        ? path.join(__dirname, 'assets/js/services') 
+        : path.join(__dirname, 'src/assets/js/services'));
+
+const pelicanService = require(path.join(servicesDir, 'pelicanService.js'));
+const instanceService = require(path.join(servicesDir, 'instanceService.js'));
+const modrinthService = require(path.join(servicesDir, 'modrinthService.js'));
+const pvpService = require(path.join(servicesDir, 'pvpService.js'));
+const gameLauncher = require(path.join(servicesDir, 'gameLauncher.js'));
 
 // Local storage
 const store = new Store({
@@ -228,7 +234,7 @@ class RxcorpApp {
                     <h3>${server.name}</h3>
                     <div class="server-address" title="Cliquer pour copier">
                         <span>${server.ip}:${server.port}</span>
-                        <span style="font-size: 10px;">📋</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px; height:11px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </div>
                 </div>
                 <div class="server-badge offline" id="badge-${server.id}">
@@ -254,13 +260,15 @@ class RxcorpApp {
 
             <div class="server-actions">
                 <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1;" data-id="${server.id}">
-                    <span>⚡ Rejoindre</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>Rejoindre</span>
                 </button>
                 <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" data-id="${server.id}">
-                    <span>🔄 Sync Mods</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Sync Mods</span>
                 </button>
                 <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" data-id="${server.id}">
-                    <span>🌐</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </button>
             </div>
         `;
@@ -440,10 +448,10 @@ class RxcorpApp {
                         <span>${inst.id === this.activeInstance?.id ? '✓ Sélectionnée' : 'Sélectionner'}</span>
                     </button>
                     <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier" data-id="${inst.id}">
-                        <span>📁</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                     </button>
                     <button class="rx-btn rx-btn-danger btn-delete-instance" title="Supprimer l'instance" data-id="${inst.id}">
-                        <span>🗑</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                 </div>
             `;
@@ -974,8 +982,17 @@ class RxcorpApp {
     }
 }
 
-// Start application when DOM is ready
-window.addEventListener('DOMContentLoaded', () => {
-    const app = new RxcorpApp();
-    app.init();
-});
+function bootstrap() {
+    try {
+        const app = new RxcorpApp();
+        app.init();
+    } catch (e) {
+        console.error('[RXCORP Bootstrap Error]', e);
+    }
+}
+
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', bootstrap);
+} else {
+    bootstrap();
+}

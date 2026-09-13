@@ -16,7 +16,7 @@ class PvpService {
                 name: 'Sodium / Embeddium',
                 description: 'Moteur de rendu moderne ultra-performant. Multiplie les FPS par 3 à 5.',
                 category: 'Performance',
-                icon: '⚡',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
                 slugFabric: 'sodium',
                 slugForge: 'embeddium'
             },
@@ -25,7 +25,7 @@ class PvpService {
                 name: 'Lithium / FerriteCore',
                 description: 'Optimisation de la physique, de l\'IA des mobs et réduction massive de l\'usage RAM.',
                 category: 'Performance',
-                icon: '🔋',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>',
                 slugFabric: 'lithium',
                 slugForge: 'ferrite-core'
             },
@@ -34,7 +34,7 @@ class PvpService {
                 name: 'Iris / Oculus (Shaders)',
                 description: 'Support complet et optimisé des shaders graphiques avec Sodium.',
                 category: 'Graphismes',
-                icon: '✨',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
                 slugFabric: 'iris',
                 slugForge: 'oculus'
             },
@@ -43,7 +43,7 @@ class PvpService {
                 name: 'Zoomify (Zoom C)',
                 description: 'Zoom fluide et personnalisable comme sur OptiFine (Touche C).',
                 category: 'PvP & QoL',
-                icon: '🔍',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
                 slugFabric: 'zoomify',
                 slugForge: 'zoomify'
             },
@@ -52,7 +52,7 @@ class PvpService {
                 name: 'AppleSkin',
                 description: 'Affichage de la saturation exacte et de la régénération de faim.',
                 category: 'HUD',
-                icon: '🍎',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
                 slugFabric: 'appleskin',
                 slugForge: 'appleskin'
             },
@@ -61,7 +61,7 @@ class PvpService {
                 name: 'FullBright (Gamma Boost)',
                 description: 'Vision nocturne claire permanente dans les grottes et la nuit.',
                 category: 'PvP & QoL',
-                icon: '💡',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg>',
                 slugFabric: 'gamma-utils',
                 slugForge: 'gamma-utils'
             },
@@ -70,7 +70,7 @@ class PvpService {
                 name: 'Simple Voice Chat',
                 description: 'Chat vocal de proximité immersif 3D directement en jeu.',
                 category: 'Multijoueur',
-                icon: '🎙️',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
                 slugFabric: 'simple-voice-chat',
                 slugForge: 'simple-voice-chat'
             }
