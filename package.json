@@ -12,6 +12,8 @@
         "start": "cross-env-shell NODE_ENV=dev electron .",
         "dev": "cross-env-shell DEV_TOOL=open nodemon --exec npm start",
         "build": "node build.js --obf=true --build=platform",
+        "build:win": "node build.js --obf=false --build=win",
+        "build:win:prod": "node build.js --obf=true --build=win",
         "icon": "node build.js --icon"
     },
     "nodemonConfig": {

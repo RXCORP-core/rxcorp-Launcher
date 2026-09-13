@@ -5,33 +5,35 @@ const JavaScriptObfuscator = require('javascript-obfuscator');
 const png2icons = require('png2icons');
 const { Jimp, JimpMime } = require('jimp');
 
-const { preductname } = require('./package.json');
+const { productName } = require('./package.json');
 
 class Index {
     async init() {
         this.obf = true
-        this.Fileslist = []
-        process.argv.forEach(async val => {
+        this.Fileslist = this.getFiles("src");
+        for (const val of process.argv) {
             if (val.startsWith('--icon')) {
-                return this.iconSet(val.split('=')[1])
+                return await this.iconSet(val.split('=')[1])
             }
 
             if (val.startsWith('--obf')) {
                 this.obf = JSON.parse(val.split('=')[1])
-                this.Fileslist = this.getFiles("src");
             }
 
             if (val.startsWith('--build')) {
                 let buildType = val.split('=')[1]
                 if (buildType == 'platform') return await this.buildPlatform()
+                if (buildType == 'win' || buildType == 'windows') return await this.buildPlatform('win')
+                if (buildType == 'linux') return await this.buildPlatform('linux')
             }
-        });
+        }
     }
 
     async Obfuscate() {
         if (fs.existsSync("./app")) fs.rmSync("./app", { recursive: true })
 
         for (let path of this.Fileslist) {
+            if (!fs.existsSync(path) || fs.statSync(path).isDirectory()) continue;
             let fileName = path.split('/').pop()
             let extFile = fileName.split(".").pop()
             let folder = path.replace(`/${fileName}`, '').replace('src', 'app')
@@ -57,14 +59,21 @@ class Index {
         }
     }
 
-    async buildPlatform() {
+    async buildPlatform(targetPlatform = 'platform') {
         await this.Obfuscate();
+        let targets = undefined;
+        if (targetPlatform === 'win') {
+            targets = builder.Platform.WINDOWS.createTarget(['portable', 'nsis'], builder.Arch.x64);
+        } else if (targetPlatform === 'linux') {
+            targets = builder.Platform.LINUX.createTarget(['AppImage'], builder.Arch.x64);
+        }
         builder.build({
+            targets: targets,
             config: {
                 generateUpdatesFilesForAllChannels: false,
-                appId: preductname,
-                productName: preductname,
-                copyright: `Copyright © 2020-${new Date().getFullYear()} Luuxis`,
+                appId: "fr.rxcorp.launcher",
+                productName: productName || "RXCORP Launcher",
+                copyright: `Copyright © 2020-${new Date().getFullYear()} RXCORP`,
                 artifactName: "${productName}-${os}-${arch}.${ext}",
                 extraMetadata: { main: 'app/app.js' },
                 files: ["app/**/*", "package.json", "LICENSE.md"],
@@ -85,12 +94,12 @@ class Index {
                 win: {
                     icon: "./app/assets/images/icon/icon.ico",
                     target: [{
-                        target: "nsis",
+                        target: "portable",
                         arch: "x64"
                     },
                     {
                         target: "nsis",
-                        arch: "arm64"
+                        arch: "x64"
                     }]
                 },
                 nsis: {
@@ -142,7 +151,6 @@ class Index {
     getFiles(path, file = []) {
         if (fs.existsSync(path)) {
             let files = fs.readdirSync(path);
-            if (files.length == 0) file.push(path);
             for (let i in files) {
                 let name = `${path}/${files[i]}`;
                 if (fs.statSync(name).isDirectory()) this.getFiles(name, file);
