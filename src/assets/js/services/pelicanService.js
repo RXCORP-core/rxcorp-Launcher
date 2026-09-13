@@ -5,6 +5,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const http = require('http');
+const { URL } = require('url');
 
 class PelicanService {
     constructor() {
@@ -215,42 +218,52 @@ class PelicanService {
      * Download a file directly from Wings signed URL to local destination
      */
     async downloadFile(downloadUrl, destPath, onProgress) {
-        const res = await fetch(downloadUrl);
-        if (!res.ok) {
-            throw new Error(`Erreur lors du téléchargement (${res.status} ${res.statusText})`);
-        }
-
-        const totalBytes = parseInt(res.headers.get('content-length') || '0', 10);
-        const fileStream = fs.createWriteStream(destPath);
-
         return new Promise((resolve, reject) => {
-            const reader = res.body.getReader();
-            let downloadedBytes = 0;
+            const urlObj = new URL(downloadUrl);
+            const client = urlObj.protocol === 'http:' ? http : https;
 
-            function pump() {
-                reader.read().then(({ done, value }) => {
-                    if (done) {
-                        fileStream.end();
-                        resolve();
-                        return;
-                    }
+            const req = client.get(downloadUrl, {
+                headers: {
+                    'User-Agent': 'RXCORP-Launcher/2.0'
+                }
+            }, (res) => {
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    res.resume();
+                    return this.downloadFile(res.headers.location, destPath, onProgress).then(resolve).catch(reject);
+                }
 
-                    fileStream.write(Buffer.from(value));
-                    downloadedBytes += value.length;
+                if (res.statusCode < 200 || res.statusCode >= 300) {
+                    res.resume();
+                    return reject(new Error(`Erreur lors du téléchargement (${res.statusCode} ${res.statusMessage || ''})`));
+                }
 
+                const totalBytes = parseInt(res.headers['content-length'] || '0', 10);
+                const fileStream = fs.createWriteStream(destPath);
+                let downloadedBytes = 0;
+
+                res.on('data', (chunk) => {
+                    downloadedBytes += chunk.length;
                     if (onProgress && totalBytes > 0) {
                         onProgress(downloadedBytes, totalBytes);
                     }
+                });
 
-                    pump();
-                }).catch(err => {
-                    fileStream.close();
+                res.pipe(fileStream);
+
+                fileStream.on('finish', () => {
+                    fileStream.close(() => resolve());
+                });
+
+                fileStream.on('error', (err) => {
+                    try { if (fs.existsSync(destPath)) fs.unlinkSync(destPath); } catch (_) {}
                     reject(err);
                 });
-            }
+            });
 
-            fileStream.on('error', err => reject(err));
-            pump();
+            req.on('error', (err) => {
+                try { if (fs.existsSync(destPath)) fs.unlinkSync(destPath); } catch (_) {}
+                reject(err);
+            });
         });
     }
 
@@ -261,6 +274,10 @@ class PelicanService {
      * 3. Downloads missing or updated mods
      */
     async syncModsToInstance(serverIdentifier, localModsDir, apiKey, panelUrl = this.defaultPanelUrl, progressCallback = () => {}) {
+        if (!localModsDir) {
+            throw new Error('Dossier de destination des mods introuvable pour cette instance.');
+        }
+
         if (!fs.existsSync(localModsDir)) {
             fs.mkdirSync(localModsDir, { recursive: true });
         }

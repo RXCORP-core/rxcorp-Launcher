@@ -261,6 +261,14 @@ class RxcorpApp {
                 </div>
             </div>
 
+            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 12px; margin-bottom: 12px; padding: 9px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: var(--primary); flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span id="mods-summary-${server.id}" style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Détection des mods...</span>
+                </div>
+                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 2px 7px; flex-shrink: 0; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);">-</span>
+            </div>
+
             <div class="server-actions">
                 <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1;" data-id="${server.id}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -324,6 +332,30 @@ class RxcorpApp {
             ramValue.innerText = '0 MB';
             cpuValue.innerText = '0%';
         }
+
+        // Live mods detection
+        try {
+            const modsRes = await pelicanService.listServerMods(server.id, apiKey, panelUrl);
+            const modsSummary = card.querySelector(`#mods-summary-${server.id}`);
+            const modsCount = card.querySelector(`#mods-count-${server.id}`);
+            if (modsSummary && modsCount) {
+                if (modsRes.success && modsRes.mods && modsRes.mods.length > 0) {
+                    const cleanNames = modsRes.mods.map(m => m.name.replace(/\.jar$/i, '').replace(/[-_]mc.*$/i, '')).join(', ');
+                    modsSummary.innerText = cleanNames;
+                    modsSummary.title = modsRes.mods.map(m => m.name).join('\n');
+                    modsCount.innerText = `${modsRes.mods.length} mod(s)`;
+                    modsCount.style.background = 'rgba(244, 63, 94, 0.15)';
+                    modsCount.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                    modsCount.style.color = '#f43f5e';
+                } else {
+                    modsSummary.innerText = 'Aucun mod requis (Vanilla)';
+                    modsCount.innerText = 'Vanilla';
+                    modsCount.style.background = 'rgba(255, 255, 255, 0.05)';
+                    modsCount.style.borderColor = 'var(--border)';
+                    modsCount.style.color = 'var(--text-muted)';
+                }
+            }
+        } catch (_) {}
     }
 
     async handleSyncServerMods(server) {
@@ -333,13 +365,14 @@ class RxcorpApp {
         const apiKey = store.get('apiKey');
         const panelUrl = store.get('panelUrl');
         const instance = instanceService.getOrCreateServerInstance(server);
+        const modsPath = instance.modsPath || (instance.path ? path.join(instance.path, 'mods') : path.join(instanceService.getBaseDir(), instance.id, 'mods'));
 
         this.updateDockStatus(`Synchronisation avec ${server.name}...`, 0);
 
         try {
-            await pelicanService.syncModsToInstance(
+            const result = await pelicanService.syncModsToInstance(
                 server.id,
-                instance.modsPath,
+                modsPath,
                 apiKey,
                 panelUrl,
                 (progress) => {
@@ -347,8 +380,12 @@ class RxcorpApp {
                 }
             );
 
-            this.showNotification('Synchronisation réussie', `Les mods de ${server.name} sont à jour.`);
+            this.showNotification(
+                'Synchronisation réussie',
+                `${result.downloadedCount || 0} mod(s) synchronisé(s) avec succès pour ${server.name}.`
+            );
             this.loadInstances();
+            this.selectInstance(instance.id);
         } catch (err) {
             console.error('[Sync error]:', err);
             this.showNotification('Erreur de synchronisation', err.message);
@@ -997,7 +1034,19 @@ class RxcorpApp {
     getActiveAccount() {
         const accounts = store.get('accounts') || [];
         const activeName = store.get('activeAccountName');
-        return accounts.find(a => a.name === activeName) || accounts[0] || null;
+        const found = accounts.find(a => a.name === activeName) || accounts[0];
+        if (found) return found;
+
+        const cloudUser = store.get('user');
+        if (cloudUser && cloudUser.username) {
+            return {
+                name: cloudUser.username,
+                uuid: '00000000-0000-0000-0000-000000000000',
+                access_token: 'null',
+                meta: { type: 'Offline', online: false }
+            };
+        }
+        return null;
     }
 
     renderAccountsList() {

@@ -49,9 +49,10 @@ class InstanceService {
                         const data = JSON.parse(fs.readFileSync(configPath, 'utf8'));
                         data.id = entry.name;
                         data.path = path.join(base, entry.name);
+                        data.modsPath = path.join(data.path, 'mods');
                         
                         // Count mods
-                        const modsPath = path.join(data.path, 'mods');
+                        const modsPath = data.modsPath;
                         let modCount = 0;
                         if (fs.existsSync(modsPath)) {
                             modCount = fs.readdirSync(modsPath).filter(f => f.endsWith('.jar')).length;
@@ -140,21 +141,38 @@ class InstanceService {
         let found = instances.find(i => i.serverAddress === serverAddr || i.name === `RX - ${server.name}`);
 
         if (found) {
+            if (!found.path) found.path = path.join(this.getBaseDir(), found.id);
+            if (!found.modsPath) found.modsPath = path.join(found.path, 'mods');
+
+            // If the instance was created as vanilla, switch to forge so synced mods can run
+            if (found.loader === 'vanilla') {
+                found.loader = 'forge';
+                try {
+                    const cfgPath = path.join(found.path, 'instance.json');
+                    if (fs.existsSync(cfgPath)) {
+                        const raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+                        raw.loader = 'forge';
+                        fs.writeFileSync(cfgPath, JSON.stringify(raw, null, 2), 'utf8');
+                    }
+                } catch (e) {
+                    console.error('Failed to update instance.json loader:', e);
+                }
+            }
             return found;
         }
 
-        // Auto-detect version & loader based on docker image or name
+        // Auto-detect version & loader based on docker image or name (default to forge for Pelican servers)
         let version = '1.21.1';
-        let loader = 'vanilla';
+        let loader = 'forge';
         const img = (server.dockerImage || '').toLowerCase();
         const name = (server.name || '').toLowerCase();
 
-        if (img.includes('forge') || name.includes('forge')) {
-            loader = 'forge';
-        } else if (img.includes('fabric') || name.includes('fabric')) {
+        if (img.includes('fabric') || name.includes('fabric')) {
             loader = 'fabric';
         } else if (img.includes('neoforge') || name.includes('neoforge')) {
             loader = 'neoforge';
+        } else if (img.includes('forge') || name.includes('forge')) {
+            loader = 'forge';
         }
 
         return this.createInstance({
