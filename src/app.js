@@ -329,7 +329,8 @@ ipcMain.on('start-web-auth', () => {
                     'Content-Type': 'text/html; charset=utf-8',
                     'Access-Control-Allow-Origin': '*'
                 });
-                res.end(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>RXCORP</title><style>body{background:#08090d;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;} .box{background:#10131a;border:1px solid #f43f5e;border-radius:12px;padding:32px;text-align:center;box-shadow:0 0 30px rgba(244,63,94,0.3);max-width:400px;} h1{color:#f43f5e;font-size:20px;margin-bottom:10px;} p{color:#94a3b8;font-size:14px;}</style></head><body><div class="box"><h1>Connexion réussie</h1><p>Votre compte <strong>\${username || 'RXCORP'}</strong> est connecté au Launcher.</p><p style="color:#64748b;font-size:12px;margin-top:16px;">Vous pouvez fermer cet onglet et revenir sur le Launcher.</p></div><script>setTimeout(()=>{try{window.close();}catch(e){}},2500);</script></body></html>`);
+                const safeUser = username || 'RXCORP';
+                res.end(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>RXCORP</title><style>body{background:#08090d;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;} .box{background:#10131a;border:1px solid #f43f5e;border-radius:12px;padding:32px;text-align:center;box-shadow:0 0 30px rgba(244,63,94,0.3);max-width:400px;} h1{color:#f43f5e;font-size:20px;margin-bottom:10px;} p{color:#94a3b8;font-size:14px;}</style></head><body><div class="box"><h1>Connexion réussie</h1><p>Votre compte <strong>${safeUser}</strong> est connecté au Launcher.</p><p style="color:#64748b;font-size:12px;margin-top:16px;">Vous pouvez fermer cet onglet et revenir sur le Launcher.</p></div><script>setTimeout(()=>{try{window.close();}catch(e){}},2500);</script></body></html>`);
 
                 handleWebAuthSuccess(token, username, email);
 
@@ -347,10 +348,24 @@ ipcMain.on('start-web-auth', () => {
         }
     });
 
-    authLoopbackServer.listen(0, '127.0.0.1', () => {
-        const port = authLoopbackServer.address().port;
-        const targetUrl = `https://panel.rxcorp.fr/launcher/connect?port=\${port}&state=\${state}`;
-        console.log('[WebAuth] Loopback listening on port', port, 'Opening URL:', targetUrl);
-        shell.openExternal(targetUrl);
-    });
+    const PREFERRED_PORT = 45823;
+    const startListening = (portToTry) => {
+        authLoopbackServer.once('error', (err) => {
+            if (err.code === 'EADDRINUSE' && portToTry !== 0) {
+                console.log('[WebAuth] Port', portToTry, 'busy, trying ephemeral 0...');
+                startListening(0);
+            } else {
+                console.error('[WebAuth Server Error]', err);
+            }
+        });
+
+        authLoopbackServer.listen(portToTry, '127.0.0.1', () => {
+            const actualPort = authLoopbackServer.address().port;
+            const targetUrl = `https://panel.rxcorp.fr/launcher/connect?port=${actualPort}&state=${state}`;
+            console.log('[WebAuth] Loopback listening on port', actualPort, 'Opening URL:', targetUrl);
+            shell.openExternal(targetUrl);
+        });
+    };
+
+    startListening(PREFERRED_PORT);
 });
