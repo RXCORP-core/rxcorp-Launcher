@@ -52,6 +52,7 @@ class RxcorpApp {
         this.initModrinth();
         this.initPvP();
         this.initLaunchDock();
+        this.initUpdater();
 
         // Load initial instance
         await this.loadInstances();
@@ -81,6 +82,35 @@ class RxcorpApp {
         document.getElementById('link-create-key')?.addEventListener('click', (e) => {
             e.preventDefault();
             shell.openExternal('https://panel.rxcorp.fr/account/api');
+        });
+    }
+
+    // ==========================================
+    // AUTO-UPDATER UI INTEGRATION
+    // ==========================================
+    initUpdater() {
+        const updatePill = document.getElementById('update-pill');
+        const updateText = document.getElementById('update-pill-text');
+        if (!updatePill || !updateText) return;
+
+        ipcRenderer.on('updater-event', (event, data) => {
+            console.log('[RXCORP Updater Event]', data);
+            if (data.status === 'available') {
+                updatePill.style.display = 'inline-flex';
+                updateText.textContent = `⚡ Téléchargement v${data.version || ''}...`;
+            } else if (data.status === 'downloading') {
+                updatePill.style.display = 'inline-flex';
+                updateText.textContent = `📥 Téléchargement: ${data.percent}%`;
+            } else if (data.status === 'ready') {
+                updatePill.style.display = 'inline-flex';
+                updatePill.style.borderColor = '#10b981';
+                updatePill.style.background = 'rgba(16, 185, 129, 0.2)';
+                updateText.style.color = '#10b981';
+                updateText.textContent = `🚀 Relancer pour appliquer v${data.version || ''}`;
+                updatePill.onclick = () => {
+                    ipcRenderer.send('install-update-now');
+                };
+            }
         });
     }
 

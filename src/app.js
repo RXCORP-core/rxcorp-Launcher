@@ -51,12 +51,13 @@ else {
             console.error('[Discord RPC] Init error:', e);
         }
         try {
-            trayManager.createTray(() => MainWindow.getWindow() || UpdateWindow.getWindow());
+            trayManager.createTray(() => MainWindow.getWindow());
         } catch (e) {
             console.error('[Tray] Init error:', e);
         }
-        if (dev) return MainWindow.createWindow()
-        UpdateWindow.createWindow()
+        MainWindow.createWindow();
+        setTimeout(checkLauncherUpdates, 3000);
+        setInterval(checkLauncherUpdates, 15 * 60 * 1000);
     });
 }
 
@@ -139,59 +140,69 @@ app.on('window-all-closed', () => {
     app.quit();
 });
 
-autoUpdater.autoDownload = false;
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.setFeedURL({
+    provider: 'generic',
+    url: 'https://rxcorp.fr/launcher/update/'
+});
 
-ipcMain.handle('update-app', async () => {
-    return await new Promise(async (resolve, reject) => {
-        autoUpdater.checkForUpdates().then(res => {
-            resolve(res);
-        }).catch(error => {
-            reject({
-                error: true,
-                message: error
-            })
-        })
-    })
-})
+function checkLauncherUpdates() {
+    if (app.isPackaged) {
+        autoUpdater.checkForUpdates().catch(err => {
+            console.log('[AutoUpdater] Check skipped/error:', err ? err.message : '');
+        });
+    }
+}
 
-autoUpdater.on('update-available', () => {
-    const updateWindow = UpdateWindow.getWindow();
-    if (updateWindow) updateWindow.webContents.send('updateAvailable');
+ipcMain.on('check-for-update', () => checkLauncherUpdates());
+ipcMain.on('install-update-now', () => autoUpdater.quitAndInstall());
+
+autoUpdater.on('checking-for-update', () => {
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', { status: 'checking' });
+});
+
+autoUpdater.on('update-available', (info) => {
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', { status: 'available', version: info ? info.version : '' });
     if (Notification && Notification.isSupported()) {
         new Notification({
-            title: '⚡ DELTAZONE // MISE À JOUR DISPONIBLE',
-            body: 'Un nouveau patch du Launcher DeltaZone est prêt !',
+            title: '⚡ RXCORP // MISE À JOUR DISPONIBLE',
+            body: `La version ${info ? info.version : ''} est en cours de téléchargement silencieux...`,
             icon: path.join(__dirname, 'assets/images/icon/icon.png')
         }).show();
     }
 });
 
-ipcMain.on('start-update', () => {
-    autoUpdater.downloadUpdate();
-})
-
-autoUpdater.on('update-not-available', () => {
-    const updateWindow = UpdateWindow.getWindow();
-    if (updateWindow) updateWindow.webContents.send('update-not-available');
-});
-
-autoUpdater.on('update-downloaded', () => {
-    if (Notification && Notification.isSupported()) {
-        new Notification({
-            title: '⚡ DELTAZONE // MISE À JOUR TÉLÉCHARGÉE',
-            body: 'Le launcher va redémarrer pour appliquer la nouvelle version.',
-            icon: path.join(__dirname, 'assets/images/icon/icon.png')
-        }).show();
-    }
-    autoUpdater.quitAndInstall();
+autoUpdater.on('update-not-available', (info) => {
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', { status: 'not-available', version: info ? info.version : null });
 });
 
 autoUpdater.on('download-progress', (progress) => {
-    const updateWindow = UpdateWindow.getWindow();
-    if (updateWindow) updateWindow.webContents.send('download-progress', progress);
-})
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', {
+        status: 'downloading',
+        percent: Math.round(progress.percent || 0),
+        bytesPerSecond: progress.bytesPerSecond || 0
+    });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', { status: 'ready', version: info ? info.version : '' });
+    if (Notification && Notification.isSupported()) {
+        new Notification({
+            title: '🚀 RXCORP // MISE À JOUR PRÊTE !',
+            body: `La version ${info ? info.version : ''} a été installée. Cliquez pour relancer.`,
+            icon: path.join(__dirname, 'assets/images/icon/icon.png')
+        }).show();
+    }
+});
 
 autoUpdater.on('error', (err) => {
-    const updateWindow = UpdateWindow.getWindow();
-    if (updateWindow) updateWindow.webContents.send('error', err);
+    console.error('[AutoUpdater] Error:', err ? err.message : err);
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', { status: 'error', error: err ? err.message : 'Unknown' });
 });

@@ -70,7 +70,7 @@ class Index {
         builder.build({
             targets: targets,
             config: {
-                generateUpdatesFilesForAllChannels: false,
+                generateUpdatesFilesForAllChannels: true,
                 appId: "fr.rxcorp.launcher",
                 productName: productName || "RXCORP Launcher",
                 copyright: `Copyright © 2020-${new Date().getFullYear()} RXCORP`,
@@ -88,8 +88,8 @@ class Index {
                 nodeGypRebuild: false,
                 npmRebuild: true,
                 publish: [{
-                    provider: "github",
-                    releaseType: 'release',
+                    provider: "generic",
+                    url: "https://rxcorp.fr/launcher/update/"
                 }],
                 win: {
                     icon: "./app/assets/images/icon/icon.ico",

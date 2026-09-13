@@ -29,7 +29,7 @@ function createWindow() {
         minHeight: 600,
         backgroundColor: "#080b11",
         resizable: true,
-        icon: `./src/assets/images/icon/icon.${os.platform() === "win32" ? "ico" : "png"}`,
+        icon: path.join(__dirname, `../../images/icon/icon.${os.platform() === "win32" ? "ico" : "png"}`),
         frame: false,
         show: true,
         webPreferences: {
@@ -39,7 +39,7 @@ function createWindow() {
     });
     Menu.setApplicationMenu(null);
     mainWindow.setMenuBarVisibility(false);
-    mainWindow.loadFile(path.join(`${app.getAppPath()}/src/launcher.html`));
+    mainWindow.loadFile(path.join(__dirname, '../../../launcher.html'));
     mainWindow.once('ready-to-show', () => {
         if (mainWindow) {
             if (dev) mainWindow.webContents.openDevTools({ mode: 'detach' })
