@@ -19,6 +19,10 @@
         </div>
 
         <div class="titlebar-center">
+            <div id="btn-switch-mode" class="status-pill mode-pill" title="Changer de mode (RX SERV / PVP / MOD LOCAL)" style="cursor: pointer; border-color: var(--primary); background: rgba(244, 63, 94, 0.14);">
+                <span class="status-dot" style="background: var(--primary); box-shadow: 0 0 8px var(--primary);"></span>
+                <span id="current-mode-badge" style="color: #fff; font-weight: 700; letter-spacing: 0.5px;">CHOIX DU MODE</span>
+            </div>
             <div id="cloud-pill" class="status-pill" title="Statut de l'infrastructure Cloud">
                 <span class="status-dot"></span>
                 <span id="cloud-pill-text">RXCORP Cloud</span>
@@ -43,10 +47,120 @@
         </div>
     </header>
 
+    <!-- SCREEN: 3-DIAGONAL MODE SELECTOR (Matches user diagram) -->
+    <div id="screen-mode-selector" class="mode-selector-screen">
+        <!-- 1. SLICE TOP-LEFT: RX SERV -->
+        <div class="mode-slice mode-slice-rx" data-mode="cloud">
+            <div class="mode-slice-content">
+                <div class="mode-slice-tag">
+                    <span class="mode-pulse-dot red"></span>
+                    <span>SERVEURS CLOUD OFFICIELS</span>
+                </div>
+                <h1 class="mode-slice-title">RX SERV</h1>
+                <p class="mode-slice-desc">
+                    Accès direct aux serveurs Pelican de RXCORP. Synchronisation automatique des mods et connexion directe en 1 clic.
+                </p>
+                <div class="mode-features-list">
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <span>Connexion instantanée sans IP manuelle</span>
+                    </div>
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        <span>Auto-Sync Forge 26.2 & Mods officiels</span>
+                    </div>
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                        <span>Serveur RD & Test prêts à jouer</span>
+                    </div>
+                </div>
+                <button class="mode-slice-btn mode-btn-rx">
+                    <span>REJOINDRE LE CLOUD</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. SLICE CENTER: PVP -->
+        <div class="mode-slice mode-slice-pvp" data-mode="pvp">
+            <div class="mode-slice-content">
+                <div class="mode-slice-tag">
+                    <span class="mode-pulse-dot cyan"></span>
+                    <span>COMPÉTITION & FPS BOOST</span>
+                </div>
+                <h1 class="mode-slice-title">PVP</h1>
+                <p class="mode-slice-desc">
+                    Client compétitif ultra-optimisé. Boost de framerate 144+ FPS et interface ATH tactique intégrée pour les duels.
+                </p>
+                <div class="mode-features-list">
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        <span>Moteur Sodium, Lithium & Ferrite (FPS Max)</span>
+                    </div>
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                        <span>Keystrokes, CPS, Armor HUD & Crosshairs</span>
+                    </div>
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span>Anti-lag & Optimisations réseau PvP</span>
+                    </div>
+                </div>
+                <button class="mode-slice-btn mode-btn-pvp">
+                    <span>LANCER LE MODE PVP</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. SLICE BOTTOM-RIGHT: MOD LOCAL -->
+        <div class="mode-slice mode-slice-local" data-mode="instances">
+            <div class="mode-slice-content">
+                <div class="mode-slice-tag">
+                    <span class="mode-pulse-dot emerald"></span>
+                    <span>INSTANCES & MODPACKS PERSO</span>
+                </div>
+                <h1 class="mode-slice-title">MOD LOCAL</h1>
+                <p class="mode-slice-desc">
+                    Créez et configurez vos propres profils Minecraft isolés. Installez vos mods ou explorez le catalogue Modrinth.
+                </p>
+                <div class="mode-features-list">
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        <span>Multi-instances Forge, Fabric, NeoForge, Vanilla</span>
+                    </div>
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+                        <span>Catalogue Modrinth intégré en 1 clic</span>
+                    </div>
+                    <div class="mode-feature-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        <span>Accès direct aux dossiers mods & config</span>
+                    </div>
+                </div>
+                <button class="mode-slice-btn mode-btn-local">
+                    <span>GÉRER MES MODS</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Glowing Diagonal Divider Lines (Matching user diagram) -->
+        <svg class="mode-lines-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="0" y1="84" x2="60" y2="0" class="mode-divider-line line-rx" />
+            <line x1="40" y1="100" x2="100" y2="16" class="mode-divider-line line-local" />
+        </svg>
+    </div>
+
     <!-- Main Container -->
-    <div class="app-container">
+    <div class="app-container" style="display: none;">
         <!-- Sidebar Navigation -->
         <nav class="app-sidebar">
+            <div class="nav-item nav-item-mode" id="sidebar-switch-mode" title="Retourner au choix du mode">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                <span style="font-weight: 700; color: #fff;">Changer de Mode</span>
+            </div>
+
             <div class="nav-label">Navigation</div>
             
             <div class="nav-item active" data-view="cloud">
@@ -310,7 +424,7 @@
     <!-- -----------------------------------------------------------------------
          BOTTOM LAUNCH DOCK (THE MASTER CONTROL)
          ----------------------------------------------------------------------- -->
-    <footer class="app-dock">
+    <footer class="app-dock" style="display: none;">
         <div class="dock-left">
             <div id="dock-instance-pill" class="dock-instance-card" title="Changer d'instance">
                 <div class="dock-instance-icon">

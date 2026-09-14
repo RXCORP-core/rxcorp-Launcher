@@ -52,6 +52,7 @@ class RxcorpApp {
         console.log('[RXCORP] Initializing Launcher 2.0...');
         this.initWindowControls();
         this.initNavigation();
+        this.initModeSelector();
         this.initModals();
         this.initSettings();
         this.initAccounts();
@@ -68,6 +69,78 @@ class RxcorpApp {
         await this.loadCloudServers();
 
         console.log('[RXCORP] Launcher ready.');
+    }
+
+    // ==========================================
+    // MODE SELECTOR (3-DIAGONAL STARTUP HUB)
+    // ==========================================
+    initModeSelector() {
+        const screen = document.getElementById('screen-mode-selector');
+        const btnTitlebar = document.getElementById('btn-switch-mode');
+        const btnSidebar = document.getElementById('sidebar-switch-mode');
+        const slices = document.querySelectorAll('.mode-slice');
+
+        if (!screen) return;
+
+        slices.forEach(slice => {
+            slice.addEventListener('click', () => {
+                const mode = slice.dataset.mode;
+                this.selectMode(mode);
+            });
+        });
+
+        if (btnTitlebar) {
+            btnTitlebar.addEventListener('click', () => this.showModeSelector());
+        }
+
+        if (btnSidebar) {
+            btnSidebar.addEventListener('click', () => this.showModeSelector());
+        }
+
+        // Show mode selector on startup as requested
+        this.showModeSelector();
+    }
+
+    showModeSelector() {
+        const screen = document.getElementById('screen-mode-selector');
+        const appContainer = document.querySelector('.app-container');
+        const appDock = document.querySelector('.app-dock');
+        const badge = document.getElementById('current-mode-badge');
+
+        if (screen) {
+            screen.classList.remove('hidden');
+            screen.style.display = 'flex';
+        }
+        if (appContainer) appContainer.style.display = 'none';
+        if (appDock) appDock.style.display = 'none';
+        if (badge) badge.innerText = 'CHOIX DU MODE';
+    }
+
+    selectMode(mode) {
+        const screen = document.getElementById('screen-mode-selector');
+        const appContainer = document.querySelector('.app-container');
+        const appDock = document.querySelector('.app-dock');
+        const badge = document.getElementById('current-mode-badge');
+
+        if (screen) {
+            screen.classList.add('hidden');
+            setTimeout(() => {
+                screen.style.display = 'none';
+            }, 250);
+        }
+
+        if (appContainer) appContainer.style.display = 'flex';
+        if (appDock) appDock.style.display = 'flex';
+
+        store.set('activeMode', mode);
+
+        if (badge) {
+            if (mode === 'cloud') badge.innerText = 'MODE : RX SERV';
+            else if (mode === 'pvp') badge.innerText = 'MODE : PVP';
+            else if (mode === 'instances') badge.innerText = 'MODE : MOD LOCAL';
+        }
+
+        this.switchView(mode);
     }
 
     // ==========================================

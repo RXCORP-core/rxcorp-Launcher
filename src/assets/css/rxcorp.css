@@ -1051,3 +1051,338 @@ input:checked + .slider:before {
 .modal-close:hover {
     color: #fff;
 }
+
+/* --------------------------------------------------------------------------
+   DIAGONAL MODE SELECTOR (3 SLICES: RX SERV / PVP / MOD LOCAL)
+   Matches the user's diagram with diagonal slashes
+   -------------------------------------------------------------------------- */
+.mode-selector-screen {
+    position: absolute;
+    top: 46px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: calc(100vh - 46px);
+    z-index: 90;
+    background: #08090d;
+    overflow: hidden;
+    display: flex;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mode-selector-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.98);
+}
+
+.mode-slice {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    overflow: hidden;
+    transition: filter 0.25s ease, background 0.3s ease;
+}
+
+/* 1. TOP-LEFT: RX SERV */
+.mode-slice-rx {
+    clip-path: polygon(0 0, 60% 0, 0 84%);
+    background: radial-gradient(ellipse at 15% 20%, rgba(244, 63, 94, 0.22), rgba(11, 13, 20, 0.96) 65%);
+}
+
+/* 2. CENTER BAND: PVP */
+.mode-slice-pvp {
+    clip-path: polygon(60% 0, 100% 0, 100% 16%, 40% 100%, 0 100%, 0 84%);
+    background: radial-gradient(ellipse at 52% 50%, rgba(0, 240, 255, 0.16), rgba(8, 11, 18, 0.97) 65%);
+}
+
+/* 3. BOTTOM-RIGHT: MOD LOCAL */
+.mode-slice-local {
+    clip-path: polygon(40% 100%, 100% 16%, 100% 100%);
+    background: radial-gradient(ellipse at 85% 85%, rgba(16, 185, 129, 0.18), rgba(10, 13, 20, 0.96) 65%);
+}
+
+/* Hover highlights */
+.mode-slice:hover {
+    filter: brightness(1.25);
+}
+
+.mode-slice-rx:hover {
+    background: radial-gradient(ellipse at 18% 22%, rgba(244, 63, 94, 0.36), rgba(14, 16, 26, 0.96) 65%);
+}
+
+.mode-slice-pvp:hover {
+    background: radial-gradient(ellipse at 52% 50%, rgba(0, 240, 255, 0.28), rgba(12, 16, 26, 0.96) 65%);
+}
+
+.mode-slice-local:hover {
+    background: radial-gradient(ellipse at 85% 85%, rgba(16, 185, 129, 0.32), rgba(12, 16, 26, 0.96) 65%);
+}
+
+/* Diagonal divider lines overlay (SVG) */
+.mode-lines-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.mode-divider-line {
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.mode-divider-line.line-rx {
+    stroke: var(--primary);
+    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.9));
+    stroke-dasharray: 6 3;
+}
+
+.mode-divider-line.line-local {
+    stroke: var(--cyan);
+    filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.9));
+    stroke-dasharray: 6 3;
+}
+
+/* Content layout inside slices */
+.mode-slice-content {
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+}
+
+.mode-slice-rx .mode-slice-content {
+    position: absolute;
+    top: 36px;
+    left: 48px;
+    max-width: 400px;
+    text-align: left;
+    align-items: flex-start;
+}
+
+.mode-slice-pvp .mode-slice-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 440px;
+    text-align: center;
+    align-items: center;
+}
+
+.mode-slice-local .mode-slice-content {
+    position: absolute;
+    bottom: 36px;
+    right: 48px;
+    max-width: 400px;
+    text-align: right;
+    align-items: flex-end;
+}
+
+.mode-slice-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.mode-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.mode-pulse-dot.red {
+    background: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
+}
+
+.mode-pulse-dot.cyan {
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+}
+
+.mode-pulse-dot.emerald {
+    background: var(--emerald);
+    box-shadow: 0 0 8px var(--emerald);
+}
+
+.mode-slice-title {
+    font-family: var(--font-heading);
+    font-size: 50px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.mode-slice-rx .mode-slice-title {
+    color: #fff;
+    text-shadow: 0 0 24px rgba(244, 63, 94, 0.65);
+}
+
+.mode-slice-pvp .mode-slice-title {
+    font-size: 64px;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(0, 240, 255, 0.75);
+}
+
+.mode-slice-local .mode-slice-title {
+    color: #fff;
+    text-shadow: 0 0 24px rgba(16, 185, 129, 0.65);
+}
+
+.mode-slice-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.45;
+    margin-bottom: 16px;
+}
+
+.mode-features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.mode-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.mode-slice-pvp .mode-features-list {
+    align-items: center;
+}
+
+.mode-slice-local .mode-features-list {
+    align-items: flex-end;
+}
+
+.mode-slice-local .mode-feature-item {
+    flex-direction: row-reverse;
+}
+
+.mode-feature-item svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.mode-slice-rx .mode-feature-item svg {
+    stroke: var(--primary);
+}
+
+.mode-slice-pvp .mode-feature-item svg {
+    stroke: var(--cyan);
+}
+
+.mode-slice-local .mode-feature-item svg {
+    stroke: var(--emerald);
+}
+
+/* Call To Action Buttons */
+.mode-slice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: var(--trans-fast);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.mode-slice-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+}
+
+.mode-slice:hover .mode-slice-btn svg {
+    transform: translateX(4px);
+}
+
+.mode-btn-rx {
+    background: linear-gradient(135deg, var(--primary), #be123c);
+    color: #fff;
+    box-shadow: 0 4px 20px var(--primary-glow);
+}
+
+.mode-btn-rx:hover {
+    box-shadow: 0 6px 26px var(--primary-glow-strong);
+    transform: translateY(-2px);
+}
+
+.mode-btn-pvp {
+    background: linear-gradient(135deg, var(--cyan), #0284c7);
+    color: #08090d;
+    box-shadow: 0 4px 20px var(--cyan-glow);
+}
+
+.mode-btn-pvp:hover {
+    box-shadow: 0 6px 26px rgba(0, 240, 255, 0.7);
+    transform: translateY(-2px);
+}
+
+.mode-btn-local {
+    background: linear-gradient(135deg, var(--emerald), #047857);
+    color: #fff;
+    box-shadow: 0 4px 20px var(--emerald-glow);
+}
+
+.mode-btn-local:hover {
+    box-shadow: 0 6px 26px rgba(16, 185, 129, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Mode pill in titlebar */
+.mode-pill {
+    transition: var(--trans-fast);
+}
+
+.mode-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.nav-item-mode {
+    border: 1px dashed rgba(244, 63, 94, 0.4);
+    background: rgba(244, 63, 94, 0.06);
+    margin-bottom: 8px;
+}
+
+.nav-item-mode:hover {
+    border-style: solid;
+    border-color: var(--primary);
+    background: rgba(244, 63, 94, 0.16);
+}
+
