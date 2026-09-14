@@ -1090,19 +1090,22 @@ input:checked + .slider:before {
 
 /* 1. TOP-LEFT: RX SERV */
 .mode-slice-rx {
-    clip-path: polygon(0 0, 60% 0, 0 84%);
+    clip-path: url(#clip-rx);
+    -webkit-clip-path: url(#clip-rx);
     background: radial-gradient(ellipse at 15% 20%, rgba(244, 63, 94, 0.22), rgba(11, 13, 20, 0.96) 65%);
 }
 
 /* 2. CENTER BAND: PVP */
 .mode-slice-pvp {
-    clip-path: polygon(60% 0, 100% 0, 100% 16%, 40% 100%, 0 100%, 0 84%);
+    clip-path: url(#clip-pvp);
+    -webkit-clip-path: url(#clip-pvp);
     background: radial-gradient(ellipse at 52% 50%, rgba(0, 240, 255, 0.16), rgba(8, 11, 18, 0.97) 65%);
 }
 
 /* 3. BOTTOM-RIGHT: MOD LOCAL */
 .mode-slice-local {
-    clip-path: polygon(40% 100%, 100% 16%, 100% 100%);
+    clip-path: url(#clip-local);
+    -webkit-clip-path: url(#clip-local);
     background: radial-gradient(ellipse at 85% 85%, rgba(16, 185, 129, 0.18), rgba(10, 13, 20, 0.96) 65%);
 }
 
@@ -1123,7 +1126,7 @@ input:checked + .slider:before {
     background: radial-gradient(ellipse at 85% 85%, rgba(16, 185, 129, 0.32), rgba(12, 16, 26, 0.96) 65%);
 }
 
-/* Diagonal divider lines overlay (SVG) */
+/* Diagonal divider lines overlay (SVG with small waves) */
 .mode-lines-overlay {
     position: absolute;
     top: 0;
@@ -1134,21 +1137,182 @@ input:checked + .slider:before {
     z-index: 10;
 }
 
-.mode-divider-line {
-    stroke-width: 1;
+.mode-wave-line {
+    fill: none;
+    stroke-width: 2;
     vector-effect: non-scaling-stroke;
 }
 
-.mode-divider-line.line-rx {
+.mode-wave-line.line-rx {
     stroke: var(--primary);
-    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.9));
-    stroke-dasharray: 6 3;
+    filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.95));
 }
 
-.mode-divider-line.line-local {
+.mode-wave-line.line-local {
     stroke: var(--cyan);
-    filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.9));
-    stroke-dasharray: 6 3;
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.95));
+}
+
+/* --------------------------------------------------------------------------
+   CENTRAL RX CORE EMBLEM ("RX au centre")
+   -------------------------------------------------------------------------- */
+.mode-center-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 104px;
+    height: 104px;
+    z-index: 40;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hub-pulse-aura {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244, 63, 94, 0.35) 0%, rgba(0, 240, 255, 0.15) 50%, transparent 70%);
+    filter: blur(10px);
+    animation: hubAuraPulse 3s ease-in-out infinite alternate;
+    transition: background 0.3s ease;
+}
+
+@keyframes hubAuraPulse {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    100% { transform: scale(1.15); opacity: 0.9; }
+}
+
+.hub-outer-ring {
+    position: absolute;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 2px dashed rgba(244, 63, 94, 0.75);
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.5);
+    animation: hubSpin 20s linear infinite;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes hubSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.hub-tech-brackets {
+    position: absolute;
+    width: 116px;
+    height: 116px;
+}
+
+.hub-bracket {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--cyan);
+    border-style: solid;
+    filter: drop-shadow(0 0 4px var(--cyan));
+    transition: border-color 0.3s ease, filter 0.3s ease;
+}
+
+.hub-bracket.b-tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+.hub-bracket.b-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+.hub-bracket.b-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+.hub-bracket.b-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+.hub-core-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #151825 0%, #08090d 90%);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.9), inset 0 0 14px rgba(244, 63, 94, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.hub-rx-title {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: 2px;
+    color: #ffffff;
+    text-shadow: 0 0 12px var(--primary), 0 0 20px var(--cyan);
+    transition: text-shadow 0.3s ease;
+}
+
+.hub-rx-sub {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+/* Hover Reactions on Center Hub */
+.mode-center-hub.active-rx {
+    transform: translate(-50%, -50%) scale(1.08);
+}
+.mode-center-hub.active-rx .hub-outer-ring {
+    border-color: var(--primary);
+    box-shadow: 0 0 25px var(--primary-glow);
+}
+.mode-center-hub.active-rx .hub-pulse-aura {
+    background: radial-gradient(circle, rgba(244, 63, 94, 0.6) 0%, transparent 70%);
+}
+.mode-center-hub.active-rx .hub-bracket {
+    border-color: var(--primary);
+    filter: drop-shadow(0 0 6px var(--primary));
+}
+.mode-center-hub.active-rx .hub-rx-title {
+    text-shadow: 0 0 20px var(--primary), 0 0 35px var(--primary);
+}
+
+.mode-center-hub.active-pvp {
+    transform: translate(-50%, -50%) scale(1.08);
+}
+.mode-center-hub.active-pvp .hub-outer-ring {
+    border-color: var(--cyan);
+    box-shadow: 0 0 25px var(--cyan-glow);
+}
+.mode-center-hub.active-pvp .hub-pulse-aura {
+    background: radial-gradient(circle, rgba(0, 240, 255, 0.5) 0%, transparent 70%);
+}
+.mode-center-hub.active-pvp .hub-bracket {
+    border-color: var(--cyan);
+    filter: drop-shadow(0 0 6px var(--cyan));
+}
+.mode-center-hub.active-pvp .hub-rx-title {
+    text-shadow: 0 0 20px var(--cyan), 0 0 35px var(--cyan);
+}
+
+.mode-center-hub.active-local {
+    transform: translate(-50%, -50%) scale(1.08);
+}
+.mode-center-hub.active-local .hub-outer-ring {
+    border-color: var(--emerald);
+    box-shadow: 0 0 25px var(--emerald-glow);
+}
+.mode-center-hub.active-local .hub-pulse-aura {
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, transparent 70%);
+}
+.mode-center-hub.active-local .hub-bracket {
+    border-color: var(--emerald);
+    filter: drop-shadow(0 0 6px var(--emerald));
+}
+.mode-center-hub.active-local .hub-rx-title {
+    text-shadow: 0 0 20px var(--emerald), 0 0 35px var(--emerald);
 }
 
 /* Content layout inside slices */

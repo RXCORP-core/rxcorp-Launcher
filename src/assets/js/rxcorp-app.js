@@ -82,7 +82,22 @@ class RxcorpApp {
 
         if (!screen) return;
 
+        const hub = document.getElementById('mode-center-hub');
         slices.forEach(slice => {
+            slice.addEventListener('mouseenter', () => {
+                const mode = slice.dataset.mode;
+                if (hub) {
+                    hub.classList.remove('active-rx', 'active-pvp', 'active-local');
+                    if (mode === 'cloud') hub.classList.add('active-rx');
+                    else if (mode === 'pvp') hub.classList.add('active-pvp');
+                    else if (mode === 'instances') hub.classList.add('active-local');
+                }
+            });
+
+            slice.addEventListener('mouseleave', () => {
+                if (hub) hub.classList.remove('active-rx', 'active-pvp', 'active-local');
+            });
+
             slice.addEventListener('click', () => {
                 const mode = slice.dataset.mode;
                 this.selectMode(mode);

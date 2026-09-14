@@ -145,11 +145,40 @@
             </div>
         </div>
 
-        <!-- Glowing Diagonal Divider Lines (Matching user diagram) -->
-        <svg class="mode-lines-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line x1="0" y1="84" x2="60" y2="0" class="mode-divider-line line-rx" />
-            <line x1="40" y1="100" x2="100" y2="16" class="mode-divider-line line-local" />
+        <!-- Wave Divider Lines & Clip Paths (Petites Vagues) -->
+        <svg class="mode-lines-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <defs>
+                <clipPath id="clip-rx" clipPathUnits="objectBoundingBox">
+                    <path d="M 0 0 L 0.58 0 C 0.52 0.22, 0.50 0.36, 0.42 0.42 C 0.34 0.48, 0.36 0.60, 0.26 0.64 C 0.16 0.68, 0.12 0.78, 0 0.84 Z" />
+                </clipPath>
+                <clipPath id="clip-pvp" clipPathUnits="objectBoundingBox">
+                    <path d="M 0.58 0 C 0.52 0.22, 0.50 0.36, 0.42 0.42 C 0.34 0.48, 0.36 0.60, 0.26 0.64 C 0.16 0.68, 0.12 0.78, 0 0.84 L 0 1 L 0.42 1 C 0.54 0.94, 0.58 0.84, 0.68 0.80 C 0.78 0.76, 0.76 0.64, 0.84 0.58 C 0.92 0.52, 0.94 0.38, 1 0.16 L 1 0 Z" />
+                </clipPath>
+                <clipPath id="clip-local" clipPathUnits="objectBoundingBox">
+                    <path d="M 0.42 1 C 0.54 0.94, 0.58 0.84, 0.68 0.80 C 0.78 0.76, 0.76 0.64, 0.84 0.58 C 0.92 0.52, 0.94 0.38, 1 0.16 L 1 1 Z" />
+                </clipPath>
+            </defs>
+            <!-- Wave 1: Entre RX SERV et PVP -->
+            <path d="M 0 840 C 120 780, 160 680, 260 640 C 360 600, 340 480, 420 420 C 500 360, 520 220, 580 0" class="mode-wave-line line-rx" />
+            <!-- Wave 2: Entre PVP et MOD LOCAL -->
+            <path d="M 420 1000 C 540 940, 580 840, 680 800 C 780 760, 760 640, 840 580 C 920 520, 940 380, 1000 160" class="mode-wave-line line-local" />
         </svg>
+
+        <!-- CENTRAL RX CORE EMBLEM ("RX au centre") -->
+        <div class="mode-center-hub" id="mode-center-hub" title="RXCORP">
+            <div class="hub-pulse-aura"></div>
+            <div class="hub-outer-ring"></div>
+            <div class="hub-tech-brackets">
+                <span class="hub-bracket b-tl"></span>
+                <span class="hub-bracket b-tr"></span>
+                <span class="hub-bracket b-bl"></span>
+                <span class="hub-bracket b-br"></span>
+            </div>
+            <div class="hub-core-circle">
+                <span class="hub-rx-title">RX</span>
+                <span class="hub-rx-sub">CORP</span>
+            </div>
+        </div>
     </div>
 
     <!-- Main Container -->
