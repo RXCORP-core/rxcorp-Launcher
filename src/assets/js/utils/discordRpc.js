@@ -65,12 +65,12 @@ class DiscordManager {
 
         try {
             const data = {
-                details: activity.details || 'Terminal Tactique DeltaZone',
-                state: activity.state || 'Survie Zombie 1.20.1',
+                details: activity.details || 'Launcher RXCORP',
+                state: activity.state || 'En attente',
                 largeImageKey: activity.largeImageKey || 'logo',
-                largeImageText: activity.largeImageText || 'DeltaZone - Serveur Post-Apocalyptique',
+                largeImageText: activity.largeImageText || 'RXCORP - Launcher & Cloud Minecraft',
                 smallImageKey: activity.smallImageKey || 'icon',
-                smallImageText: activity.smallImageText || 'v1.20.1',
+                smallImageText: activity.smallImageText || 'v2.1',
                 instance: false,
             };
 
@@ -94,45 +94,45 @@ class DiscordManager {
 
     setIdle() {
         this.setActivity({
-            details: 'Survie dans le bunker',
-            state: 'Menu Principal // Prêt au combat',
+            details: 'Menu Principal',
+            state: 'En attente dans le launcher',
             largeImageKey: 'logo',
-            largeImageText: 'DeltaZone - Serveur Minecraft Zombie',
+            largeImageText: 'RXCORP - Launcher & Cloud Minecraft',
             smallImageKey: 'icon',
             smallImageText: 'En attente',
             startTimestamp: this.startTimestamp,
             buttons: [
-                { label: 'Rejoindre le Discord', url: 'https://discord.gg/deltazone' }
+                { label: 'Site Officiel', url: 'https://rxcorp.fr' }
             ]
         });
     }
 
     setLaunching() {
         this.setActivity({
-            details: 'Préparation du paquetage',
+            details: 'Lancement du jeu',
             state: 'Synchronisation des mods & ressources...',
             largeImageKey: 'logo',
-            largeImageText: 'DeltaZone - Serveur Minecraft Zombie',
+            largeImageText: 'RXCORP - Launcher & Cloud Minecraft',
             smallImageKey: 'icon',
             smallImageText: 'Chargement...',
             startTimestamp: Date.now(),
             buttons: [
-                { label: 'Rejoindre le Discord', url: 'https://discord.gg/deltazone' }
+                { label: 'Site Officiel', url: 'https://rxcorp.fr' }
             ]
         });
     }
 
-    setPlaying(instanceName = 'Secteur-04') {
+    setPlaying(instanceName = 'RX Serv') {
         this.setActivity({
-            details: 'Zone Infectée // Survie en cours',
-            state: `Instance: ${instanceName} (Touche [M] pour le PDA)`,
+            details: 'En jeu sur Minecraft',
+            state: `Profil : ${instanceName}`,
             largeImageKey: 'logo',
-            largeImageText: 'DeltaZone - Apocalypse Zombie',
+            largeImageText: 'RXCORP - Launcher & Cloud Minecraft',
             smallImageKey: 'icon',
-            smallImageText: 'En Survie',
+            smallImageText: 'En jeu',
             startTimestamp: Date.now(),
             buttons: [
-                { label: 'Rejoindre le Discord', url: 'https://discord.gg/deltazone' }
+                { label: 'Site Officiel', url: 'https://rxcorp.fr' }
             ]
         });
     }

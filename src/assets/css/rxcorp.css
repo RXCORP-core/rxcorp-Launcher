@@ -119,17 +119,15 @@ body {
 .brand-logo {
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg, var(--primary), #b91c1c);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 13px;
-    color: #fff;
-    letter-spacing: 0.5px;
-    box-shadow: 0 0 14px var(--primary-glow);
+    object-fit: contain;
+    background: transparent;
+    filter: drop-shadow(0 0 8px var(--primary-glow));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 12px var(--primary));
 }
 
 .brand-title {
