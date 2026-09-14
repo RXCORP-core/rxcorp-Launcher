@@ -291,6 +291,19 @@ class PelicanService {
         const serverMods = serverModsRes.mods;
         const localFiles = fs.readdirSync(localModsDir).filter(f => f.endsWith('.jar'));
 
+        // Clean up obsolete mods that are no longer on the server
+        const serverModNames = new Set(serverMods.map(m => m.name));
+        for (const localFile of localFiles) {
+            if (!serverModNames.has(localFile)) {
+                try {
+                    fs.unlinkSync(path.join(localModsDir, localFile));
+                    console.log(`[Sync] Supprimé mod obsolète local : ${localFile}`);
+                } catch (e) {
+                    console.warn(`[Sync] Impossible de supprimer le mod obsolète ${localFile}:`, e);
+                }
+            }
+        }
+
         // Determine which mods need to be downloaded
         const toDownload = [];
         for (const mod of serverMods) {

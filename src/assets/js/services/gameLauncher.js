@@ -73,6 +73,7 @@ class GameLauncher {
                 downloadFileMultiple: 6,
                 loader: {
                     type: loaderType,
+                    version: instance.version || '1.21.1',
                     build: instance.loaderVersion || 'latest',
                     enable: loaderType !== 'none'
                 },
@@ -105,9 +106,7 @@ class GameLauncher {
                 }
             };
 
-            onStatus('Préparation du lancement...');
-
-            this.currentLaunch.Launch(launchOptions);
+            const recentLogs = [];
 
             this.currentLaunch.on('extract', extract => {
                 onStatus('Extraction des composants...');
@@ -131,12 +130,16 @@ class GameLauncher {
             });
 
             this.currentLaunch.on('patch', () => {
-                onStatus('Application des patches...');
+                onStatus('Application des patches du loader...');
             });
 
             let gameStarted = false;
             this.currentLaunch.on('data', data => {
                 const str = data.toString();
+                recentLogs.push(str);
+                if (recentLogs.length > 50) recentLogs.shift();
+                console.log('[Minecraft]', str);
+
                 if (!gameStarted) {
                     gameStarted = true;
                     onStatus('Minecraft est démarré ! Bon jeu.');
@@ -147,15 +150,26 @@ class GameLauncher {
             this.currentLaunch.on('close', code => {
                 this.isRunning = false;
                 this.currentLaunch = null;
-                onStatus('Jeu fermé.');
-                onGameClose(code);
+                if (code !== 0 && code !== null && !gameStarted) {
+                    const crashSnippet = recentLogs.slice(-10).join('\n');
+                    console.error('[Minecraft Crash]', code, crashSnippet);
+                    onError(new Error(`Minecraft s'est arrêté (code ${code}). ${crashSnippet ? '\nLogs : ' + crashSnippet : ''}`));
+                } else {
+                    onStatus('Jeu fermé.');
+                    onGameClose(code);
+                }
             });
 
             this.currentLaunch.on('error', err => {
                 this.isRunning = false;
                 this.currentLaunch = null;
-                onError(err);
+                const msg = typeof err === 'object' ? (err.message || err.error || JSON.stringify(err)) : String(err);
+                console.error('[Launcher Error]', msg);
+                onError(new Error(msg));
             });
+
+            onStatus('Préparation du lancement...');
+            this.currentLaunch.Launch(launchOptions);
 
             return true;
         } catch (err) {
