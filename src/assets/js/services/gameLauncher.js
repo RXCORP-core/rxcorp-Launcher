@@ -120,12 +120,22 @@ class GameLauncher {
                 onStatus('Application des patches du loader...');
             });
 
+            const launchStartTime = Date.now();
             let gameStarted = false;
+            let hasFatalError = false;
+
             this.currentLaunch.on('data', data => {
                 const str = data.toString();
                 recentLogs.push(str);
                 if (recentLogs.length > 50) recentLogs.shift();
                 console.log('[Minecraft]', str);
+
+                if (str.includes('Exception in thread "main"') || 
+                    str.includes('Minecraft has crashed!') ||
+                    str.includes('A potential solution has been determined:') ||
+                    str.includes('ModLoadingException')) {
+                    hasFatalError = true;
+                }
 
                 if (!gameStarted) {
                     gameStarted = true;
@@ -134,54 +144,48 @@ class GameLauncher {
                 }
             });
 
-            this.currentLaunch.on('close', code => {
+            this.currentLaunch.on('close', () => {
                 this.isRunning = false;
                 this.currentLaunch = null;
 
-                if (code !== 0 && code !== null) {
-                    let crashDetail = '';
-                    const crashReportsDir = path.join(instance.path, 'crash-reports');
-                    try {
-                        if (fs.existsSync(crashReportsDir)) {
-                            const crashFiles = fs.readdirSync(crashReportsDir)
-                                .filter(f => f.endsWith('.txt'))
-                                .sort()
-                                .reverse();
-                            if (crashFiles.length > 0) {
-                                const latestCrash = path.join(crashReportsDir, crashFiles[0]);
-                                const content = fs.readFileSync(latestCrash, 'utf8');
-                                const lines = content.split('\n').slice(0, 30).join('\n');
-                                crashDetail = `\n\n[Rapport de crash (${crashFiles[0]})]:\n${lines}`;
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Error reading crash reports:', e);
-                    }
+                // Check if a NEW crash report was generated during THIS game session
+                let newCrashContent = null;
+                const crashReportsDir = path.join(instance.path, 'crash-reports');
+                try {
+                    if (fs.existsSync(crashReportsDir)) {
+                        const crashFiles = fs.readdirSync(crashReportsDir)
+                            .filter(f => f.endsWith('.txt'))
+                            .map(f => {
+                                const filePath = path.join(crashReportsDir, f);
+                                const stat = fs.statSync(filePath);
+                                return { name: f, path: filePath, mtime: stat.mtimeMs };
+                            })
+                            .filter(f => f.mtime >= launchStartTime - 3000)
+                            .sort((a, b) => b.mtime - a.mtime);
 
-                    if (!crashDetail) {
-                        const latestLog = path.join(instance.path, 'logs', 'latest.log');
-                        try {
-                            if (fs.existsSync(latestLog)) {
-                                const logContent = fs.readFileSync(latestLog, 'utf8');
-                                const logLines = logContent.split('\n').filter(l => l.trim()).slice(-20).join('\n');
-                                if (logLines) {
-                                    crashDetail = `\n\n[Derniers logs (latest.log)]:\n${logLines}`;
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Error reading latest.log:', e);
+                        if (crashFiles.length > 0) {
+                            const content = fs.readFileSync(crashFiles[0].path, 'utf8');
+                            const lines = content.split('\n').slice(0, 30).join('\n');
+                            newCrashContent = `\n\n[Rapport de crash (${crashFiles[0].name})]:\n${lines}`;
                         }
                     }
+                } catch (e) {
+                    console.error('Error reading crash reports:', e);
+                }
 
+                // If no new crash report and no fatal error and game actually started, it's a normal close
+                const isCrash = Boolean(newCrashContent || hasFatalError || (!gameStarted));
+
+                if (isCrash) {
+                    let crashDetail = newCrashContent || '';
                     if (!crashDetail && recentLogs.length > 0) {
-                        crashDetail = `\n\n[Console Logs]:\n${recentLogs.slice(-15).join('\n')}`;
+                        crashDetail = `\n\n[Derniers logs]:\n${recentLogs.slice(-15).join('\n')}`;
                     }
-
-                    console.error('[Minecraft Crash]', code, crashDetail);
-                    onError(new Error(`Minecraft s'est arrêté de manière anormale (code ${code}).${crashDetail}`));
+                    console.error('[Minecraft Crash]', crashDetail);
+                    onError(new Error(`Minecraft s'est arrêté de manière anormale.${crashDetail}`));
                 } else {
                     onStatus('Jeu fermé.');
-                    onGameClose(code);
+                    onGameClose();
                 }
             });
 
