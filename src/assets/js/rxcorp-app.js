@@ -436,9 +436,9 @@ class RxcorpApp {
         } else {
             // If zero instances exist, create a default one
             this.activeInstance = instanceService.createInstance({
-                name: 'Vanilla 1.21.1',
-                version: '1.21.1',
-                loader: 'fabric'
+                name: 'Minecraft 26.2',
+                version: '26.2',
+                loader: 'forge'
             });
             store.set('activeInstanceId', this.activeInstance.id);
             return this.loadInstances();

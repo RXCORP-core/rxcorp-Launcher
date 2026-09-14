@@ -59,6 +59,15 @@ class InstanceService {
                         }
                         data.modCount = modCount;
 
+                        // Automatically migrate outdated server instances from 1.21.1 to 26.2
+                        if ((data.id.startsWith('rx-') || data.serverAddress) && (data.version === '1.21.1' || !data.version)) {
+                            data.version = '26.2';
+                            if (data.loader === 'vanilla') data.loader = 'forge';
+                            try {
+                                fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf8');
+                            } catch (err) {}
+                        }
+
                         instances.push(data);
                     } catch (e) {
                         console.error(`Error loading instance ${entry.name}:`, e);
@@ -92,7 +101,7 @@ class InstanceService {
     /**
      * Create a new instance
      */
-    createInstance({ name, version, loader = 'vanilla', loaderVersion = null, serverAddress = null, icon = null }) {
+    createInstance({ name, version, loader = 'forge', loaderVersion = null, serverAddress = null, icon = null }) {
         const base = this.getBaseDir();
         const cleanSlug = (name || 'instance')
             .toLowerCase()
@@ -114,8 +123,8 @@ class InstanceService {
         const instanceData = {
             id,
             name: name || 'Nouvelle Instance',
-            version: version || '1.21.1',
-            loader: loader || 'vanilla', // vanilla, forge, fabric, neoforge
+            version: version || '26.2',
+            loader: loader || 'forge', // forge, fabric, neoforge, vanilla
             loaderVersion: loaderVersion || null,
             serverAddress: serverAddress || null,
             icon: icon || 'cube',
@@ -144,25 +153,44 @@ class InstanceService {
             if (!found.path) found.path = path.join(this.getBaseDir(), found.id);
             if (!found.modsPath) found.modsPath = path.join(found.path, 'mods');
 
-            // If the instance was created as vanilla, switch to forge so synced mods can run
+            let modified = false;
+            // Ensure forge loader for servers
             if (found.loader === 'vanilla') {
                 found.loader = 'forge';
+                modified = true;
+            }
+            // Auto-upgrade version to 26.2
+            if (found.version === '1.21.1' || !found.version) {
+                found.version = '26.2';
+                modified = true;
+            }
+
+            // Cleanup any nested instances folder created by previous bug
+            const nestedInstances = path.join(found.path, 'instances');
+            if (fs.existsSync(nestedInstances)) {
+                try {
+                    fs.rmSync(nestedInstances, { recursive: true, force: true });
+                } catch (e) {}
+            }
+
+            if (modified) {
                 try {
                     const cfgPath = path.join(found.path, 'instance.json');
                     if (fs.existsSync(cfgPath)) {
                         const raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
-                        raw.loader = 'forge';
+                        raw.loader = found.loader;
+                        raw.version = found.version;
                         fs.writeFileSync(cfgPath, JSON.stringify(raw, null, 2), 'utf8');
                     }
                 } catch (e) {
-                    console.error('Failed to update instance.json loader:', e);
+                    console.error('Failed to update instance.json loader/version:', e);
                 }
             }
             return found;
         }
 
         // Auto-detect version & loader based on docker image or name (default to forge for Pelican servers)
-        let version = '1.21.1';
+        let version = '26.2';
         let loader = 'forge';
         const img = (server.dockerImage || '').toLowerCase();
         const name = (server.name || '').toLowerCase();

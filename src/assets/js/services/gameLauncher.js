@@ -67,13 +67,12 @@ class GameLauncher {
             const launchOptions = {
                 authenticator: authenticator,
                 path: instance.path,
-                instance: instance.name,
-                version: instance.version,
+                version: instance.version || '26.2',
                 detached: true,
                 downloadFileMultiple: 6,
                 loader: {
                     type: loaderType,
-                    version: instance.version || '1.21.1',
+                    version: instance.version || '26.2',
                     build: instance.loaderVersion || 'latest',
                     enable: loaderType !== 'none'
                 },
@@ -82,19 +81,7 @@ class GameLauncher {
                 java: {
                     path: settings.javaPath || null
                 },
-                JVM_ARGS: [
-                    '-XX:+UseG1GC',
-                    '-XX:+ParallelRefProcEnabled',
-                    '-XX:MaxGCPauseMillis=200',
-                    '-XX:+UnlockExperimentalVMOptions',
-                    '-XX:+DisableExplicitGC',
-                    '-XX:+AlwaysPreTouch',
-                    '-XX:G1NewSizePercent=30',
-                    '-XX:G1MaxNewSizePercent=40',
-                    '-XX:G1ReservePercent=20',
-                    '-XX:G1HeapWastePercent=5',
-                    '-XX:G1MixedGCCountTarget=4'
-                ],
+                JVM_ARGS: [],
                 GAME_ARGS: gameArgs,
                 screen: {
                     width: settings.screenWidth || 1280,
@@ -150,10 +137,48 @@ class GameLauncher {
             this.currentLaunch.on('close', code => {
                 this.isRunning = false;
                 this.currentLaunch = null;
-                if (code !== 0 && code !== null && !gameStarted) {
-                    const crashSnippet = recentLogs.slice(-10).join('\n');
-                    console.error('[Minecraft Crash]', code, crashSnippet);
-                    onError(new Error(`Minecraft s'est arrêté (code ${code}). ${crashSnippet ? '\nLogs : ' + crashSnippet : ''}`));
+
+                if (code !== 0 && code !== null) {
+                    let crashDetail = '';
+                    const crashReportsDir = path.join(instance.path, 'crash-reports');
+                    try {
+                        if (fs.existsSync(crashReportsDir)) {
+                            const crashFiles = fs.readdirSync(crashReportsDir)
+                                .filter(f => f.endsWith('.txt'))
+                                .sort()
+                                .reverse();
+                            if (crashFiles.length > 0) {
+                                const latestCrash = path.join(crashReportsDir, crashFiles[0]);
+                                const content = fs.readFileSync(latestCrash, 'utf8');
+                                const lines = content.split('\n').slice(0, 30).join('\n');
+                                crashDetail = `\n\n[Rapport de crash (${crashFiles[0]})]:\n${lines}`;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error reading crash reports:', e);
+                    }
+
+                    if (!crashDetail) {
+                        const latestLog = path.join(instance.path, 'logs', 'latest.log');
+                        try {
+                            if (fs.existsSync(latestLog)) {
+                                const logContent = fs.readFileSync(latestLog, 'utf8');
+                                const logLines = logContent.split('\n').filter(l => l.trim()).slice(-20).join('\n');
+                                if (logLines) {
+                                    crashDetail = `\n\n[Derniers logs (latest.log)]:\n${logLines}`;
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error reading latest.log:', e);
+                        }
+                    }
+
+                    if (!crashDetail && recentLogs.length > 0) {
+                        crashDetail = `\n\n[Console Logs]:\n${recentLogs.slice(-15).join('\n')}`;
+                    }
+
+                    console.error('[Minecraft Crash]', code, crashDetail);
+                    onError(new Error(`Minecraft s'est arrêté de manière anormale (code ${code}).${crashDetail}`));
                 } else {
                     onStatus('Jeu fermé.');
                     onGameClose(code);
