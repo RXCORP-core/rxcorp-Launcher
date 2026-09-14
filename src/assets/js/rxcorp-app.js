@@ -39,7 +39,7 @@ const store = new Store({
         activeCloudInstanceId: null,
         activeLocalInstanceId: null,
         activeDribbbleMode: 'cloud',
-        ramMax: 4,
+        ramMax: 6,
         javaPath: '',
         accounts: [
             {
@@ -648,52 +648,51 @@ class RxcorpApp {
         card.innerHTML = `
             <div class="server-card-top">
                 <div class="server-name-box">
-                    <h3>${server.name}</h3>
-                    <div class="server-address" title="Cliquer pour copier">
+                    <h3 class="server-name">${server.name}</h3>
+                    <div class="server-address" title="Cliquer pour copier l'adresse">
                         <span>${server.ip}:${server.port}</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px; height:11px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px; height:11px; opacity:0.7;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </div>
                 </div>
-                <div class="server-badge offline" id="badge-${server.id}">
-                    <span class="status-dot"></span>
-                    <span class="badge-text">Vérification...</span>
+                <div class="server-badge online" id="badge-${server.id}">
+                    <span class="badge-text">● En Ligne</span>
                 </div>
             </div>
 
             <div class="server-stats-row">
                 <div class="stat-item">
-                    <span class="stat-label">RAM Allouée</span>
+                    <span class="stat-label">RAM ALLOUÉE</span>
                     <span class="stat-value">${server.limits.memory > 0 ? (server.limits.memory / 1024).toFixed(1) + ' GB' : 'Illimitée'}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">RAM Utilisée</span>
+                    <span class="stat-label">RAM UTILISÉE</span>
                     <span class="stat-value" id="ram-used-${server.id}">-</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">CPU</span>
+                    <span class="stat-label">CHARGE CPU</span>
                     <span class="stat-value" id="cpu-used-${server.id}">-</span>
                 </div>
             </div>
 
-            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 12px; margin-bottom: 12px; padding: 9px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: var(--primary); flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
                     <span id="mods-summary-${server.id}" style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Détection des mods...</span>
                 </div>
-                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 2px 7px; flex-shrink: 0; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);">-</span>
+                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border-subtle);">-</span>
             </div>
 
             <div class="server-actions">
-                <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1;" data-id="${server.id}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1.3; font-weight: 700;" data-id="${server.id}">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                     <span>Rejoindre</span>
                 </button>
-                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" data-id="${server.id}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" style="flex: 1; font-weight: 600;" data-id="${server.id}">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                     <span>Sync Mods</span>
                 </button>
-                <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" data-id="${server.id}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </button>
             </div>
         `;
@@ -727,22 +726,27 @@ class RxcorpApp {
                 const state = res.resources.current_state;
                 if (state === 'running') {
                     badge.className = 'server-badge online';
-                    badge.querySelector('.badge-text').innerText = 'En ligne';
+                    badge.innerHTML = '<span class="badge-text">● En Ligne</span>';
                 } else if (state === 'starting') {
                     badge.className = 'server-badge starting';
-                    badge.querySelector('.badge-text').innerText = 'Démarrage...';
+                    badge.innerHTML = '<span class="badge-text">● Démarrage...</span>';
                 } else {
                     badge.className = 'server-badge offline';
-                    badge.querySelector('.badge-text').innerText = 'Arrêté';
+                    badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
                 }
 
                 const ramMb = (res.resources.resources.memory_bytes / (1024 * 1024)).toFixed(0);
                 ramValue.innerText = `${ramMb} MB`;
                 cpuValue.innerText = `${res.resources.resources.cpu_absolute.toFixed(1)}%`;
+            } else {
+                badge.className = 'server-badge offline';
+                badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
+                ramValue.innerText = '-';
+                cpuValue.innerText = '0%';
             }
         } catch (_) {
             badge.className = 'server-badge offline';
-            badge.querySelector('.badge-text').innerText = 'Inaccessible';
+            badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
             ramValue.innerText = '-';
             cpuValue.innerText = '0%';
         }
@@ -1012,6 +1016,9 @@ class RxcorpApp {
     // INSTANCES MANAGEMENT (LOCAL PROFILES)
     // ==========================================
     async loadInstances() {
+        // Ensure standard starter instances exist so the grid is populated naturally
+        instanceService.ensureDefaultProfiles();
+
         const localInstances = instanceService.getLocalInstances();
         const grid = document.getElementById('instances-grid');
         const selectTarget = document.getElementById('select-target-instance');
@@ -1053,46 +1060,71 @@ class RxcorpApp {
                     card.className = 'server-card';
                     const isCurrentLocal = (inst.id === this.activeLocalInstanceId);
                     if (isCurrentLocal) {
-                        card.style.borderColor = 'var(--cyan)';
-                        card.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.25)';
+                        card.classList.add('active-local-card');
                     }
 
                     const loaderStr = (inst.loader || 'fabric').toUpperCase();
+                    
+                    // Determine icon based on loader / name
+                    let iconMarkup = '<div style="font-size: 20px; width: 38px; height: 38px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">📦</div>';
+                    if (loaderStr.includes('VANILLA') || (inst.name && inst.name.toLowerCase().includes('vanilla'))) {
+                        iconMarkup = `
+                            <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #15803d 0%, #854d0e 45%, #713f12 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
+                                <span style="font-size: 18px;" title="Bloc de Terre (Vanilla)">🌱</span>
+                            </div>
+                        `;
+                    } else if (loaderStr.includes('FABRIC')) {
+                        iconMarkup = `
+                            <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(99,102,241,0.25); border: 1px solid rgba(255,255,255,0.2);">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#4338ca" stroke-width="2.2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            </div>
+                        `;
+                    } else if (loaderStr.includes('FORGE')) {
+                        iconMarkup = `
+                            <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #334155 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15);">
+                                <span style="font-size: 18px;" title="Forge (Enclume / Marteau)">⚒️</span>
+                            </div>
+                        `;
+                    }
+
                     card.innerHTML = `
                         <div class="server-card-top">
-                            <div class="server-name-box">
-                                <h3>${inst.name}</h3>
-                                <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version || '1.21.4'} • ${loaderStr}</span>
+                            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                                ${iconMarkup}
+                                <div class="server-name-box">
+                                    <h3 class="server-name" title="${inst.name}">${inst.name}</h3>
+                                    <span style="font-size: 11px; color: var(--text-dim);">Minecraft ${inst.version || '1.21.4'} • ${loaderStr}</span>
+                                </div>
                             </div>
-                            <div class="server-badge online" style="background: rgba(0, 240, 255, 0.12); color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);">
-                                <span>${inst.modCount || 0} Mod(s)</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                ${isCurrentLocal ? '<span class="instance-active-badge">✔ Actif</span>' : ''}
+                                <button class="icon-tool-btn btn-rename-instance" data-id="${inst.id}" data-name="${inst.name}" title="Renommer">✏️</button>
+                                <button class="icon-tool-btn btn-delete-instance" data-id="${inst.id}" title="Supprimer">🗑️</button>
                             </div>
                         </div>
 
                         <div class="server-stats-row">
                             <div class="stat-item">
-                                <span class="stat-label">Version</span>
-                                <span class="stat-value" style="color: var(--cyan);">${inst.version || '1.21.4'}</span>
+                                <span class="stat-label">VERSION</span>
+                                <span class="stat-value" style="color: var(--emerald-light);">${inst.version || '1.21.4'}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Modloader</span>
+                                <span class="stat-label">MODLOADER</span>
                                 <span class="stat-value">${loaderStr}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Dossier</span>
-                                <span class="stat-value" style="font-size: 11px; cursor: pointer; color: var(--text-white);" title="Ouvrir dans l'explorateur">Ouvrir ↗</span>
+                                <span class="stat-label">MODS</span>
+                                <span class="stat-value">${inst.modCount || 0} actif(s)</span>
                             </div>
                         </div>
 
                         <div class="server-actions">
-                            <button class="rx-btn ${isCurrentLocal ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-instance" style="flex: 1;" data-id="${inst.id}">
-                                <span>${isCurrentLocal ? '✓ Actif' : 'Sélectionner'}</span>
+                            <button class="rx-btn ${isCurrentLocal ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-instance" style="flex: 1.2; font-weight: 700;" data-id="${inst.id}">
+                                <span>${isCurrentLocal ? '✓ Profil Actif' : 'Sélectionner'}</span>
                             </button>
-                            <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier de mods" data-id="${inst.id}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                            </button>
-                            <button class="rx-btn rx-btn-danger btn-delete-instance" title="Supprimer l'instance" data-id="${inst.id}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier dans l'explorateur" style="flex: 1; font-weight: 600;" data-id="${inst.id}">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                <span>Ouvrir ↗</span>
                             </button>
                         </div>
                     `;
@@ -1107,8 +1139,15 @@ class RxcorpApp {
                         instanceService.openFolder(inst.id);
                     });
 
-                    card.querySelector('.stat-value[style*="cursor: pointer"]').addEventListener('click', () => {
-                        instanceService.openFolder(inst.id);
+                    card.querySelector('.btn-rename-instance').addEventListener('click', () => {
+                        const currentName = inst.name;
+                        const newName = prompt('Entrez le nouveau nom pour ce profil :', currentName);
+                        if (newName && newName.trim() && newName.trim() !== currentName) {
+                            instanceService.renameInstance(inst.id, newName.trim());
+                            this.loadInstances();
+                            this.renderDashboardLists();
+                            this.showNotification('Profil renommé', `Nouveau nom : ${newName.trim()}`);
+                        }
                     });
 
                     card.querySelector('.btn-delete-instance').addEventListener('click', () => {
@@ -1120,6 +1159,7 @@ class RxcorpApp {
                             }
                             this.loadInstances();
                             this.renderDashboardLists();
+                            this.showNotification('Profil supprimé', `Le profil "${inst.name}" a été supprimé.`);
                         }
                     });
 
@@ -1127,7 +1167,6 @@ class RxcorpApp {
                 }
             }
         }
-
         this.renderDashboardLists();
     }
 
@@ -1278,23 +1317,49 @@ class RxcorpApp {
             const card = document.createElement('div');
             card.className = 'mod-card';
 
-            const iconSrc = mod.iconUrl || 'assets/images/icon/icon.png';
-            const downloadsFormatted = mod.downloads > 1000000 
-                ? (mod.downloads / 1000000).toFixed(1) + 'M' 
-                : (mod.downloads / 1000).toFixed(0) + 'k';
+            let iconSrc = mod.iconUrl;
+            const searchKey = `${mod.slug || ''} ${mod.title || ''}`.toLowerCase();
+            if (!iconSrc || (iconSrc.includes('icon.png') && !iconSrc.includes('modrinth') && !iconSrc.includes('cursecdn'))) {
+                if (searchKey.includes('sodium')) {
+                    iconSrc = 'https://cdn.modrinth.com/data/AANobbMI/icon.png';
+                } else if (searchKey.includes('iris')) {
+                    iconSrc = 'https://cdn.modrinth.com/data/YL57xq9U/icon.png';
+                } else if (searchKey.includes('distant') || searchKey.includes('horizon')) {
+                    iconSrc = 'https://cdn.modrinth.com/data/u6msX0Oc/icon.png';
+                } else if (searchKey.includes('fabric-api') || searchKey.includes('fabric api')) {
+                    iconSrc = 'https://cdn.modrinth.com/data/P7dR8mSH/icon.png';
+                } else if (searchKey.includes('appleskin')) {
+                    iconSrc = 'https://cdn.modrinth.com/data/EsAfCjCV/icon.png';
+                } else if (searchKey.includes('jei') || searchKey.includes('just enough')) {
+                    iconSrc = 'https://cdn.modrinth.com/data/u6dRKJwZ/icon.png';
+                } else {
+                    iconSrc = 'assets/images/icon/icon.png';
+                }
+            }
+
+            const rawDownloads = Number(mod.downloads) || 0;
+            const downloadsFormatted = rawDownloads >= 1000000 
+                ? (rawDownloads / 1000000).toFixed(1) + 'M' 
+                : (rawDownloads >= 1000 ? (rawDownloads / 1000).toFixed(0) + 'k' : rawDownloads);
+
+            const rawFollows = Number(mod.follows) || 0;
+            const followsFormatted = rawFollows >= 1000
+                ? (rawFollows / 1000).toFixed(1) + 'k'
+                : rawFollows;
 
             const sourceBadge = this.activeModSource === 'curseforge' ? 'CurseForge' : 'Modrinth';
+            const categories = (mod.categories || []).slice(0, 2);
 
             card.innerHTML = `
                 <div>
                     <div class="mod-card-header">
-                        <img class="mod-icon" src="${iconSrc}" alt="Mod icon" onerror="this.src='assets/images/icon/icon.png'">
+                        <img class="mod-icon" src="${iconSrc}" alt="${mod.title}" onerror="this.onerror=null;this.src='assets/images/icon/icon.png'">
                         <div class="mod-info-box">
                             <div class="mod-title" title="${mod.title}">${mod.title}</div>
-                            <div class="mod-author">par ${mod.author}</div>
+                            <div class="mod-author">par ${mod.author || 'Auteur inconnu'}</div>
                             <div class="mod-tags-row">
                                 <span class="mod-tag-badge" style="color: ${this.activeModSource === 'curseforge' ? 'var(--amber)' : 'var(--emerald)'};">${sourceBadge}</span>
-                                ${(mod.categories || []).slice(0, 2).map(c => `<span class="mod-tag-badge">${c}</span>`).join('')}
+                                ${categories.map(c => `<span class="mod-tag-badge">${c}</span>`).join('')}
                             </div>
                         </div>
                     </div>
@@ -1304,8 +1369,8 @@ class RxcorpApp {
                 </div>
                 <div class="mod-footer">
                     <div class="mod-stats">
-                        <span>⬇ ${downloadsFormatted}</span>
-                        <span>★ ${mod.follows || 0}</span>
+                        <span title="${rawDownloads} téléchargements">⬇ ${downloadsFormatted}</span>
+                        <span title="${rawFollows} favoris">★ ${followsFormatted}</span>
                     </div>
                     <button class="rx-btn rx-btn-primary btn-install-mod" data-id="${mod.id || mod.slug}" data-source="${this.activeModSource}">
                         <span>📥 Installer</span>
@@ -1406,7 +1471,8 @@ class RxcorpApp {
         launchBtn.disabled = true;
         launchBtn.innerHTML = '<span>LANCEMENT...</span>';
 
-        const ramMax = store.get('ramMax') || 4;
+        let ramMax = store.get('ramMax') || 6;
+        if (ramMax > 100) ramMax = Math.round(ramMax / 1024);
         const javaPath = store.get('javaPath') || null;
         const account = this.getActiveAccount();
 
@@ -1480,23 +1546,41 @@ class RxcorpApp {
     // SETTINGS & ACCOUNTS
     // ==========================================
     initSettings() {
-        const rangeRam = document.getElementById('range-ram-max');
         const labelRam = document.getElementById('label-ram-max');
+        const ramButtons = document.querySelectorAll('.ram-pill-btn');
         const inputJava = document.getElementById('input-java-path');
         const inputUrl = document.getElementById('settings-panel-url');
         const inputKey = document.getElementById('settings-panel-key');
         const inputCurseForge = document.getElementById('input-curseforge-key');
         const btnSave = document.getElementById('btn-save-settings');
 
-        // Populate saved values
-        if (rangeRam) {
-            rangeRam.value = store.get('ramMax') || 4;
-            labelRam.innerText = `${rangeRam.value} GB`;
+        // Populate saved RAM
+        let currentRam = store.get('ramMax') || 6;
+        if (currentRam > 100) currentRam = Math.round(currentRam / 1024);
+        if (![4, 6, 8, 16].includes(currentRam)) currentRam = 6;
 
-            rangeRam.addEventListener('input', () => {
-                labelRam.innerText = `${rangeRam.value} GB`;
+        const updateRamUI = (val) => {
+            currentRam = val;
+            ramButtons.forEach(btn => {
+                const btnVal = parseInt(btn.getAttribute('data-ram'), 10);
+                btn.classList.toggle('active', btnVal === val);
             });
-        }
+            if (labelRam) {
+                labelRam.innerText = `${val} Go ${val === 6 ? '• (Recommandé)' : ''}`;
+            }
+        };
+
+        ramButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseInt(btn.getAttribute('data-ram'), 10);
+                if (val) {
+                    updateRamUI(val);
+                    store.set('ramMax', val);
+                }
+            });
+        });
+
+        updateRamUI(currentRam);
 
         if (inputJava) inputJava.value = store.get('javaPath') || '';
         if (inputUrl) inputUrl.value = store.get('panelUrl') || 'https://panel.rxcorp.fr';
@@ -1510,10 +1594,10 @@ class RxcorpApp {
         this.initLanguageSelector();
 
         btnSave?.addEventListener('click', () => {
-            store.set('ramMax', parseInt(rangeRam.value, 10));
-            store.set('javaPath', inputJava.value.trim());
-            store.set('panelUrl', inputUrl.value.trim());
-            store.set('apiKey', inputKey.value.trim());
+            store.set('ramMax', currentRam);
+            store.set('javaPath', inputJava ? inputJava.value.trim() : '');
+            store.set('panelUrl', inputUrl ? inputUrl.value.trim() : '');
+            store.set('apiKey', inputKey ? inputKey.value.trim() : '');
 
             if (inputCurseForge) {
                 curseforgeService.setApiKey(inputCurseForge.value.trim());

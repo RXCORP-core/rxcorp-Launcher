@@ -496,19 +496,16 @@
                             <span class="settings-card-title" data-i18n="ram_section">Allocation Mémoire RAM</span>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-size: 11px; color: var(--text-muted);">Mémoire maximale :</span>
-                            <span id="label-ram-max" style="font-size: 12px; font-weight: 700; color: var(--emerald-light);">6144 Mo (6 Go)</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 11.5px; color: var(--text-muted);">Mémoire allouée à Minecraft :</span>
+                            <span id="label-ram-max" style="font-size: 12.5px; font-weight: 700; color: var(--emerald-light);">6 Go • (Recommandé)</span>
                         </div>
 
-                        <input id="range-ram-max" type="range" min="2048" max="16384" step="1024" value="6144" style="width: 100%; accent-color: var(--emerald);">
-
-                        <div class="ram-pills-row">
-                            <button type="button" class="ram-pill-btn" onclick="document.getElementById('range-ram-max').value=4096; document.getElementById('range-ram-max').dispatchEvent(new Event('input'));">4 Go</button>
-                            <button type="button" class="ram-pill-btn active" onclick="document.getElementById('range-ram-max').value=6144; document.getElementById('range-ram-max').dispatchEvent(new Event('input'));">6 Go</button>
-                            <button type="button" class="ram-pill-btn" onclick="document.getElementById('range-ram-max').value=8192; document.getElementById('range-ram-max').dispatchEvent(new Event('input'));">8 Go</button>
-                            <button type="button" class="ram-pill-btn" onclick="document.getElementById('range-ram-max').value=12288; document.getElementById('range-ram-max').dispatchEvent(new Event('input'));">12 Go</button>
-                            <button type="button" class="ram-pill-btn" onclick="document.getElementById('range-ram-max').value=16384; document.getElementById('range-ram-max').dispatchEvent(new Event('input'));">16 Go</button>
+                        <div class="ram-pills-row" id="ram-choices-row">
+                            <button type="button" class="ram-pill-btn" data-ram="4">4 Go</button>
+                            <button type="button" class="ram-pill-btn active" data-ram="6">6 Go <span style="font-size: 9.5px; opacity: 0.9;">(Recommandé)</span></button>
+                            <button type="button" class="ram-pill-btn" data-ram="8">8 Go</button>
+                            <button type="button" class="ram-pill-btn" data-ram="16">16 Go</button>
                         </div>
                     </div>
 
@@ -534,6 +531,7 @@
                 <div class="settings-col">
                     <div class="skin-preview-card">
                         <div class="skin-viewport-box">
+                            <div class="skin-pedestal-halo"></div>
                             <img id="settings-skin-body" class="skin-render-img" src="https://mc-heads.net/body/Steve/220" alt="Minecraft Skin">
                         </div>
 

@@ -300,6 +300,52 @@ class InstanceService {
     }
 
     /**
+     * Rename an instance
+     */
+    renameInstance(id, newName) {
+        const inst = this.getInstance(id);
+        if (!inst || !newName) return false;
+        inst.name = newName.trim();
+        const configPath = path.join(inst.path, 'instance.json');
+        try {
+            fs.writeFileSync(configPath, JSON.stringify(inst, null, 2), 'utf8');
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * Ensure default starter profiles exist
+     */
+    ensureDefaultProfiles() {
+        const locals = this.getLocalInstances();
+        if (locals.length === 0) {
+            this.createInstance({
+                name: 'Fabric 1.21.4',
+                version: '1.21.4',
+                loader: 'fabric',
+                icon: 'gear',
+                domain: 'local'
+            });
+            this.createInstance({
+                name: 'Vanilla 1.21.1',
+                version: '1.21.1',
+                loader: 'vanilla',
+                icon: 'dirt',
+                domain: 'local'
+            });
+            this.createInstance({
+                name: 'Forge 1.20.1',
+                version: '1.20.1',
+                loader: 'forge',
+                icon: 'anvil',
+                domain: 'local'
+            });
+        }
+    }
+
+    /**
      * List all mods in an instance
      */
     getInstanceMods(id) {

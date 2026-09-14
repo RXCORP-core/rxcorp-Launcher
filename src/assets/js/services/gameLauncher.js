@@ -37,9 +37,11 @@ class GameLauncher {
             this.isRunning = true;
             this.currentLaunch = new Launch();
 
-            // Default RAM
-            const minRam = (settings.ramMin || instance.javaMemory?.min || 2) * 1024;
-            const maxRam = (settings.ramMax || instance.javaMemory?.max || 4) * 1024;
+            // Default RAM (Sanitized so GB is never multiplied twice)
+            let rawMax = settings.ramMax || instance.javaMemory?.max || 6;
+            if (rawMax > 100) rawMax = Math.round(rawMax / 1024);
+            const maxRam = rawMax * 1024;
+            const minRam = Math.min(2048, maxRam);
 
             // Loader config
             let loaderType = 'none';
