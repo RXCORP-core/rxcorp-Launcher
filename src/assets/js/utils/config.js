@@ -23,19 +23,22 @@ let articles = `${url}/articles`;
 
 const defaultDeltaZoneConfig = {
     maintenance: false,
-    maintenance_message: "Le serveur DeltaZone est actuellement en maintenance.",
-    dataDirectory: "DeltaZone",
-    online: false,
-    client_id: "13f589e1-e2fc-443e-a68a-63b0092b8eeb",
-    socialLinks: []
+    maintenance_message: "L'infrastructure RXCORP est actuellement en maintenance.",
+    dataDirectory: "RXCORP",
+    online: true,
+    client_id: "00000000402b5328",
+    socialLinks: [
+        { name: "Site Web", url: "https://rxcorp.fr" },
+        { name: "Panel", url: "https://panel.rxcorp.fr" }
+    ]
 };
 
 const defaultDeltaZoneInstances = [
     {
-        name: "DeltaZone Apocalypse",
+        name: "RXCORP Cloud Server",
         url: null,
         loader: {
-            minecraft_version: "1.20.1",
+            minecraft_version: "1.21.4",
             loader_type: "forge",
             loader_version: "latest",
             mcp_file: null
@@ -45,8 +48,8 @@ const defaultDeltaZoneInstances = [
         whitelist: [],
         whitelistActive: false,
         status: {
-            nameServer: "DELTAZONE",
-            ip: "play.deltazone.fr",
+            nameServer: "RXCORP",
+            ip: "panel.rxcorp.fr",
             port: null
         }
     }
@@ -54,15 +57,9 @@ const defaultDeltaZoneInstances = [
 
 const defaultDeltaZoneNews = [
     {
-        title: "☣ ALERTE MAXIMALE // ZONE INFECTÉE",
-        content: "L'épidémie s'est propagée dans tous les secteurs. Rejoignez le complexe de sécurité DeltaZone et faites le plein d'armes et de munitions avant la nuit.",
-        author: "QG DeltaZone",
-        publish_date: new Date().toISOString()
-    },
-    {
-        title: "📦 PARACHUTAGE DE RAVITAILLEMENT",
-        content: "Des vivres, filtres à radiations et kits médicaux sont largués régulièrement en zone rouge. Restez groupés pour survivre.",
-        author: "Section Ravitaillement",
+        title: "🚀 RXCORP LAUNCHER 2.4",
+        content: "Bienvenue sur l'infrastructure RXCORP. Profitez de la synchronisation automatique de vos serveurs Pelican Cloud et de vos profils locaux.",
+        author: "Équipe RXCORP",
         publish_date: new Date().toISOString()
     }
 ];
@@ -73,7 +70,7 @@ class Config {
             nodeFetch(config, { timeout: 4000 }).then(async res => {
                 if (res.status === 200) {
                     let json = await res.json();
-                    json.dataDirectory = "DeltaZone";
+                    json.dataDirectory = "RXCORP";
                     return resolve(json);
                 }
                 return resolve(defaultDeltaZoneConfig);
@@ -93,8 +90,8 @@ class Config {
                     instancesList.push(data);
                 }
             }
-            let hasDeltaZone = instancesList.some(i => i.name && i.name.toLowerCase().includes('deltazone'));
-            if (!hasDeltaZone) {
+            let hasRxcorp = instancesList.some(i => i.name && i.name.toLowerCase().includes('rxcorp'));
+            if (!hasRxcorp) {
                 instancesList.unshift(defaultDeltaZoneInstances[0]);
             }
             return instancesList;

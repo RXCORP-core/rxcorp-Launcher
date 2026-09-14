@@ -30,6 +30,10 @@
         </div>
 
         <div class="titlebar-controls">
+            <button id="btn-open-config-wizard" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px;" title="Ouvrir la page de configuration initiale">
+                <span>⚙️ Configuration</span>
+            </button>
+
             <div id="user-pill" class="user-pill" title="Gérer le compte actif">
                 <img id="user-avatar" class="user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
                 <span id="user-name" class="user-name">Joueur</span>
@@ -43,6 +47,120 @@
             </div>
         </div>
     </header>
+
+    <!-- DEDICATED SETUP WIZARD / ONBOARDING CONFIGURATION PAGE -->
+    <div id="page-onboarding" class="onboarding-overlay" style="display: none;">
+        <div class="onboarding-card">
+            <!-- Header -->
+            <div class="onboarding-header">
+                <div class="onboarding-brand">
+                    <img class="onboarding-brand-logo" src="assets/images/icon/icon.png" alt="RX">
+                    <div>
+                        <h2 class="onboarding-title">Configuration Initiale du Launcher</h2>
+                        <p class="onboarding-subtitle">Personnalisez vos préférences et votre profil en quelques étapes simples</p>
+                    </div>
+                </div>
+                <!-- Lang Selector -->
+                <div class="lang-toggle-bar">
+                    <button type="button" class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
+                    <button type="button" class="lang-btn" data-lang="en">🇬🇧 EN</button>
+                </div>
+            </div>
+
+            <!-- Étape 1: Compte Minecraft -->
+            <div class="onboarding-step-box">
+                <div class="onboarding-step-header">
+                    <span class="onboarding-step-num">1</span>
+                    <span class="onboarding-step-title">Compte de Jeu Minecraft</span>
+                    <span class="onboarding-step-desc">Online Microsoft ou Pseudo Hors-ligne</span>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <button id="btn-onboard-microsoft" type="button" class="rx-btn rx-btn-primary" style="flex: 1; padding: 10px 16px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>Connexion Compte Microsoft (Recommandé)</span>
+                    </button>
+                    <button id="btn-onboard-toggle-offline" type="button" class="rx-btn rx-btn-secondary" style="flex: 1; padding: 10px 16px;">
+                        <span>+ Pseudo Libre (Hors-ligne / Sans mot de passe)</span>
+                    </button>
+                </div>
+
+                <!-- Inline offline input if chosen -->
+                <div id="onboard-offline-input-wrap" style="display: none; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 8px;">
+                        <input id="input-onboard-username" type="text" class="form-input" placeholder="Entrez votre pseudo (ex: Salem, Steve...)" style="flex: 1;">
+                        <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap;">Valider le Pseudo</button>
+                    </div>
+                </div>
+
+                <!-- Selected Account Preview -->
+                <div id="onboard-account-preview" class="onboarding-account-preview">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img id="onboard-preview-avatar" src="assets/images/icon/icon.png" style="width: 36px; height: 36px; border-radius: 8px;" alt="Avatar">
+                        <div>
+                            <div id="onboard-preview-name" style="font-size: 14px; font-weight: 700; color: #fff;">Aucun compte sélectionné</div>
+                            <div id="onboard-preview-type" style="font-size: 11px; color: var(--text-dim);">Veuillez vous connecter ou entrer un pseudo ci-dessus</div>
+                        </div>
+                    </div>
+                    <span id="onboard-preview-badge" style="font-size: 11px; font-weight: 700; color: var(--amber); background: rgba(245, 158, 11, 0.15); padding: 4px 10px; border-radius: 6px;">En attente de connexion</span>
+                </div>
+            </div>
+
+            <!-- Étape 2: Mode Serveur Cloud vs Mode Joueur (Potes) -->
+            <div class="onboarding-step-box">
+                <div class="onboarding-step-header">
+                    <span class="onboarding-step-num">2</span>
+                    <span class="onboarding-step-title">Mode d'Utilisation : Serveur ou Joueur Indépendant</span>
+                    <span class="onboarding-step-desc">Avez-vous un serveur chez RXCORP ?</span>
+                </div>
+
+                <div class="config-modes-grid" style="margin-top: 0;">
+                    <!-- Mode Cloud -->
+                    <div id="onboard-card-cloud" class="config-mode-card active-cloud" data-mode="cloud">
+                        <div class="config-radio-pill"></div>
+                        <div class="config-mode-icon">☁️</div>
+                        <div class="config-mode-body">
+                            <h4>J'ai un serveur RXCORP (Pelican Cloud)</h4>
+                            <p>Mode Cloud principal : vos serveurs s'affichent directement, whitelist synchronisée avec Microsoft et console 1-clic.</p>
+                        </div>
+                    </div>
+
+                    <!-- Mode Local / Potes -->
+                    <div id="onboard-card-local" class="config-mode-card" data-mode="local">
+                        <div class="config-radio-pill"></div>
+                        <div class="config-mode-icon">🎮</div>
+                        <div class="config-mode-body">
+                            <h4>Mode Joueur Indépendant (Pas de serveur)</h4>
+                            <p>Idéal pour jouer solo ou rejoindre des potes. Le mode Cloud devient secondaire et discret. Accès direct à vos profils locaux et mods.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pelican credentials (shown if Cloud selected) -->
+                <div id="onboard-pelican-details" style="margin-top: 14px; padding: 14px 16px; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #fff;">Liaison avec le Panel Pelican RXCORP</span>
+                        <button id="btn-onboard-sso" type="button" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;">Connexion Web 1-Clic</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input id="input-onboard-panel-url" type="text" class="form-input" value="https://panel.rxcorp.fr" placeholder="URL Panel">
+                        <input id="input-onboard-panel-key" type="password" class="form-input" placeholder="Clé API Client (pacc_...)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action -->
+            <div>
+                <button id="btn-onboard-finish" type="button" class="onboarding-finish-btn">
+                    <span>Valider la Configuration & Accéder au Launcher</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <div style="font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 8px;">
+                    Vous pourrez modifier ces préférences à tout moment depuis le bouton <strong>Configuration</strong> en haut ou les paramètres.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- UNIFIED DESKTOP GAMING SHELL -->
     <div class="dribbble-shell">

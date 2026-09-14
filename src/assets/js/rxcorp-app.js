@@ -135,6 +135,7 @@ class RxcorpApp {
         this.initLaunchDock();
         this.initUpdater();
         this.initWebAuth();
+        this.initOnboardingWizard();
 
         // Load initial instances
         await this.loadInstances();
@@ -1536,6 +1537,186 @@ class RxcorpApp {
             railTop.insertBefore(instBtn, cloudBtn);
             railTop.insertBefore(modBtn, cloudBtn);
         }
+    }
+
+    // ==========================================
+    // ONBOARDING SETUP WIZARD (PAGE DE CONFIG)
+    // ==========================================
+    initOnboardingWizard() {
+        const overlay = document.getElementById('page-onboarding');
+        const btnOpen = document.getElementById('btn-open-config-wizard');
+        const btnFinish = document.getElementById('btn-onboard-finish');
+        const btnMicrosoft = document.getElementById('btn-onboard-microsoft');
+        const btnToggleOffline = document.getElementById('btn-onboard-toggle-offline');
+        const offlineWrap = document.getElementById('onboard-offline-input-wrap');
+        const inputUsername = document.getElementById('input-onboard-username');
+        const btnConfirmOffline = document.getElementById('btn-onboard-confirm-offline');
+        const cardCloud = document.getElementById('onboard-card-cloud');
+        const cardLocal = document.getElementById('onboard-card-local');
+        const pelicanDetails = document.getElementById('onboard-pelican-details');
+        const inputUrl = document.getElementById('input-onboard-panel-url');
+        const inputKey = document.getElementById('input-onboard-panel-key');
+        const btnSso = document.getElementById('btn-onboard-sso');
+
+        if (!overlay) return;
+
+        let selectedMode = (store.get('hasPelicanServer') ?? (store.get('apiKey') ? true : false)) ? 'cloud' : 'local';
+
+        const updateModeCards = (mode) => {
+            selectedMode = mode;
+            if (cardCloud && cardLocal) {
+                cardCloud.classList.toggle('active-cloud', mode === 'cloud');
+                cardLocal.classList.toggle('active-local', mode === 'local');
+            }
+            if (pelicanDetails) {
+                pelicanDetails.style.display = mode === 'cloud' ? 'block' : 'none';
+            }
+        };
+
+        const updateAccountPreview = () => {
+            const acc = this.getActiveAccount();
+            const avatar = document.getElementById('onboard-preview-avatar');
+            const nameElem = document.getElementById('onboard-preview-name');
+            const typeElem = document.getElementById('onboard-preview-type');
+            const badgeElem = document.getElementById('onboard-preview-badge');
+
+            if (acc && acc.name) {
+                if (avatar) avatar.src = `https://mc-heads.net/avatar/${acc.name}/36`;
+                if (nameElem) nameElem.innerText = acc.name;
+                const isMs = acc.meta?.type === 'Xbox' || acc.access_token;
+                if (typeElem) typeElem.innerText = isMs ? 'Compte Microsoft Officiel' : 'Pseudo Hors-Ligne';
+                if (badgeElem) {
+                    badgeElem.innerText = '✓ Compte Prêt';
+                    badgeElem.style.color = 'var(--emerald)';
+                    badgeElem.style.background = 'rgba(16, 185, 129, 0.15)';
+                }
+            } else {
+                if (nameElem) nameElem.innerText = 'Aucun compte sélectionné';
+                if (typeElem) typeElem.innerText = 'Veuillez vous connecter ou entrer un pseudo ci-dessus';
+                if (badgeElem) {
+                    badgeElem.innerText = 'En attente de connexion';
+                    badgeElem.style.color = 'var(--amber)';
+                    badgeElem.style.background = 'rgba(245, 158, 11, 0.15)';
+                }
+            }
+        };
+
+        // Pre-fill fields
+        if (inputUrl) inputUrl.value = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+        if (inputKey) inputKey.value = store.get('apiKey') || '';
+        updateModeCards(selectedMode);
+        updateAccountPreview();
+
+        // Check if onboarding was already completed
+        const isConfigured = store.get('configured');
+        if (!isConfigured) {
+            overlay.style.display = 'flex';
+        }
+
+        // Open config button from top titlebar
+        btnOpen?.addEventListener('click', () => {
+            updateAccountPreview();
+            updateModeCards((store.get('hasPelicanServer') ?? false) ? 'cloud' : 'local');
+            overlay.style.display = 'flex';
+        });
+
+        // Mode cards click
+        cardCloud?.addEventListener('click', () => updateModeCards('cloud'));
+        cardLocal?.addEventListener('click', () => updateModeCards('local'));
+
+        // Toggle Offline input
+        btnToggleOffline?.addEventListener('click', () => {
+            if (offlineWrap) {
+                offlineWrap.style.display = offlineWrap.style.display === 'none' ? 'block' : 'none';
+                if (offlineWrap.style.display === 'block') inputUsername?.focus();
+            }
+        });
+
+        // Confirm offline username
+        btnConfirmOffline?.addEventListener('click', () => {
+            const val = (inputUsername?.value || '').trim();
+            if (!val) {
+                alert('Veuillez entrer un pseudo valide.');
+                return;
+            }
+            const accounts = store.get('accounts') || [];
+            if (!accounts.some(a => a.name.toLowerCase() === val.toLowerCase())) {
+                accounts.push({
+                    name: val,
+                    uuid: 'offline-' + Date.now(),
+                    meta: { type: 'Offline', online: false }
+                });
+                store.set('accounts', accounts);
+            }
+            store.set('activeAccountName', val);
+            this.renderAccountsList();
+            updateAccountPreview();
+            if (offlineWrap) offlineWrap.style.display = 'none';
+            this.showNotification('Pseudo configuré', `Joueur ${val} actif.`);
+        });
+
+        // Microsoft Login in Onboarding
+        btnMicrosoft?.addEventListener('click', async () => {
+            try {
+                this.updateDockStatus('Connexion Microsoft en cours...');
+                const client_id = "00000000402b5328";
+                const auth = await ipcRenderer.invoke('Microsoft-window', client_id);
+                if (auth && auth.name) {
+                    const accounts = store.get('accounts') || [];
+                    accounts.push(auth);
+                    store.set('accounts', accounts);
+                    store.set('activeAccountName', auth.name);
+                    this.renderAccountsList();
+                    updateAccountPreview();
+                    this.updatePelicanSyncUI();
+                    this.showNotification('Compte Microsoft connecté', `Bienvenue ${auth.name} !`);
+                }
+            } catch (err) {
+                alert('Erreur Microsoft : ' + err.message);
+            } finally {
+                this.updateDockStatus('Prêt à jouer', 0);
+            }
+        });
+
+        // Web SSO Button in Onboarding
+        btnSso?.addEventListener('click', () => {
+            this.showNotification('Connexion Panel', 'Ouverture du navigateur pour validation...');
+            ipcRenderer.send('start-web-auth');
+        });
+
+        // Finish configuration button
+        btnFinish?.addEventListener('click', () => {
+            const curAcc = this.getActiveAccount();
+            if (!curAcc) {
+                alert('Veuillez choisir un compte Minecraft (Compte Microsoft ou Pseudo libre) avant de valider.');
+                return;
+            }
+
+            const hasServer = selectedMode === 'cloud';
+            store.set('hasPelicanServer', hasServer);
+
+            if (hasServer && inputKey && inputKey.value.trim()) {
+                store.set('apiKey', inputKey.value.trim());
+            }
+            if (hasServer && inputUrl && inputUrl.value.trim()) {
+                store.set('panelUrl', inputUrl.value.trim());
+            }
+
+            store.set('configured', true);
+            this.updateRailOrder(hasServer);
+
+            // Switch to appropriate view
+            this.selectDribbbleMode(hasServer ? 'cloud' : 'instances');
+
+            // Trigger sync if cloud
+            if (hasServer && store.get('apiKey')) {
+                this.loadCloudServers();
+                this.handlePelicanSync(true);
+            }
+
+            overlay.style.display = 'none';
+            this.showNotification('Configuration terminée !', `Bienvenue sur le launcher RXCORP, ${curAcc.name} !`);
+        });
     }
 
     // ==========================================

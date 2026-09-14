@@ -436,76 +436,84 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 9px 18px;
-    border-radius: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
     font-family: var(--font-body);
     font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
     cursor: pointer;
-    border: none;
+    border: 1px solid transparent;
     outline: none;
-    transition: var(--trans-fast);
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
     position: relative;
-    overflow: hidden;
+    user-select: none;
+}
+
+.rx-btn:active {
+    transform: translateY(1px);
 }
 
 .rx-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     flex-shrink: 0;
 }
 
 .rx-btn-primary {
-    background: linear-gradient(135deg, var(--primary), #be123c);
-    color: #fff;
-    box-shadow: 0 4px 18px var(--primary-glow);
+    background: #e11d48;
+    border-color: rgba(255, 255, 255, 0.18);
+    border-top-color: rgba(255, 255, 255, 0.32);
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .rx-btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 24px var(--primary-glow-strong);
-    filter: brightness(1.1);
+    background: #f43f5e;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .rx-btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .rx-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.18);
-    color: var(--text-white);
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
 }
 
 .rx-btn-cyan {
-    background: linear-gradient(135deg, #0ea5e9, #0284c7);
-    color: #fff;
-    box-shadow: 0 4px 16px var(--cyan-glow);
+    background: #0284c7;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .rx-btn-cyan:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    background: #0ea5e9;
 }
 
 .rx-btn-danger {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
+    background: #dc2626;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .rx-btn-danger:hover {
-    background: var(--danger);
-    color: #fff;
+    background: #ef4444;
 }
 
 .rx-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
     transform: none !important;
+    box-shadow: none !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -1297,75 +1305,81 @@ select.form-select option {
     margin-bottom: 12px;
 }
 
-/* Dribbble White Capsule Play Button */
+/* Authentic Game Launcher Play Button (Solid Emerald, Crisp Borders) */
 .dribbble-play-pill {
-    height: 48px;
-    padding: 0 32px;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #08090d;
-    border: none;
+    height: 44px;
+    padding: 0 28px;
+    border-radius: 6px;
+    background: #10b981;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-top: 1px solid rgba(255, 255, 255, 0.38);
     outline: none;
     font-family: var(--font-heading);
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
-    letter-spacing: 1.5px;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.35);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
 }
 
 .dribbble-play-pill svg {
-    width: 16px;
-    height: 16px;
-    fill: #08090d;
+    width: 15px;
+    height: 15px;
+    fill: #ffffff;
 }
 
 .dribbble-play-pill:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 28px rgba(255, 255, 255, 0.55);
-    background: #f8fafc;
+    background: #059669;
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .dribbble-play-pill:active {
-    transform: translateY(0) scale(0.99);
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
 .dribbble-play-pill:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 /* Hero Instance Capsule */
 .hero-instance-capsule {
-    height: 48px;
-    padding: 0 16px;
-    border-radius: 24px;
-    background: rgba(18, 22, 34, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 6px;
+    background: rgba(18, 22, 34, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     display: inline-flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
 }
 
 .hero-instance-capsule:hover {
-    background: rgba(26, 32, 50, 0.9);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
+    background: rgba(26, 32, 50, 0.98);
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.hero-instance-capsule:active {
+    transform: translateY(1px);
 }
 
 .capsule-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     stroke: var(--primary);
 }
 
@@ -1378,7 +1392,7 @@ select.form-select option {
 
 .capsule-title {
     font-family: var(--font-heading);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     color: #ffffff;
 }
@@ -1395,33 +1409,35 @@ select.form-select option {
     margin-left: 2px;
 }
 
-/* Hero Secondary Action Capsule */
+/* Hero Secondary Action Button */
 .hero-secondary-capsule {
-    height: 48px;
-    padding: 0 20px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     color: #e2e8f0;
     font-family: var(--font-heading);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     text-transform: uppercase;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: all 0.2s ease;
+    transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
 }
 
 .hero-secondary-capsule:hover {
     background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.26);
+    color: #ffffff;
+}
+
+.hero-secondary-capsule:active {
+    transform: translateY(1px);
 }
 
 /* Hero Progress */
@@ -2256,4 +2272,154 @@ select.form-select option {
     font-size: 11px;
     color: var(--text-dim);
 }
+
+/* ==========================================================================
+   ONBOARDING CONFIGURATION PAGE (SETUP WIZARD)
+   ========================================================================== */
+.onboarding-overlay {
+    position: fixed;
+    top: 38px; /* Below titlebar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    background: radial-gradient(circle at 50% 20%, rgba(20, 24, 38, 0.98), #090b11 92%);
+    backdrop-filter: blur(24px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.onboarding-card {
+    max-width: 820px;
+    width: 100%;
+    background: rgba(14, 18, 28, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 40px rgba(244, 63, 94, 0.15);
+    border-radius: var(--radius-xl);
+    padding: 30px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.onboarding-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+}
+
+.onboarding-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.onboarding-brand-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.4);
+}
+
+.onboarding-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.onboarding-subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 2px 0 0 0;
+}
+
+.onboarding-step-box {
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+}
+
+.onboarding-step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.onboarding-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+}
+
+.onboarding-step-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.onboarding-step-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-left: auto;
+}
+
+.onboarding-account-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 10px;
+}
+
+.onboarding-finish-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border-radius: 6px;
+    background: #10b981;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.onboarding-finish-btn:hover {
+    background: #059669;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.onboarding-finish-btn:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
 
