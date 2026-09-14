@@ -47,136 +47,192 @@
         </div>
     </header>
 
-    <!-- SCREEN: 3-DIAGONAL MODE SELECTOR (Matches user diagram) -->
+    <!-- SCREEN: 3 VERTICAL BARS MODE SELECTOR (Noctra Client UI/UX style) -->
     <div id="screen-mode-selector" class="mode-selector-screen">
-        <!-- 1. SLICE TOP-LEFT: RX SERV -->
-        <div class="mode-slice mode-slice-rx" data-mode="cloud">
-            <div class="mode-slice-content">
-                <div class="mode-slice-tag">
-                    <span class="mode-pulse-dot red"></span>
-                    <span>SERVEURS CLOUD OFFICIELS</span>
-                </div>
-                <h1 class="mode-slice-title">RX SERV</h1>
-                <p class="mode-slice-desc">
-                    Accès direct aux serveurs Pelican de RXCORP. Synchronisation automatique des mods et connexion directe en 1 clic.
-                </p>
-                <div class="mode-features-list">
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                        <span>Connexion instantanée sans IP manuelle</span>
-                    </div>
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                        <span>Auto-Sync Forge 26.2 & Mods officiels</span>
-                    </div>
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                        <span>Serveur RD & Test prêts à jouer</span>
-                    </div>
-                </div>
-                <button class="mode-slice-btn mode-btn-rx">
-                    <span>REJOINDRE LE CLOUD</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
+        <div class="mode-screen-backdrop"></div>
+        
+        <div class="mode-selector-header">
+            <div class="mode-header-tag">
+                <span class="mode-pulse-dot red"></span>
+                <span>SÉLECTION DU PROFIL DE JEU</span>
             </div>
+            <h1 class="mode-header-title">CHOISISSEZ VOTRE MODE</h1>
+            <p class="mode-header-sub">Sélectionnez votre environnement pour lancer Minecraft ou gérer vos instances.</p>
         </div>
 
-        <!-- 2. SLICE CENTER: PVP -->
-        <div class="mode-slice mode-slice-pvp" data-mode="pvp">
-            <div class="mode-slice-content">
-                <div class="mode-slice-tag">
-                    <span class="mode-pulse-dot cyan"></span>
-                    <span>COMPÉTITION & FPS BOOST</span>
-                </div>
-                <h1 class="mode-slice-title">PVP</h1>
-                <p class="mode-slice-desc">
-                    Client compétitif ultra-optimisé. Boost de framerate 144+ FPS et interface ATH tactique intégrée pour les duels.
-                </p>
-                <div class="mode-features-list">
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <span>Moteur Sodium, Lithium & Ferrite (FPS Max)</span>
+        <div class="mode-columns-container">
+            <!-- 1. VERTICAL BAR: RX SERV -->
+            <div class="mode-column mode-column-rx mode-slice" data-mode="cloud">
+                <div class="mode-col-glass-bg"></div>
+                <div class="mode-col-top">
+                    <div class="mode-col-badge badge-rx">
+                        <span class="mode-pulse-dot red"></span>
+                        <span>CLOUD SYNC</span>
                     </div>
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-                        <span>Keystrokes, CPS, Armor HUD & Crosshairs</span>
-                    </div>
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        <span>Anti-lag & Optimisations réseau PvP</span>
+                    <div class="mode-col-icon icon-rx">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+                        </svg>
                     </div>
                 </div>
-                <button class="mode-slice-btn mode-btn-pvp">
-                    <span>LANCER LE MODE PVP</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+
+                <div class="mode-col-info">
+                    <h2 class="mode-col-title">RX SERV</h2>
+                    <p class="mode-col-desc">Serveurs officiels Pelican RXCORP avec synchronisation instantanée des mods et connexion 1-clic.</p>
+                </div>
+
+                <div class="mode-tiles-list">
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Auto-Sync Mods</span>
+                            <span class="tile-sub">Forge 26.2 & mods cloud</span>
+                        </div>
+                    </div>
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Serveurs Officiels</span>
+                            <span class="tile-sub">RD & Test pré-configurés</span>
+                        </div>
+                    </div>
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Connexion Directe</span>
+                            <span class="tile-sub">1 clic sans copier d'IP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mode-col-spacer"></div>
+
+                <button class="mode-noctra-btn btn-rx">
+                    <span class="btn-noctra-main">REJOINDRE LE CLOUD</span>
+                    <span class="btn-noctra-sub">Forge 26.2 • Pelican Sync</span>
                 </button>
             </div>
-        </div>
 
-        <!-- 3. SLICE BOTTOM-RIGHT: MOD LOCAL -->
-        <div class="mode-slice mode-slice-local" data-mode="instances">
-            <div class="mode-slice-content">
-                <div class="mode-slice-tag">
-                    <span class="mode-pulse-dot emerald"></span>
-                    <span>INSTANCES & MODPACKS PERSO</span>
-                </div>
-                <h1 class="mode-slice-title">MOD LOCAL</h1>
-                <p class="mode-slice-desc">
-                    Créez et configurez vos propres profils Minecraft isolés. Installez vos mods ou explorez le catalogue Modrinth.
-                </p>
-                <div class="mode-features-list">
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                        <span>Multi-instances Forge, Fabric, NeoForge, Vanilla</span>
+            <!-- 2. VERTICAL BAR: PVP CLIENT -->
+            <div class="mode-column mode-column-pvp mode-slice" data-mode="pvp">
+                <div class="mode-col-glass-bg"></div>
+                <div class="mode-col-top">
+                    <div class="mode-col-badge badge-pvp">
+                        <span class="mode-pulse-dot cyan"></span>
+                        <span>COMPÉTITION & FPS</span>
                     </div>
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
-                        <span>Catalogue Modrinth intégré en 1 clic</span>
-                    </div>
-                    <div class="mode-feature-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                        <span>Accès direct aux dossiers mods & config</span>
+                    <div class="mode-col-icon icon-pvp">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
                     </div>
                 </div>
-                <button class="mode-slice-btn mode-btn-local">
-                    <span>GÉRER MES MODS</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+
+                <div class="mode-col-info">
+                    <h2 class="mode-col-title">PVP CLIENT</h2>
+                    <p class="mode-col-desc">Client compétitif optimisé 144+ FPS avec HUD d'ATH tactique complet et faible latence.</p>
+                </div>
+
+                <div class="mode-tiles-list">
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">FPS Boost Extrême</span>
+                            <span class="tile-sub">Sodium + Lithium + Ferrite</span>
+                        </div>
+                    </div>
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">HUD Tactique Complet</span>
+                            <span class="tile-sub">Keystrokes, Armor & CPS</span>
+                        </div>
+                    </div>
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Optimisation Réseau</span>
+                            <span class="tile-sub">Hitreg net & faible latence</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mode-col-spacer"></div>
+
+                <button class="mode-noctra-btn btn-pvp">
+                    <span class="btn-noctra-main">LANCER LE PVP</span>
+                    <span class="btn-noctra-sub">Compétition • 144+ FPS</span>
                 </button>
             </div>
-        </div>
 
-        <!-- Wave Divider Lines & Clip Paths (Petites Vagues) -->
-        <svg class="mode-lines-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-            <defs>
-                <clipPath id="clip-rx" clipPathUnits="objectBoundingBox">
-                    <path d="M 0 0 L 0.58 0 C 0.52 0.22, 0.50 0.36, 0.42 0.42 C 0.34 0.48, 0.36 0.60, 0.26 0.64 C 0.16 0.68, 0.12 0.78, 0 0.84 Z" />
-                </clipPath>
-                <clipPath id="clip-pvp" clipPathUnits="objectBoundingBox">
-                    <path d="M 0.58 0 C 0.52 0.22, 0.50 0.36, 0.42 0.42 C 0.34 0.48, 0.36 0.60, 0.26 0.64 C 0.16 0.68, 0.12 0.78, 0 0.84 L 0 1 L 0.42 1 C 0.54 0.94, 0.58 0.84, 0.68 0.80 C 0.78 0.76, 0.76 0.64, 0.84 0.58 C 0.92 0.52, 0.94 0.38, 1 0.16 L 1 0 Z" />
-                </clipPath>
-                <clipPath id="clip-local" clipPathUnits="objectBoundingBox">
-                    <path d="M 0.42 1 C 0.54 0.94, 0.58 0.84, 0.68 0.80 C 0.78 0.76, 0.76 0.64, 0.84 0.58 C 0.92 0.52, 0.94 0.38, 1 0.16 L 1 1 Z" />
-                </clipPath>
-            </defs>
-            <!-- Wave 1: Entre RX SERV et PVP -->
-            <path d="M 0 840 C 120 780, 160 680, 260 640 C 360 600, 340 480, 420 420 C 500 360, 520 220, 580 0" class="mode-wave-line line-rx" />
-            <!-- Wave 2: Entre PVP et MOD LOCAL -->
-            <path d="M 420 1000 C 540 940, 580 840, 680 800 C 780 760, 760 640, 840 580 C 920 520, 940 380, 1000 160" class="mode-wave-line line-local" />
-        </svg>
+            <!-- 3. VERTICAL BAR: MOD LOCAL -->
+            <div class="mode-column mode-column-local mode-slice" data-mode="instances">
+                <div class="mode-col-glass-bg"></div>
+                <div class="mode-col-top">
+                    <div class="mode-col-badge badge-local">
+                        <span class="mode-pulse-dot emerald"></span>
+                        <span>MODPACKS & LOCAL</span>
+                    </div>
+                    <div class="mode-col-icon icon-local">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                    </div>
+                </div>
 
-        <!-- CENTRAL RX CORE EMBLEM ("RX au centre") -->
-        <div class="mode-center-hub" id="mode-center-hub" title="RXCORP">
-            <div class="hub-pulse-aura"></div>
-            <div class="hub-outer-ring"></div>
-            <div class="hub-tech-brackets">
-                <span class="hub-bracket b-tl"></span>
-                <span class="hub-bracket b-tr"></span>
-                <span class="hub-bracket b-bl"></span>
-                <span class="hub-bracket b-br"></span>
-            </div>
-            <div class="hub-core-circle">
-                <span class="hub-rx-title">RX</span>
-                <span class="hub-rx-sub">CORP</span>
+                <div class="mode-col-info">
+                    <h2 class="mode-col-title">MOD LOCAL</h2>
+                    <p class="mode-col-desc">Gestionnaire d'instances isolées. Téléchargez des mods depuis Modrinth ou créez vos packs.</p>
+                </div>
+
+                <div class="mode-tiles-list">
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Multi-Loaders</span>
+                            <span class="tile-sub">Forge, Fabric & NeoForge</span>
+                        </div>
+                    </div>
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Catalogue Modrinth</span>
+                            <span class="tile-sub">Recherche & install en 1 clic</span>
+                        </div>
+                    </div>
+                    <div class="mode-tile-item">
+                        <div class="tile-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        </div>
+                        <div class="tile-text">
+                            <span class="tile-title">Dossiers Ouverts</span>
+                            <span class="tile-sub">Accès direct mods & configs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mode-col-spacer"></div>
+
+                <button class="mode-noctra-btn btn-local">
+                    <span class="btn-noctra-main">GÉRER MES MODS</span>
+                    <span class="btn-noctra-sub">Instances & Modpacks</span>
+                </button>
             </div>
         </div>
     </div>
