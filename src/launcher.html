@@ -68,15 +68,15 @@
                     </svg>
                 </button>
 
-                <!-- Mode 2: PvP Arena -->
-                <button class="rail-item" data-view="pvp" title="PvP Client & FPS Boost">
+                <!-- Mode 2: RX PvP Client -->
+                <button class="rail-item" data-view="pvp" title="RX PvP Client (Client Compétitif Dédié 1.8.9 / 1.21+)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
                 </button>
 
                 <!-- Mode 3: Local Instances -->
-                <button class="rail-item" data-view="instances" title="Mod Local (Mes Profils & Instances)">
+                <button class="rail-item" data-view="instances" title="Mod Local (Mes Profils & Modpacks Libres)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -322,20 +322,20 @@
                         <div id="cloud-servers-grid" class="servers-grid"></div>
                     </section>
 
-                    <!-- VIEW 2: INSTANCES -->
+                    <!-- VIEW 2: INSTANCES (LOCAL & CUSTOM) -->
                     <section id="view-instances" class="view-container">
                         <div class="view-header">
                             <div>
                                 <h2 class="view-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                                    <span>Profils & Instances Locales</span>
+                                    <span>Mes Profils & Modpacks Locaux</span>
                                 </h2>
-                                <p class="view-subtitle">Environnements Minecraft isolés • Support Vanilla, Fabric, Forge et NeoForge</p>
+                                <p class="view-subtitle">Espace libre et autonome, totalement isolé du Cloud et du Client PvP • Support Vanilla, Fabric, Forge et NeoForge</p>
                             </div>
                             <div>
                                 <button id="btn-new-instance" class="rx-btn rx-btn-primary">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                    <span>Créer une Instance</span>
+                                    <span>Créer un Profil Local</span>
                                 </button>
                             </div>
                         </div>
@@ -379,13 +379,13 @@
                             <div>
                                 <h2 class="view-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                    <span>Client PvP Compétitif & Optimisation</span>
+                                    <span>RX PvP Client (Client Compétitif Dédié)</span>
                                 </h2>
-                                <p class="view-subtitle">Hub d'e-sport Minecraft inspiré de Soar & Frost Client • Standards 1.8.9 et 1.21+ en 1 clic</p>
+                                <p class="view-subtitle">Client e-sport autonome inspiré de Lunar & Soar Client • Profils 1.8.9 et 1.21+ isolés avec mods optimisés et ATH</p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <label class="form-label" style="margin: 0;">Profil cible :</label>
-                                <select id="select-pvp-instance" class="form-select" style="min-width: 190px;"></select>
+                                <label class="form-label" style="margin: 0;">Version Client :</label>
+                                <select id="select-pvp-instance" class="form-select" style="min-width: 200px;"></select>
                             </div>
                         </div>
 

@@ -176,23 +176,53 @@ class PvpService {
     }
 
     /**
+     * List all dedicated PvP client instances
+     */
+    getPvpInstances() {
+        return instanceService.getPvpInstances();
+    }
+
+    /**
      * Get or create a dedicated PvP profile instance in 1-click
      */
     getOrCreatePvpProfile(profileId) {
         const prof = this.profiles.find(p => p.id === profileId);
         if (!prof) return null;
 
-        const instances = instanceService.getInstances();
-        let found = instances.find(i => i.version === prof.versionKey && (i.name.includes('PvP') || i.name.includes(prof.shortName)));
+        const pvpInstances = instanceService.getPvpInstances();
+        let found = pvpInstances.find(i => i.pvpProfile === profileId || (i.version === prof.versionKey && i.domain === 'pvp'));
 
         if (!found) {
-            found = instanceService.createInstance({
-                name: prof.name,
-                version: prof.versionKey,
-                loader: prof.loader,
-                icon: profileId === '1.8.9' ? 'sword' : 'shield'
-            });
+            // Also check legacy instances
+            const allInstances = instanceService.getInstances();
+            found = allInstances.find(i => i.version === prof.versionKey && (i.name.includes('PvP') || i.name.includes(prof.shortName)));
         }
+
+        if (found) {
+            if (found.domain !== 'pvp' || !found.pvpProfile) {
+                found.domain = 'pvp';
+                found.pvpProfile = prof.id;
+                try {
+                    const cfgPath = path.join(instanceService.getBaseDir(), found.id, 'instance.json');
+                    if (fs.existsSync(cfgPath)) {
+                        const raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+                        raw.domain = 'pvp';
+                        raw.pvpProfile = prof.id;
+                        fs.writeFileSync(cfgPath, JSON.stringify(raw, null, 2), 'utf8');
+                    }
+                } catch (e) {}
+            }
+            return found;
+        }
+
+        found = instanceService.createInstance({
+            name: prof.name,
+            version: prof.versionKey,
+            loader: prof.loader,
+            icon: profileId === '1.8.9' ? 'sword' : (profileId === '1.7.10' ? 'zap' : 'shield'),
+            domain: 'pvp',
+            pvpProfile: prof.id
+        });
 
         return found;
     }

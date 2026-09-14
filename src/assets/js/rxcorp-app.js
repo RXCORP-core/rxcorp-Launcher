@@ -43,9 +43,94 @@ const store = new Store({
 class RxcorpApp {
     constructor() {
         this.activeView = 'cloud';
+        this.activeDribbbleMode = store.get('activeDribbbleMode') || 'cloud';
+        this.activeCloudInstanceId = store.get('activeCloudInstanceId') || null;
+        this.activePvpInstanceId = store.get('activePvpInstanceId') || null;
+        this.activeLocalInstanceId = store.get('activeLocalInstanceId') || null;
         this.activeInstance = null;
         this.cloudServers = [];
         this.isSyncing = false;
+    }
+
+    /**
+     * Get current active domain based on UI mode ('cloud' | 'pvp' | 'local')
+     */
+    getCurrentDomain() {
+        if (this.activeDribbbleMode === 'cloud') return 'cloud';
+        if (this.activeDribbbleMode === 'pvp') return 'pvp';
+        return 'local';
+    }
+
+    /**
+     * Get active instance for a given domain, with auto-fallback and auto-provisioning
+     */
+    getActiveInstanceForDomain(domain = null) {
+        const d = domain || this.getCurrentDomain();
+        let targetId = null;
+        if (d === 'cloud') targetId = this.activeCloudInstanceId;
+        else if (d === 'pvp') targetId = this.activePvpInstanceId;
+        else targetId = this.activeLocalInstanceId;
+
+        if (targetId) {
+            const inst = instanceService.getInstance(targetId);
+            if (inst && inst.domain === d) return inst;
+        }
+
+        // Fallback: search existing instances for this domain
+        const domainList = instanceService.getInstancesByDomain(d);
+        if (domainList.length > 0) {
+            const chosen = domainList[0];
+            this.setActiveInstanceForDomain(d, chosen.id, false);
+            return chosen;
+        }
+
+        // Auto-provision if necessary
+        if (d === 'pvp') {
+            const pvpInst = pvpService.getOrCreatePvpProfile('1.21');
+            if (pvpInst) {
+                this.setActiveInstanceForDomain('pvp', pvpInst.id, false);
+                return pvpInst;
+            }
+        }
+
+        if (d === 'local' && instanceService.getLocalInstances().length === 0) {
+            const localInst = instanceService.createInstance({
+                name: 'Mon Profil Local',
+                version: '1.21.1',
+                loader: 'fabric',
+                domain: 'local'
+            });
+            this.setActiveInstanceForDomain('local', localInst.id, false);
+            return localInst;
+        }
+
+        return null;
+    }
+
+    /**
+     * Set active instance for a specific domain
+     */
+    setActiveInstanceForDomain(domain, id, updatePill = true) {
+        if (domain === 'cloud') {
+            this.activeCloudInstanceId = id;
+            store.set('activeCloudInstanceId', id);
+        } else if (domain === 'pvp') {
+            this.activePvpInstanceId = id;
+            store.set('activePvpInstanceId', id);
+        } else {
+            this.activeLocalInstanceId = id;
+            store.set('activeLocalInstanceId', id);
+        }
+
+        const inst = instanceService.getInstance(id);
+        if (inst) {
+            this.activeInstance = inst;
+            store.set('activeInstanceId', id);
+        }
+
+        if (updatePill) {
+            this.updateDockInstancePill();
+        }
     }
 
     async init() {
@@ -153,29 +238,32 @@ class RxcorpApp {
             if (heroDot) heroDot.style.background = 'var(--primary)';
             if (heroTitle) heroTitle.innerText = 'RXCORP CLOUD';
             if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique Forge 26.2 et mods vérifiés.';
-            if (playLabel) playLabel.innerText = 'JOUER';
+            if (playLabel) playLabel.innerText = 'JOUER (SERVEUR)';
             if (secText) secText.innerText = '⚡ Liste des Serveurs';
             this.closeDrawer();
+            this.updateDockInstancePill();
             this.loadCloudServers();
         } else if (mode === 'pvp') {
             hero?.classList.add('hero-pvp');
-            if (tagText) tagText.innerText = 'COMPÉTITION • 144+ FPS BOOST';
+            if (tagText) tagText.innerText = 'CLIENT COMPÉTITIF • 144+ FPS';
             if (heroDot) heroDot.style.background = 'var(--cyan)';
-            if (heroTitle) heroTitle.innerText = 'PVP ARENA';
-            if (heroDesc) heroDesc.innerText = 'Client compétitif ultra optimisé avec Sodium, Lithium, FerriteCore et ATH tactique de combat.';
+            if (heroTitle) heroTitle.innerText = 'RX PVP CLIENT';
+            if (heroDesc) heroDesc.innerText = 'Client e-sport autonome avec Sodium, Lithium, FerriteCore et ATH tactique de combat.';
             if (playLabel) playLabel.innerText = 'JOUER (PVP)';
-            if (secText) secText.innerText = '🎯 Configurer les Mods';
+            if (secText) secText.innerText = '🎯 Gérer les Mods PvP';
             this.closeDrawer();
+            this.updateDockInstancePill();
             this.renderPvPMods();
         } else if (mode === 'instances') {
             hero?.classList.add('hero-instances');
-            if (tagText) tagText.innerText = 'PROFILS LOCAUX • MULTI-LOADER';
+            if (tagText) tagText.innerText = 'PROFILS LIBRES • MULTI-LOADER';
             if (heroDot) heroDot.style.background = 'var(--emerald)';
-            if (heroTitle) heroTitle.innerText = 'MOD LOCAL';
-            if (heroDesc) heroDesc.innerText = 'Gestionnaire d\'instances isolées. Compatible Vanilla, Fabric, Forge et NeoForge avec gestion de versions.';
+            if (heroTitle) heroTitle.innerText = 'MOD LOCAL & PROFILS';
+            if (heroDesc) heroDesc.innerText = 'Gestionnaire d\'instances personnalisées indépendant du Cloud et du Client PvP (Vanilla, Fabric, Forge, NeoForge).';
             if (playLabel) playLabel.innerText = 'LANCER';
             if (secText) secText.innerText = '📦 Gérer les Profils';
             this.closeDrawer();
+            this.updateDockInstancePill();
             this.loadInstances();
         } else if (mode === 'modrinth') {
             this.openDrawer('modrinth', 'CATALOGUE MODRINTH');
@@ -513,8 +601,8 @@ class RxcorpApp {
                 'Synchronisation réussie',
                 `${result.downloadedCount || 0} mod(s) synchronisé(s) avec succès pour ${server.name}.`
             );
+            this.setActiveInstanceForDomain('cloud', instance.id);
             this.loadInstances();
-            this.selectInstance(instance.id);
         } catch (err) {
             console.error('[Sync error]:', err);
             this.showNotification('Erreur de synchronisation', err.message);
@@ -530,60 +618,91 @@ class RxcorpApp {
 
         // 2. Select the server instance
         const instance = instanceService.getOrCreateServerInstance(server);
-        this.selectInstance(instance.id);
+        this.setActiveInstanceForDomain('cloud', instance.id);
+        this.selectDribbbleMode('cloud');
 
         // 3. Launch game with server auto-connect!
         await this.launchCurrentInstance();
     }
 
     // ==========================================
-    // INSTANCES MANAGEMENT
+    // INSTANCES MANAGEMENT (STRICT DOMAIN ISOLATION)
     // ==========================================
     async loadInstances() {
-        const instances = instanceService.getInstances();
+        const localInstances = instanceService.getLocalInstances();
+        const pvpInstances = instanceService.getPvpInstances();
+        const cloudInstances = instanceService.getCloudInstances();
+
         const grid = document.getElementById('instances-grid');
         const selectTarget = document.getElementById('select-target-instance');
         const selectPvp = document.getElementById('select-pvp-instance');
 
-        // Populate dropdowns
-        if (selectTarget) {
-            selectTarget.innerHTML = instances.map(i => `<option value="${i.id}">${i.name} (${i.version})</option>`).join('');
-        }
+        // Populate dropdowns with STRICT domain separation:
+        // 1. PvP Select: ONLY PvP instances!
         if (selectPvp) {
-            selectPvp.innerHTML = instances.map(i => `<option value="${i.id}">${i.name} (${i.version})</option>`).join('');
+            if (pvpInstances.length === 0) {
+                // Ensure default profiles exist
+                pvpService.getOrCreatePvpProfile('1.21');
+                pvpService.getOrCreatePvpProfile('1.8.9');
+                return this.loadInstances();
+            }
+            selectPvp.innerHTML = pvpInstances.map(i => {
+                const isSel = (i.id === this.activePvpInstanceId) ? 'selected' : '';
+                return `<option value="${i.id}" ${isSel}>${i.name}</option>`;
+            }).join('');
         }
 
-        // If no active instance, select the first one or default
-        let activeId = store.get('activeInstanceId');
-        if (!activeId && instances.length > 0) {
-            activeId = instances[0].id;
-            store.set('activeInstanceId', activeId);
+        // 2. Modrinth Target Select: local profiles and pvp profiles (never cloud servers!)
+        if (selectTarget) {
+            let options = '';
+            if (localInstances.length > 0) {
+                options += `<optgroup label="Profils Locaux Libres">` + localInstances.map(i => `<option value="${i.id}">${i.name} (${i.version} ${i.loader.toUpperCase()})</option>`).join('') + `</optgroup>`;
+            }
+            if (pvpInstances.length > 0) {
+                options += `<optgroup label="RX PvP Client">` + pvpInstances.map(i => `<option value="${i.id}">${i.name} (${i.version})</option>`).join('') + `</optgroup>`;
+            }
+            if (!options) {
+                options = `<option value="">Aucune instance disponible</option>`;
+            }
+            selectTarget.innerHTML = options;
         }
 
-        if (activeId) {
-            this.activeInstance = instanceService.getInstance(activeId);
-        } else {
-            // If zero instances exist, create a default one
-            this.activeInstance = instanceService.createInstance({
-                name: 'Minecraft 26.2',
-                version: '26.2',
-                loader: 'forge'
-            });
-            store.set('activeInstanceId', this.activeInstance.id);
-            return this.loadInstances();
-        }
-
+        // 3. Update current active instances per domain
+        const curDomain = this.getCurrentDomain();
+        this.activeInstance = this.getActiveInstanceForDomain(curDomain);
         this.updateDockInstancePill();
 
+        // 4. Populate Local Instances Grid (view-instances)
         if (!grid) return;
         grid.innerHTML = '';
 
-        for (const inst of instances) {
+        if (localInstances.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 48px 24px; background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border); border-radius: 16px;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">📦</div>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-white); margin-bottom: 6px;">Aucun profil local personnalisé</h3>
+                    <p style="font-size: 13px; color: var(--text-dim); max-width: 440px; margin: 0 auto 20px;">
+                        Les profils locaux sont entièrement isolés du Cloud Pelican et du Client PvP. Créez un profil pour installer vos propres mods Vanilla, Fabric, Forge ou NeoForge en toute liberté.
+                    </p>
+                    <button class="rx-btn rx-btn-primary" id="btn-empty-create-local" style="display: inline-flex; align-items: center; gap: 8px; margin: 0 auto;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>Créer un Profil Local</span>
+                    </button>
+                </div>
+            `;
+            grid.querySelector('#btn-empty-create-local')?.addEventListener('click', () => {
+                document.getElementById('modal-create-instance')?.classList.add('active');
+            });
+            return;
+        }
+
+        for (const inst of localInstances) {
             const card = document.createElement('div');
             card.className = 'server-card';
-            if (inst.id === this.activeInstance?.id) {
-                card.style.borderColor = 'var(--primary)';
-                card.style.boxShadow = '0 0 16px var(--primary-glow)';
+            const isCurrentLocal = (inst.id === this.activeLocalInstanceId);
+            if (isCurrentLocal) {
+                card.style.borderColor = 'var(--emerald)';
+                card.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.3)';
             }
 
             card.innerHTML = `
@@ -592,19 +711,19 @@ class RxcorpApp {
                         <h3>${inst.name}</h3>
                         <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version} • ${inst.loader.toUpperCase()}</span>
                     </div>
-                    <div class="server-badge online" style="background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.3);">
+                    <div class="server-badge online" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3);">
                         <span>${inst.modCount} Mod(s)</span>
                     </div>
                 </div>
 
                 <div class="server-stats-row">
                     <div class="stat-item">
-                        <span class="stat-label">Type</span>
-                        <span class="stat-value">${inst.loader.toUpperCase()}</span>
+                        <span class="stat-label">Domaine</span>
+                        <span class="stat-value" style="color: var(--emerald);">LOCAL LIBRE</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Version</span>
-                        <span class="stat-value">${inst.version}</span>
+                        <span class="stat-label">Modloader</span>
+                        <span class="stat-value">${inst.loader.toUpperCase()}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Dossier</span>
@@ -613,8 +732,8 @@ class RxcorpApp {
                 </div>
 
                 <div class="server-actions">
-                    <button class="rx-btn rx-btn-primary btn-select-instance" style="flex: 1;" data-id="${inst.id}">
-                        <span>${inst.id === this.activeInstance?.id ? '✓ Sélectionnée' : 'Sélectionner'}</span>
+                    <button class="rx-btn ${isCurrentLocal ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-instance" style="flex: 1;" data-id="${inst.id}">
+                        <span>${isCurrentLocal ? '✓ Actif' : 'Sélectionner'}</span>
                     </button>
                     <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier" data-id="${inst.id}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -626,7 +745,8 @@ class RxcorpApp {
             `;
 
             card.querySelector('.btn-select-instance').addEventListener('click', () => {
-                this.selectInstance(inst.id);
+                this.setActiveInstanceForDomain('local', inst.id);
+                this.loadInstances();
             });
 
             card.querySelector('.btn-folder-instance').addEventListener('click', () => {
@@ -638,8 +758,12 @@ class RxcorpApp {
             });
 
             card.querySelector('.btn-delete-instance').addEventListener('click', () => {
-                if (confirm(`Voulez-vous vraiment supprimer l'instance "${inst.name}" ?`)) {
+                if (confirm(`Voulez-vous vraiment supprimer le profil local "${inst.name}" ?`)) {
                     instanceService.deleteInstance(inst.id);
+                    if (this.activeLocalInstanceId === inst.id) {
+                        this.activeLocalInstanceId = null;
+                        store.delete('activeLocalInstanceId');
+                    }
                     this.loadInstances();
                 }
             });
@@ -649,23 +773,44 @@ class RxcorpApp {
     }
 
     selectInstance(id) {
-        this.activeInstance = instanceService.getInstance(id);
-        store.set('activeInstanceId', id);
-        this.updateDockInstancePill();
+        const inst = instanceService.getInstance(id);
+        if (!inst) return;
+        const domain = inst.domain || 'local';
+        this.setActiveInstanceForDomain(domain, id);
         this.loadInstances();
-        this.renderPvPMods();
+        if (domain === 'pvp') {
+            this.renderPvPMods();
+        }
     }
 
     updateDockInstancePill() {
         const nameElem = document.getElementById('dock-instance-name');
         const subElem = document.getElementById('dock-instance-sub');
+        if (!nameElem || !subElem) return;
 
-        if (this.activeInstance) {
-            nameElem.innerText = this.activeInstance.name;
-            subElem.innerText = `MC ${this.activeInstance.version} • ${this.activeInstance.loader.toUpperCase()}`;
+        const curDomain = this.getCurrentDomain();
+        const inst = this.getActiveInstanceForDomain(curDomain);
+
+        if (inst) {
+            nameElem.innerText = inst.name;
+            if (inst.domain === 'cloud') {
+                subElem.innerText = `Serveur Cloud RXCORP • Forge 26.2`;
+            } else if (inst.domain === 'pvp') {
+                subElem.innerText = `Client PvP • MC ${inst.version} • ${(inst.loader || 'fabric').toUpperCase()}`;
+            } else {
+                subElem.innerText = `Profil Local • MC ${inst.version} • ${(inst.loader || 'forge').toUpperCase()}`;
+            }
         } else {
-            nameElem.innerText = 'Aucune instance';
-            subElem.innerText = 'Cliquez pour sélectionner';
+            if (curDomain === 'cloud') {
+                nameElem.innerText = 'Aucun serveur Cloud';
+                subElem.innerText = 'Sélectionnez un serveur Pelican';
+            } else if (curDomain === 'pvp') {
+                nameElem.innerText = 'RX PvP Client 1.21+';
+                subElem.innerText = 'Client Compétitif Dédié';
+            } else {
+                nameElem.innerText = 'Aucun profil local';
+                subElem.innerText = 'Cliquez pour créer un profil';
+            }
         }
     }
 
@@ -784,16 +929,20 @@ class RxcorpApp {
     initPvP() {
         const selectPvp = document.getElementById('select-pvp-instance');
         selectPvp?.addEventListener('change', () => {
-            this.renderPvPMods();
+            if (selectPvp.value) {
+                this.setActiveInstanceForDomain('pvp', selectPvp.value);
+                this.renderPvPMods();
+            }
         });
 
-        // Quick Launch / Create Buttons for the 2 Titans & Purist
+        // Quick Launch / Switch Buttons for the 2 Titans & Purist
         document.getElementById('btn-quick-pvp-189')?.addEventListener('click', async () => {
             const inst = pvpService.getOrCreatePvpProfile('1.8.9');
             if (inst) {
                 await this.loadInstances();
-                this.selectInstance(inst.id);
-                this.showNotification('Profil 1.8.9 Prêt !', 'Minecraft 1.8.9 (Spam-Click) est sélectionné.');
+                this.setActiveInstanceForDomain('pvp', inst.id);
+                this.selectDribbbleMode('pvp');
+                this.showNotification('RX PvP Client 1.8.9 Prêt !', 'Profil 1.8.9 (Spam-Click & BedWars) sélectionné.');
                 this.launchCurrentInstance();
             }
         });
@@ -802,8 +951,9 @@ class RxcorpApp {
             const inst = pvpService.getOrCreatePvpProfile('1.21');
             if (inst) {
                 await this.loadInstances();
-                this.selectInstance(inst.id);
-                this.showNotification('Profil 1.21+ Prêt !', 'Minecraft 1.21.1 (Timing & Bouclier) est sélectionné.');
+                this.setActiveInstanceForDomain('pvp', inst.id);
+                this.selectDribbbleMode('pvp');
+                this.showNotification('RX PvP Client 1.21+ Prêt !', 'Profil 1.21+ (Bouclier & Cristaux) sélectionné.');
                 this.launchCurrentInstance();
             }
         });
@@ -812,8 +962,9 @@ class RxcorpApp {
             const inst = pvpService.getOrCreatePvpProfile('1.7.10');
             if (inst) {
                 await this.loadInstances();
-                this.selectInstance(inst.id);
-                this.showNotification('Profil 1.7.10 HCF Prêt !', 'Profil 1.7.10 créé et sélectionné.');
+                this.setActiveInstanceForDomain('pvp', inst.id);
+                this.selectDribbbleMode('pvp');
+                this.showNotification('RX PvP Client 1.7.10 HCF Prêt !', 'Profil 1.7.10 puriste sélectionné.');
             }
         });
 
@@ -850,8 +1001,14 @@ class RxcorpApp {
     renderPvPMods() {
         const grid = document.getElementById('pvp-mods-grid');
         const selectPvp = document.getElementById('select-pvp-instance');
-        const targetId = selectPvp?.value || this.activeInstance?.id;
+        
+        let pvpInst = this.getActiveInstanceForDomain('pvp');
+        if (!pvpInst) {
+            pvpInst = pvpService.getOrCreatePvpProfile('1.21');
+            if (pvpInst) this.setActiveInstanceForDomain('pvp', pvpInst.id);
+        }
 
+        const targetId = selectPvp?.value || pvpInst?.id;
         if (!grid || !targetId) return;
 
         let catalog = pvpService.getCatalog();
@@ -895,10 +1052,10 @@ class RxcorpApp {
                         await pvpService.installMod(targetId, item.id, (prog) => {
                             this.updateDockStatus(prog.message, prog.percent || 0);
                         });
-                        this.showNotification('Mod PvP activé', `${item.name} installé.`);
+                        this.showNotification('Mod PvP activé', `${item.name} installé dans RX PvP Client.`);
                     } else {
                         pvpService.removeMod(targetId, item.id);
-                        this.showNotification('Mod PvP retiré', `${item.name} désinstallé.`);
+                        this.showNotification('Mod PvP retiré', `${item.name} désinstallé de RX PvP Client.`);
                     }
                     this.loadInstances();
                 } catch (err) {
@@ -960,7 +1117,8 @@ class RxcorpApp {
                     if (inst) {
                         inst.serverAddress = ip;
                         await this.loadInstances();
-                        this.selectInstance(inst.id);
+                        this.setActiveInstanceForDomain('pvp', inst.id);
+                        this.selectDribbbleMode('pvp');
                         this.launchCurrentInstance();
                     }
                 });
@@ -971,7 +1129,7 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // GAME LAUNCH DOCK
+    // GAME LAUNCH DOCK (DOMAIN-AWARE)
     // ==========================================
     initLaunchDock() {
         const launchBtn = document.getElementById('btn-launch-game');
@@ -980,15 +1138,39 @@ class RxcorpApp {
         });
 
         document.getElementById('dock-instance-pill')?.addEventListener('click', () => {
-            this.openDrawer('instances', 'SÉLECTION DU PROFIL');
+            const domain = this.getCurrentDomain();
+            if (domain === 'cloud') {
+                this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
+            } else if (domain === 'pvp') {
+                this.openDrawer('pvp', 'RX PVP CLIENT (COMPÉTITION)');
+            } else {
+                this.openDrawer('instances', 'MES PROFILS & INSTANCES LOCALES');
+            }
         });
     }
 
     async launchCurrentInstance() {
-        if (!this.activeInstance) {
-            alert('Veuillez d\'abord sélectionner ou créer une instance.');
+        const targetInst = this.getActiveInstanceForDomain();
+        if (!targetInst) {
+            const domain = this.getCurrentDomain();
+            if (domain === 'cloud') {
+                alert('Veuillez sélectionner un serveur Cloud Pelican ou vous connecter à votre compte.');
+                this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
+            } else if (domain === 'pvp') {
+                alert('Initialisation du profil RX PvP Client...');
+                const pvpInst = pvpService.getOrCreatePvpProfile('1.21');
+                if (pvpInst) {
+                    this.setActiveInstanceForDomain('pvp', pvpInst.id);
+                    return this.launchCurrentInstance();
+                }
+            } else {
+                alert('Veuillez d\'abord créer ou sélectionner un profil local.');
+                this.openDrawer('instances', 'MES PROFILS & INSTANCES');
+            }
             return;
         }
+
+        this.activeInstance = targetInst;
 
         const launchBtn = document.getElementById('btn-launch-game');
         launchBtn.disabled = true;
@@ -1376,14 +1558,16 @@ class RxcorpApp {
             const newInst = instanceService.createInstance({
                 name: name,
                 version: version,
-                loader: loader
+                loader: loader,
+                domain: 'local'
             });
 
             this.closeModal('modal-create-instance');
             document.getElementById('input-new-name').value = '';
-            this.selectInstance(newInst.id);
+            this.setActiveInstanceForDomain('local', newInst.id);
+            this.selectDribbbleMode('instances');
             this.loadInstances();
-            this.showNotification('Instance créée', `"${name}" est prête à être personnalisée.`);
+            this.showNotification('Profil Local Créé', `"${name}" est prêt à être personnalisé.`);
         });
     }
 

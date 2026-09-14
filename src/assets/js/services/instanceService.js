@@ -32,7 +32,7 @@ class InstanceService {
     }
 
     /**
-     * List all installed instances
+     * List all installed instances with domain tagging
      */
     getInstances() {
         const base = this.getBaseDir();
@@ -59,10 +59,30 @@ class InstanceService {
                         }
                         data.modCount = modCount;
 
-                        // Automatically migrate outdated server instances from 1.21.1 to 26.2
-                        if ((data.id.startsWith('rx-') || data.serverAddress) && (data.version === '1.21.1' || !data.version)) {
+                        let needSave = false;
+
+                        // Auto-assign and persist domain ('cloud' | 'pvp' | 'local')
+                        if (!data.domain) {
+                            const idLower = (data.id || '').toLowerCase();
+                            const nameLower = (data.name || '').toLowerCase();
+                            if (idLower.includes('pvp') || nameLower.includes('pvp')) {
+                                data.domain = 'pvp';
+                            } else if (data.serverAddress || idLower.startsWith('rx-') || nameLower.startsWith('rx -')) {
+                                data.domain = 'cloud';
+                            } else {
+                                data.domain = 'local';
+                            }
+                            needSave = true;
+                        }
+
+                        // Automatically migrate outdated cloud server instances from 1.21.1 to 26.2
+                        if (data.domain === 'cloud' && (data.version === '1.21.1' || !data.version)) {
                             data.version = '26.2';
                             if (data.loader === 'vanilla') data.loader = 'forge';
+                            needSave = true;
+                        }
+
+                        if (needSave) {
                             try {
                                 fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf8');
                             } catch (err) {}
@@ -82,6 +102,34 @@ class InstanceService {
     }
 
     /**
+     * Get instances filtered by domain ('cloud', 'pvp', 'local')
+     */
+    getInstancesByDomain(domain) {
+        return this.getInstances().filter(i => i.domain === domain);
+    }
+
+    /**
+     * Get official RXCORP Cloud Pelican server instances only
+     */
+    getCloudInstances() {
+        return this.getInstancesByDomain('cloud');
+    }
+
+    /**
+     * Get dedicated RX PvP Client instances only
+     */
+    getPvpInstances() {
+        return this.getInstancesByDomain('pvp');
+    }
+
+    /**
+     * Get user-created custom local modpack instances only
+     */
+    getLocalInstances() {
+        return this.getInstancesByDomain('local');
+    }
+
+    /**
      * Get single instance by ID
      */
     getInstance(id) {
@@ -95,18 +143,34 @@ class InstanceService {
         data.id = id;
         data.path = instanceDir;
         data.modsPath = path.join(instanceDir, 'mods');
+
+        // Ensure domain is present
+        if (!data.domain) {
+            const idLower = (data.id || '').toLowerCase();
+            const nameLower = (data.name || '').toLowerCase();
+            if (idLower.includes('pvp') || nameLower.includes('pvp')) {
+                data.domain = 'pvp';
+            } else if (data.serverAddress || idLower.startsWith('rx-') || nameLower.startsWith('rx -')) {
+                data.domain = 'cloud';
+            } else {
+                data.domain = 'local';
+            }
+        }
+
         return data;
     }
 
     /**
-     * Create a new instance
+     * Create a new instance with strict domain tagging
      */
-    createInstance({ name, version, loader = 'forge', loaderVersion = null, serverAddress = null, icon = null }) {
+    createInstance({ name, version, loader = 'forge', loaderVersion = null, serverAddress = null, icon = null, domain = 'local', pvpProfile = null }) {
         const base = this.getBaseDir();
         const cleanSlug = (name || 'instance')
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
             .toLowerCase()
             .replace(/[^a-z0-9_-]/g, '-')
-            .replace(/-+/g, '-');
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '') || 'instance';
         
         let id = cleanSlug;
         let counter = 1;
@@ -128,6 +192,8 @@ class InstanceService {
             loaderVersion: loaderVersion || null,
             serverAddress: serverAddress || null,
             icon: icon || 'cube',
+            domain: domain || 'local', // 'cloud' | 'pvp' | 'local'
+            pvpProfile: pvpProfile || null,
             createdAt: Date.now(),
             lastPlayed: null,
             javaMemory: {
@@ -165,6 +231,12 @@ class InstanceService {
                 modified = true;
             }
 
+            // Ensure domain is cloud
+            if (found.domain !== 'cloud') {
+                found.domain = 'cloud';
+                modified = true;
+            }
+
             // Cleanup any nested instances folder created by previous bug
             const nestedInstances = path.join(found.path, 'instances');
             if (fs.existsSync(nestedInstances)) {
@@ -180,10 +252,11 @@ class InstanceService {
                         const raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
                         raw.loader = found.loader;
                         raw.version = found.version;
+                        raw.domain = 'cloud';
                         fs.writeFileSync(cfgPath, JSON.stringify(raw, null, 2), 'utf8');
                     }
                 } catch (e) {
-                    console.error('Failed to update instance.json loader/version:', e);
+                    console.error('Failed to update instance.json loader/version/domain:', e);
                 }
             }
             return found;
@@ -208,7 +281,8 @@ class InstanceService {
             version: version,
             loader: loader,
             serverAddress: serverAddr,
-            icon: 'server'
+            icon: 'server',
+            domain: 'cloud'
         });
     }
 
