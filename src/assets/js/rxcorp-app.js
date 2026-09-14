@@ -200,15 +200,68 @@ class RxcorpApp {
             this.openDrawer('instances', 'MES PROFILS & MODPACKS');
         });
 
-        // Default mode from store or cloud (or instances for players without server)
+        // Default mode from store or home
         const hasPelican = store.get('hasPelicanServer') ?? (store.get('apiKey') ? true : false);
         this.updateRailOrder(hasPelican);
-        const savedMode = store.get('activeDribbbleMode') || (hasPelican ? 'cloud' : 'instances');
-        this.selectDribbbleMode(savedMode === 'pvp' ? (hasPelican ? 'cloud' : 'instances') : savedMode);
+        const savedMode = store.get('activeDribbbleMode') || 'home';
+        this.selectDribbbleMode(savedMode === 'pvp' ? 'home' : savedMode);
+
+        // Connect 6 Behance Showcase Quick-Play Cards
+        document.querySelectorAll('.game-card.card-quick-play').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const targetType = card.dataset.targetType;
+                const isBtnClick = e.target.closest('.card-action-btn');
+
+                // Visual active highlight
+                document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+
+                if (targetType === 'cloud') {
+                    this.selectDribbbleMode('home');
+                    const cloudInst = this.getActiveInstanceForDomain('cloud');
+                    if (cloudInst) {
+                        this.setActiveInstanceForDomain('cloud', cloudInst.id);
+                    }
+                } else {
+                    const loader = card.dataset.targetLoader || 'fabric';
+                    const version = card.dataset.targetVersion || '1.21.4';
+                    
+                    // Find or create local instance matching this configuration
+                    let matching = instanceService.getInstancesByDomain('local').find(i => 
+                        (i.loader || '').toLowerCase() === loader.toLowerCase() && 
+                        (i.version || '').includes(version)
+                    );
+
+                    if (!matching) {
+                        matching = instanceService.createInstance({
+                            name: `Profil ${loader.toUpperCase()} ${version}`,
+                            version: version,
+                            loader: loader,
+                            domain: 'local'
+                        });
+                    }
+
+                    this.selectDribbbleMode('home');
+                    this.setActiveInstanceForDomain('local', matching.id);
+                }
+
+                this.updateDockInstancePill();
+
+                // If user clicked directly on "JOUER" / "LANCER" button, launch the game!
+                if (isBtnClick) {
+                    document.getElementById('btn-launch-game')?.click();
+                }
+            });
+        });
+
+        // Card 6: Open mods store
+        document.querySelector('.game-card.card-quick-mods')?.addEventListener('click', () => {
+            this.selectDribbbleMode('modrinth');
+        });
     }
 
     selectDribbbleMode(mode) {
-        if (mode === 'pvp') mode = 'cloud';
+        if (mode === 'pvp') mode = 'home';
         this.activeDribbbleMode = mode;
         store.set('activeDribbbleMode', mode);
 
@@ -216,6 +269,9 @@ class RxcorpApp {
         document.querySelectorAll('.rail-item[data-view]').forEach(item => {
             item.classList.toggle('active', item.dataset.view === mode);
         });
+
+        // Switch active view container
+        this.switchView(mode);
 
         const hero = document.getElementById('dribbble-hero');
         const tagText = document.getElementById('hero-tag-text');
@@ -225,35 +281,29 @@ class RxcorpApp {
         const playLabel = document.getElementById('hero-play-label');
         const secText = document.getElementById('hero-sec-text');
 
-        // Reset hero theme classes
-        hero?.classList.remove('hero-cloud', 'hero-instances', 'hero-modrinth', 'hero-settings');
-
-        if (mode === 'cloud') {
-            hero?.classList.add('hero-cloud');
-            if (tagText) tagText.innerText = 'OFFICIEL RXCORP • SERVEUR CLOUD';
-            if (heroDot) heroDot.style.background = 'var(--primary)';
-            if (heroTitle) heroTitle.innerText = 'RXCORP CLOUD';
-            if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique et connexion instantanée.';
+        if (mode === 'home') {
+            const domain = this.getCurrentDomain();
+            const inst = this.getActiveInstanceForDomain(domain);
+            if (heroTitle) heroTitle.innerText = inst ? inst.name : (domain === 'cloud' ? 'RXCORP CLOUD' : 'MINECRAFT LOCAL');
+            if (heroDesc) heroDesc.innerText = domain === 'cloud' 
+                ? 'Infrastructure Cloud Pelican officielle avec synchronisation automatique de la whitelist et connexion 1-clic.'
+                : 'Profil Minecraft local autonome haute performance (Fabric, Forge, NeoForge, Vanilla).';
+            if (playLabel) playLabel.innerText = domain === 'cloud' ? 'JOUER (SERVEUR)' : 'LANCER (LOCAL)';
+            if (secText) secText.innerText = domain === 'cloud' ? '⚡ Synchroniser les Mods' : '+ Nouveau Profil';
+            this.updateDockInstancePill();
+            this.renderDashboardLists();
+        } else if (mode === 'cloud') {
             if (playLabel) playLabel.innerText = 'JOUER (SERVEUR)';
-            if (secText) secText.innerText = '⚡ Synchroniser les Mods';
-            this.closeDrawer();
-            this.updateDockInstancePill();
-            this.renderDashboardLists();
+            this.loadCloudServers();
         } else if (mode === 'instances') {
-            hero?.classList.add('hero-instances');
-            if (tagText) tagText.innerText = 'PROFILS & MODPACKS LOCAUX';
-            if (heroDot) heroDot.style.background = 'var(--cyan)';
-            if (heroTitle) heroTitle.innerText = 'GESTIONNAIRE LOCAL';
-            if (heroDesc) heroDesc.innerText = 'Profils et modpacks Minecraft locaux autonomes (Fabric, Forge, NeoForge, Vanilla).';
             if (playLabel) playLabel.innerText = 'JOUER (LOCAL)';
-            if (secText) secText.innerText = '+ Nouveau Profil';
-            this.closeDrawer();
-            this.updateDockInstancePill();
-            this.renderDashboardLists();
+            this.loadInstances();
         } else if (mode === 'modrinth') {
-            this.openDrawer('modrinth', 'TÉLÉCHARGEUR DE MODS');
-        } else if (mode === 'settings') {
-            this.openDrawer('settings', 'CONFIGURATION DU SYSTÈME');
+            if (typeof this.triggerModSearch === 'function') {
+                this.triggerModSearch();
+            }
+        } else if (mode === 'settings' || mode === 'profile') {
+            this.initSettings();
         }
     }
 
@@ -450,8 +500,8 @@ class RxcorpApp {
     switchView(viewName) {
         this.activeView = viewName;
 
-        // Update sidebar active classes
-        document.querySelectorAll('.nav-item').forEach(item => {
+        // Update sidebar and rail active classes
+        document.querySelectorAll('.nav-item, .rail-item').forEach(item => {
             item.classList.toggle('active', item.dataset.view === viewName);
         });
 
@@ -461,7 +511,10 @@ class RxcorpApp {
         });
 
         // Trigger view-specific refreshes
-        if (viewName === 'cloud') {
+        if (viewName === 'home') {
+            this.renderDashboardLists();
+            this.updateDockInstancePill();
+        } else if (viewName === 'cloud') {
             this.loadCloudServers();
         } else if (viewName === 'instances') {
             this.loadInstances();
@@ -469,6 +522,8 @@ class RxcorpApp {
             if (typeof this.triggerModSearch === 'function') {
                 this.triggerModSearch();
             }
+        } else if (viewName === 'settings' || viewName === 'profile') {
+            this.initSettings();
         }
     }
 
@@ -1912,6 +1967,13 @@ class RxcorpApp {
             if (userAvatarElem) {
                 userAvatarElem.src = `https://mc-heads.net/avatar/${activeAccount.name}/32`;
                 userAvatarElem.onerror = () => { userAvatarElem.src = 'assets/images/icon/icon.png'; };
+            }
+            const skinName = document.getElementById('settings-skin-name');
+            const skinBody = document.getElementById('settings-skin-body');
+            if (skinName) skinName.innerText = activeAccount.name;
+            if (skinBody) {
+                skinBody.src = `https://mc-heads.net/body/${activeAccount.name}/220`;
+                skinBody.onerror = () => { skinBody.src = 'https://mc-heads.net/body/Steve/220'; };
             }
         }
 
