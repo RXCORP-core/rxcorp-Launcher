@@ -15,6 +15,8 @@ try {
     store = new Store();
 } catch (e) {}
 
+const OFFICIAL_CF_KEY = '$2a$10$WiePrlPNrhm64t5neMiRGul2uculPVwZo56ZU0A1qZos02AChjqMa';
+
 class CurseForgeService {
     constructor() {
         this.baseUrl = 'https://api.curseforge.com/v1';
@@ -23,12 +25,13 @@ class CurseForgeService {
     }
 
     getApiKey() {
-        return store ? store.get('curseforgeApiKey') || '' : '';
+        const custom = store ? store.get('curseforgeApiKey') : '';
+        return (custom && custom.trim()) ? custom.trim() : OFFICIAL_CF_KEY;
     }
 
     setApiKey(key) {
         if (store) {
-            store.set('curseforgeApiKey', key.trim());
+            store.set('curseforgeApiKey', key ? key.trim() : '');
         }
     }
 
@@ -157,14 +160,22 @@ class CurseForgeService {
 
             return {
                 success: true,
-                versions: files.map(f => ({
-                    id: f.id,
-                    name: f.displayName,
-                    versionNumber: f.fileName,
-                    fileName: f.fileName,
-                    downloadUrl: f.downloadUrl,
-                    gameVersions: f.gameVersions
-                }))
+                versions: files.map(f => {
+                    let downloadUrl = f.downloadUrl;
+                    if (!downloadUrl && f.id && f.fileName) {
+                        const part1 = Math.floor(f.id / 1000);
+                        const part2 = f.id % 1000;
+                        downloadUrl = `https://edge.forgecdn.net/files/${part1}/${part2}/${encodeURIComponent(f.fileName)}`;
+                    }
+                    return {
+                        id: f.id,
+                        name: f.displayName,
+                        versionNumber: f.fileName,
+                        fileName: f.fileName,
+                        downloadUrl,
+                        gameVersions: f.gameVersions
+                    };
+                })
             };
         } catch (err) {
             console.error('[CurseForge Files Error]:', err);

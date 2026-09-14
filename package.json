@@ -1,7 +1,7 @@
 {
     "name": "rxcorp-launcher",
     "productName": "RXCORP Launcher",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "description": "Launcher RXCORP 2.4 - Infrastructure Pelican Cloud, Gestionnaire d'instances locales et Téléchargeur de mods Modrinth & CurseForge",
     "main": "src/app.js",
     "author": {

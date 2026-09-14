@@ -1221,7 +1221,7 @@ class RxcorpApp {
         if (inputJava) inputJava.value = store.get('javaPath') || '';
         if (inputUrl) inputUrl.value = store.get('panelUrl') || 'https://panel.rxcorp.fr';
         if (inputKey) inputKey.value = store.get('apiKey') || '';
-        if (inputCurseForge) inputCurseForge.value = curseforgeService.getApiKey() || '';
+        if (inputCurseForge) inputCurseForge.value = store.get('curseforgeApiKey') || '';
 
         btnSave?.addEventListener('click', () => {
             store.set('ramMax', parseInt(rangeRam.value, 10));
