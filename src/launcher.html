@@ -15,7 +15,7 @@
         <div class="brand-section">
             <img class="brand-logo" src="assets/images/icon/icon.png" alt="RX">
             <span class="brand-title">RXCORP</span>
-            <span class="brand-badge">2.2</span>
+            <span class="brand-badge">2.4</span>
         </div>
 
         <div class="titlebar-center">
@@ -30,7 +30,7 @@
         </div>
 
         <div class="titlebar-controls">
-            <div id="user-pill" class="user-pill" title="Compte Minecraft actif">
+            <div id="user-pill" class="user-pill" title="Gérer le compte actif">
                 <img id="user-avatar" class="user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
                 <span id="user-name" class="user-name">Joueur</span>
                 <span class="user-status-dot"></span>
@@ -44,20 +44,11 @@
         </div>
     </header>
 
-    <!-- RIOT / DRIBBBLE STYLE UNIFIED SHELL -->
+    <!-- UNIFIED DESKTOP GAMING SHELL -->
     <div class="dribbble-shell">
-        <!-- 1. FLOATING LEFT ICON RAIL -->
+        <!-- 1. LEFT ICON RAIL -->
         <aside class="dribbble-rail">
             <div class="rail-top">
-                <button class="rail-item" data-view="settings" title="Paramètres & Configuration Système">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="rail-modes">
                 <!-- Mode 1: RX Cloud -->
                 <button class="rail-item active" data-view="cloud" title="RX Cloud (Serveurs Officiels Pelican)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,15 +59,8 @@
                     </svg>
                 </button>
 
-                <!-- Mode 2: RX PvP Client -->
-                <button class="rail-item" data-view="pvp" title="RX PvP Client (Client Compétitif Dédié 1.8.9 / 1.21+)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                </button>
-
-                <!-- Mode 3: Local Instances -->
-                <button class="rail-item" data-view="instances" title="Mod Local (Mes Profils & Modpacks Libres)">
+                <!-- Mode 2: Local Instances -->
+                <button class="rail-item" data-view="instances" title="Mod Local (Gestionnaire de Profils & Modpacks)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -84,8 +68,8 @@
                     </svg>
                 </button>
 
-                <!-- Mode 4: Modrinth Store -->
-                <button class="rail-item" data-view="modrinth" title="Catalogue Modrinth (Mods & Shaders)">
+                <!-- Mode 3: Mod Catalog -->
+                <button class="rail-item" data-view="modrinth" title="Téléchargeur de Mods (Modrinth & CurseForge)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                         <line x1="7" y1="7" x2="7.01" y2="7"></line>
@@ -99,6 +83,14 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+
+                <!-- Settings & Accounts -->
+                <button class="rail-item" data-view="settings" title="Paramètres, Comptes & Clés API">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
                 </button>
             </div>
@@ -118,19 +110,19 @@
 
                     <h1 id="hero-title" class="hero-title">RXCORP CLOUD</h1>
                     <p id="hero-desc" class="hero-desc">
-                        Infrastructure Cloud Pelican officielle avec synchronisation automatique Forge 26.2 et mods vérifiés.
+                        Infrastructure Cloud Pelican officielle avec synchronisation automatique et connexion instantanée en 1 clic.
                     </p>
 
-                    <!-- ACTION ROW: ICONIC WHITE PILL BUTTON + INSTANCE PILL -->
+                    <!-- ACTION ROW -->
                     <div class="hero-action-row">
-                        <!-- Play Pill Button (Riot Games high-contrast white capsule) -->
+                        <!-- Play Button -->
                         <button id="btn-launch-game" class="dribbble-play-pill" title="Lancer Minecraft">
                             <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                             <span id="hero-play-label">JOUER</span>
                         </button>
 
-                        <!-- Active Instance Capsule Selector -->
-                        <div id="dock-instance-pill" class="hero-instance-capsule" title="Cliquez pour changer d'instance">
+                        <!-- Active Instance / Server Capsule Selector -->
+                        <div id="dock-instance-pill" class="hero-instance-capsule" title="Cliquez pour choisir un profil ou serveur">
                             <div class="capsule-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -138,18 +130,18 @@
                             </div>
                             <div class="capsule-meta">
                                 <span id="dock-instance-name" class="capsule-title">Minecraft 26.2</span>
-                                <span id="dock-instance-sub" class="capsule-sub">Minecraft 26.2 • FORGE</span>
+                                <span id="dock-instance-sub" class="capsule-sub">Serveur Cloud Pelican</span>
                             </div>
                             <span class="capsule-caret">▾</span>
                         </div>
 
                         <!-- Secondary Action Capsule -->
-                        <button id="btn-hero-secondary" class="hero-secondary-capsule">
-                            <span id="hero-sec-text">⚡ Liste des Serveurs</span>
+                        <button id="btn-hero-secondary" class="hero-secondary-capsule" title="Action secondaire">
+                            <span id="hero-sec-text">⚡ Synchroniser les Mods</span>
                         </button>
                     </div>
 
-                    <!-- EMBEDDED LAUNCH & DOWNLOAD PROGRESS TRACK -->
+                    <!-- LAUNCH & DOWNLOAD PROGRESS TRACK -->
                     <div class="hero-progress-area">
                         <div id="dock-status" class="hero-status-readout">
                             <span class="status-dot online"></span>
@@ -162,88 +154,33 @@
                 </div>
             </section>
 
-            <!-- 3 TACTICAL WIDGET CARDS ROW (Exact Dribbble Match) -->
+            <!-- REAL FUNCTIONAL CONTENT ROW (Authentic, no fake stats) -->
             <section id="dribbble-widgets" class="dribbble-widgets-row">
-                <!-- CARD 1: WEEKLY ACTIVITY (7-bar chart) -->
-                <div class="tactical-card card-activity">
+                <!-- CARD 1: SERVEURS CLOUD OFFICIELS (REAL PELICAN SERVERS LIST) -->
+                <div class="tactical-card card-cloud-servers">
                     <div class="card-header-bar">
-                        <span class="card-label">ACTIVITÉ HEBDOMADAIRE</span>
-                    </div>
-                    <div class="activity-card-body">
-                        <div class="activity-avatar-box">
-                            <img src="assets/images/icon/icon.png" alt="Player" class="activity-avatar">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="srv-dot online"></span>
+                            <span class="card-label">SERVEURS CLOUD OFFICIELS</span>
                         </div>
-                        <div class="activity-barchart">
-                            <div class="bar-col"><div class="bar-fill" style="height: 35%;"></div><span class="bar-day">L</span></div>
-                            <div class="bar-col"><div class="bar-fill" style="height: 55%;"></div><span class="bar-day">M</span></div>
-                            <div class="bar-col"><div class="bar-fill" style="height: 25%;"></div><span class="bar-day">M</span></div>
-                            <div class="bar-col"><div class="bar-fill" style="height: 75%;"></div><span class="bar-day">J</span></div>
-                            <div class="bar-col"><div class="bar-fill" style="height: 60%;"></div><span class="bar-day">V</span></div>
-                            <div class="bar-col"><div class="bar-fill bar-peak" style="height: 100%;"></div><span class="bar-day">S</span></div>
-                            <div class="bar-col"><div class="bar-fill" style="height: 70%;"></div><span class="bar-day">D</span></div>
-                        </div>
-                    </div>
-                    <div class="card-bottom-row">
-                        <span class="card-stat-highlight">18.4 hrs <span class="stat-sub">cette semaine</span></span>
-                        <button class="tactical-link-btn" id="btn-widget-activity">VOIR DÉTAILS ↗</button>
-                    </div>
-                </div>
-
-                <!-- CARD 2: STATS & PERFORMANCE -->
-                <div class="tactical-card card-performance">
-                    <div class="card-header-bar">
-                        <span class="card-label">PERFORMANCES & FPS</span>
-                    </div>
-                    <div class="perf-card-body">
-                        <div class="perf-stat-block">
-                            <div class="perf-stat-val">
-                                <span>144+</span>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5" class="perf-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </div>
-                            <div class="perf-stat-name">FPS CIBLÉS</div>
-                        </div>
-                        <div class="perf-divider"></div>
-                        <div class="perf-stat-block">
-                            <div class="perf-stat-val">
-                                <span id="widget-ram-text">4.0 GB</span>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" class="perf-icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                            </div>
-                            <div class="perf-stat-name">RAM ALLOUÉE</div>
-                        </div>
-                    </div>
-                    <div class="card-bottom-row">
-                        <div class="perf-tags">
-                            <span class="perf-chip">Sodium & Lithium</span>
-                            <span class="perf-chip">12ms Latence</span>
-                        </div>
-                        <button class="tactical-link-btn" id="btn-widget-pvp">RÉGLER FPS ↗</button>
-                    </div>
-                </div>
-
-                <!-- CARD 3: SERVEURS CLOUD & SESSIONS -->
-                <div class="tactical-card card-cloud">
-                    <div class="card-header-bar">
-                        <span class="card-label">SERVEURS CLOUD OFFICIELS</span>
-                    </div>
-                    <div class="cloud-card-body">
-                        <div class="cloud-server-row">
-                            <div class="srv-left">
-                                <span class="srv-dot online"></span>
-                                <span class="srv-name">RD - Run Division</span>
-                            </div>
-                            <span class="srv-chip">18ms • 12/50</span>
-                        </div>
-                        <div class="cloud-server-row">
-                            <div class="srv-left">
-                                <span class="srv-dot online"></span>
-                                <span class="srv-name">Serveur Test RX</span>
-                            </div>
-                            <span class="srv-chip">24ms • Prêt</span>
-                        </div>
-                    </div>
-                    <div class="card-bottom-row">
-                        <span class="card-stat-highlight">Pelican API <span class="stat-sub">Active</span></span>
                         <button class="tactical-link-btn" id="btn-widget-cloud">EXPLORER ↗</button>
+                    </div>
+                    <div id="dashboard-cloud-list" class="dashboard-list-body">
+                        <!-- Populated dynamically with actual Pelican servers -->
+                    </div>
+                </div>
+
+                <!-- CARD 2: MES PROFILS LOCAUX (REAL INSTANCES LIST) -->
+                <div class="tactical-card card-local-instances">
+                    <div class="card-header-bar">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="srv-dot" style="background: var(--cyan);"></span>
+                            <span class="card-label">MES PROFILS & MODPACKS LOCAUX</span>
+                        </div>
+                        <button class="tactical-link-btn" id="btn-widget-instances">GÉRER ↗</button>
+                    </div>
+                    <div id="dashboard-instances-list" class="dashboard-list-body">
+                        <!-- Populated dynamically with local profiles -->
                     </div>
                 </div>
             </section>
@@ -277,7 +214,7 @@
                             </div>
                         </div>
 
-                        <!-- Pro Onboarding Card if not connected -->
+                        <!-- Onboarding Card if not connected -->
                         <div id="cloud-auth-card" class="cloud-hero-card" style="display: none;">
                             <div class="cloud-hero-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
@@ -330,7 +267,7 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
                                     <span>Mes Profils & Modpacks Locaux</span>
                                 </h2>
-                                <p class="view-subtitle">Espace libre et autonome, totalement isolé du Cloud et du Client PvP • Support Vanilla, Fabric, Forge et NeoForge</p>
+                                <p class="view-subtitle">Espace indépendant pour créer et gérer vos profils Minecraft • Support Fabric, Forge, NeoForge et Vanilla</p>
                             </div>
                             <div>
                                 <button id="btn-new-instance" class="rx-btn rx-btn-primary">
@@ -343,81 +280,60 @@
                         <div id="instances-grid" class="servers-grid"></div>
                     </section>
 
-                    <!-- VIEW 3: MODRINTH MODS -->
+                    <!-- VIEW 3: MODS BROWSER (MODRINTH & CURSEFORGE) -->
                     <section id="view-modrinth" class="view-container">
                         <div class="view-header">
                             <div>
                                 <h2 class="view-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
-                                    <span>Catalogue Modrinth</span>
+                                    <span>Téléchargeur de Mods</span>
                                 </h2>
-                                <p class="view-subtitle">Explorez et installez des milliers de mods vérifiés en 1 clic</p>
+                                <p class="view-subtitle">Catalogue complet avec installation en 1 clic dans vos profils locaux (Modrinth & CurseForge)</p>
                             </div>
                         </div>
 
-                        <!-- Search Bar -->
-                        <div class="rx-card" style="padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px;">
-                            <div style="position: relative; flex: 1;">
-                                <input id="input-mod-search" type="text" class="form-input" placeholder="Rechercher un mod (ex: Sodium, Voice Chat, Iris, JEI...)" style="padding-left: 36px;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; top: 12px; width: 16px; height: 16px; stroke: var(--text-dim);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            </div>
-                            
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label class="form-label" style="white-space: nowrap; margin: 0;">Cible :</label>
-                                <select id="select-target-instance" class="form-select" style="min-width: 170px;"></select>
+                        <!-- Modern Search & Filter Toolbar -->
+                        <div class="mod-toolbar rx-card">
+                            <div class="mod-search-row">
+                                <div class="mod-search-input-box">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    <input id="input-mod-search" type="text" class="form-input mod-search-field" placeholder="Rechercher un mod (ex: Sodium, Iris, JEI, FerriteCore, JourneyMap...)">
+                                </div>
+                                
+                                <div class="mod-field-inline">
+                                    <label class="form-label" style="white-space: nowrap; margin: 0;">Profil cible :</label>
+                                    <select id="select-target-instance" class="form-select" style="min-width: 170px;"></select>
+                                </div>
+
+                                <div class="mod-field-inline">
+                                    <label class="form-label" style="white-space: nowrap; margin: 0;">Source :</label>
+                                    <div class="source-toggle-pills">
+                                        <button id="btn-source-modrinth" class="source-toggle-btn active" type="button">Modrinth</button>
+                                        <button id="btn-source-curseforge" class="source-toggle-btn" type="button">CurseForge</button>
+                                    </div>
+                                </div>
+
+                                <button id="btn-search-mods" class="rx-btn rx-btn-primary">
+                                    <span>Rechercher</span>
+                                </button>
                             </div>
 
-                            <button id="btn-search-mods" class="rx-btn rx-btn-cyan">Rechercher</button>
+                            <!-- Category Chips -->
+                            <div class="mod-chips-bar">
+                                <button class="mod-chip active" data-cat="">Tous les Mods</button>
+                                <button class="mod-chip" data-cat="optimization">🚀 Performance & FPS</button>
+                                <button class="mod-chip" data-cat="technology">⚙️ Technologie</button>
+                                <button class="mod-chip" data-cat="utility">🛠️ Utilitaires</button>
+                                <button class="mod-chip" data-cat="magic">✨ Magie & Quêtes</button>
+                                <button class="mod-chip" data-cat="decoration">🎨 Visuels & Déco</button>
+                            </div>
                         </div>
 
-                        <div id="modrinth-mods-grid" class="servers-grid"></div>
+                        <!-- Mods Grid -->
+                        <div id="modrinth-mods-grid" class="mods-grid"></div>
                     </section>
 
-                    <!-- VIEW 4: PVP & COMPETITIVE CLIENT HUB (Soar / Frost / Cloud Style) -->
-                    <section id="view-pvp" class="view-container">
-                        <div class="view-header">
-                            <div>
-                                <h2 class="view-title">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                    <span>RX PvP Client (Client Compétitif Dédié)</span>
-                                </h2>
-                                <p class="view-subtitle">Client e-sport autonome inspiré de Lunar & Soar Client • Profils 1.8.9 et 1.21+ isolés avec mods optimisés et ATH</p>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label class="form-label" style="margin: 0;">Version Client :</label>
-                                <select id="select-pvp-instance" class="form-select" style="min-width: 200px;"></select>
-                            </div>
-                        </div>
-
-                        <!-- 1. PVP COMPETITIVE VERSIONS GRID (DYNAMIC) -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase;">ÉPOQUES & VERSIONS DU CLIENT (1.8.9, 1.21+, 1.20, 1.16, 1.12, 1.7.10)</span>
-                            <button id="btn-add-pvp-custom" class="rx-btn rx-btn-secondary" style="height: 30px; font-size: 11.5px; padding: 0 14px;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                <span>Autre Version PvP</span>
-                            </button>
-                        </div>
-                        <div id="pvp-standards-container" class="pvp-standards-container"></div>
-
-                        <!-- 3. SOAR / FROST STYLE MODS & SERVERS TABS -->
-                        <div class="pvp-section-header">
-                            <div class="pvp-category-tabs">
-                                <button class="pvp-tab-btn active" data-cat="all">Tous les Mods</button>
-                                <button class="pvp-tab-btn" data-cat="Performance">🚀 Performance & FPS</button>
-                                <button class="pvp-tab-btn" data-cat="HUD">🎯 ATH & Combos</button>
-                                <button class="pvp-tab-btn" data-cat="Visuels">✨ Visuels & Confort</button>
-                                <button class="pvp-tab-btn" data-cat="servers">🌐 Serveurs PvP (Quick Join)</button>
-                            </div>
-                        </div>
-
-                        <!-- MODS GRID -->
-                        <div id="pvp-mods-grid" class="pvp-grid"></div>
-
-                        <!-- SERVERS QUICK JOIN GRID (Shown when servers tab is active) -->
-                        <div id="pvp-servers-grid" class="pvp-servers-container" style="display: none;"></div>
-                    </section>
-
-                    <!-- VIEW 5: SETTINGS -->
+                    <!-- VIEW 4: SETTINGS -->
                     <section id="view-settings" class="view-container">
                         <div class="view-header">
                             <div>
@@ -425,7 +341,7 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                                     <span>Configuration & Paramètres</span>
                                 </h2>
-                                <p class="view-subtitle">Allocation mémoire RAM, exécutable Java et identifiants Cloud</p>
+                                <p class="view-subtitle">Allocation mémoire RAM, exécutable Java, identifiants Pelican et clés API</p>
                             </div>
                         </div>
 
@@ -455,11 +371,11 @@
                                 </button>
                             </div>
 
-                            <!-- Cloud Settings -->
+                            <!-- Cloud & API Settings -->
                             <div class="rx-card">
                                 <h3 style="font-size: 15px; font-weight: 700; color: var(--text-white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" style="width: 18px; height: 18px;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-                                    <span>Identifiants Pelican Cloud</span>
+                                    <span>Identifiants Pelican Cloud & API</span>
                                 </h3>
 
                                 <div class="form-group">
@@ -468,12 +384,20 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label">Clé API Client</label>
+                                    <label class="form-label">Clé API Client Pelican</label>
                                     <input id="settings-panel-key" type="password" class="form-input" placeholder="pacc_...">
                                 </div>
 
-                                <div style="display: flex; gap: 8px;">
-                                    <button id="btn-test-panel" class="rx-btn rx-btn-secondary" style="flex: 1;">Tester</button>
+                                <div class="form-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+                                    <label class="form-label">Clé API CurseForge (Optionnelle)</label>
+                                    <input id="input-curseforge-key" type="password" class="form-input" placeholder="$2a$10$...">
+                                    <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">
+                                        Permet d'activer la recherche de mods sur CurseForge.
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                    <button id="btn-test-panel" class="rx-btn rx-btn-secondary" style="flex: 1;">Tester Pelican</button>
                                     <button id="btn-disconnect-panel" class="rx-btn rx-btn-danger">Déconnecter</button>
                                 </div>
                             </div>
@@ -506,13 +430,13 @@
             
             <div class="form-group">
                 <label class="form-label">Nom du Profil</label>
-                <input id="input-new-name" type="text" class="form-input" placeholder="ex: RX Survival 26.2">
+                <input id="input-new-name" type="text" class="form-input" placeholder="ex: Mon Pack Survie 26.2">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Version de Minecraft</label>
                 <select id="select-new-version" class="form-select">
-                    <option value="26.2" selected>26.2 (Dernière version)</option>
+                    <option value="26.2" selected>26.2 (Dernière version officielle)</option>
                     <option value="1.21.4">1.21.4</option>
                     <option value="1.21.1">1.21.1</option>
                     <option value="1.20.4">1.20.4</option>
@@ -575,7 +499,7 @@
 
             <div class="form-group">
                 <label class="form-label">Identifiant ou Email</label>
-                <input id="input-direct-login" type="text" class="form-input" placeholder="ex: chatdoo ou salem@..." autocomplete="username">
+                <input id="input-direct-login" type="text" class="form-input" placeholder="ex: chatdoo ou contact@..." autocomplete="username">
             </div>
 
             <div class="form-group">

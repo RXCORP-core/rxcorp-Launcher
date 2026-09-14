@@ -64,6 +64,21 @@ class GameLauncher {
                 meta: { type: 'Mojang', online: false }
             };
 
+            // Windows Log4j URI fix (prevents java.net.MalformedURLException: unknown protocol: c)
+            const customJvmArgs = [...(settings.jvmArgs || [])];
+            try {
+                const logConfigDir = path.join(instance.path, 'assets', 'log_configs');
+                if (fs.existsSync(logConfigDir)) {
+                    const configs = fs.readdirSync(logConfigDir).filter(f => f.endsWith('.xml'));
+                    if (configs.length > 0) {
+                        const configPath = path.join(logConfigDir, configs[0]).replace(/\\/g, '/');
+                        customJvmArgs.push(`-Dlog4j.configurationFile=file:///${configPath}`);
+                    }
+                }
+            } catch (e) {
+                console.warn('[GameLauncher] Log4j precheck warning:', e);
+            }
+
             const launchOptions = {
                 authenticator: authenticator,
                 path: instance.path,
@@ -81,7 +96,7 @@ class GameLauncher {
                 java: {
                     path: settings.javaPath || null
                 },
-                JVM_ARGS: [],
+                JVM_ARGS: customJvmArgs,
                 GAME_ARGS: gameArgs,
                 screen: {
                     width: settings.screenWidth || 1280,

@@ -131,7 +131,7 @@ ipcMain.on('send-notification', (event, data) => {
 
 ipcMain.on('discord-rpc-activity', (event, data) => discordRpc.setActivity(data));
 ipcMain.on('discord-rpc-idle', () => discordRpc.setIdle());
-ipcMain.on('discord-rpc-launching', () => discordRpc.setLaunching());
+ipcMain.on('discord-rpc-launching', (event, targetName) => discordRpc.setLaunching(targetName));
 ipcMain.on('discord-rpc-playing', (event, instanceName) => discordRpc.setPlaying(instanceName));
 
 ipcMain.handle('Microsoft-window', async (_, client_id) => {

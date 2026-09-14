@@ -61,13 +61,11 @@ class InstanceService {
 
                         let needSave = false;
 
-                        // Auto-assign and persist domain ('cloud' | 'pvp' | 'local')
-                        if (!data.domain) {
+                        // Auto-assign and persist domain ('cloud' | 'local')
+                        if (!data.domain || data.domain === 'pvp') {
                             const idLower = (data.id || '').toLowerCase();
                             const nameLower = (data.name || '').toLowerCase();
-                            if (idLower.includes('pvp') || nameLower.includes('pvp')) {
-                                data.domain = 'pvp';
-                            } else if (data.serverAddress || idLower.startsWith('rx-') || nameLower.startsWith('rx -')) {
+                            if (data.serverAddress || idLower.startsWith('rx-') || nameLower.startsWith('rx -')) {
                                 data.domain = 'cloud';
                             } else {
                                 data.domain = 'local';
@@ -119,14 +117,14 @@ class InstanceService {
      * Get dedicated RX PvP Client instances only
      */
     getPvpInstances() {
-        return this.getInstancesByDomain('pvp');
+        return [];
     }
 
     /**
      * Get user-created custom local modpack instances only
      */
     getLocalInstances() {
-        return this.getInstancesByDomain('local');
+        return this.getInstances().filter(i => i.domain !== 'cloud');
     }
 
     /**
@@ -145,12 +143,10 @@ class InstanceService {
         data.modsPath = path.join(instanceDir, 'mods');
 
         // Ensure domain is present
-        if (!data.domain) {
+        if (!data.domain || data.domain === 'pvp') {
             const idLower = (data.id || '').toLowerCase();
             const nameLower = (data.name || '').toLowerCase();
-            if (idLower.includes('pvp') || nameLower.includes('pvp')) {
-                data.domain = 'pvp';
-            } else if (data.serverAddress || idLower.startsWith('rx-') || nameLower.startsWith('rx -')) {
+            if (data.serverAddress || idLower.startsWith('rx-') || nameLower.startsWith('rx -')) {
                 data.domain = 'cloud';
             } else {
                 data.domain = 'local';

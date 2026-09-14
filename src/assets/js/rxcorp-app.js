@@ -1,6 +1,7 @@
 /**
  * RXCORP Launcher - Master Application Controller
  * Handles UI interactions, services coordination and state management
+ * Version 2.4.0
  */
 
 const { ipcRenderer, shell } = require('electron');
@@ -18,7 +19,7 @@ const servicesDir = fs.existsSync(path.join(__dirname, 'services'))
 const pelicanService = require(path.join(servicesDir, 'pelicanService.js'));
 const instanceService = require(path.join(servicesDir, 'instanceService.js'));
 const modrinthService = require(path.join(servicesDir, 'modrinthService.js'));
-const pvpService = require(path.join(servicesDir, 'pvpService.js'));
+const curseforgeService = require(path.join(servicesDir, 'curseforgeService.js'));
 const gameLauncher = require(path.join(servicesDir, 'gameLauncher.js'));
 
 // Local storage
@@ -26,7 +27,11 @@ const store = new Store({
     defaults: {
         panelUrl: 'https://panel.rxcorp.fr',
         apiKey: '',
+        curseforgeApiKey: '',
         activeInstanceId: null,
+        activeCloudInstanceId: null,
+        activeLocalInstanceId: null,
+        activeDribbbleMode: 'cloud',
         ramMax: 4,
         javaPath: '',
         accounts: [
@@ -45,20 +50,19 @@ class RxcorpApp {
         this.activeView = 'cloud';
         this.activeDribbbleMode = store.get('activeDribbbleMode') || 'cloud';
         this.activeCloudInstanceId = store.get('activeCloudInstanceId') || null;
-        this.activePvpInstanceId = store.get('activePvpInstanceId') || null;
         this.activeLocalInstanceId = store.get('activeLocalInstanceId') || null;
         this.activeInstance = null;
         this.cloudServers = [];
         this.isSyncing = false;
+        this.activeModSource = 'modrinth'; // 'modrinth' | 'curseforge'
+        this.activeModCategory = '';
     }
 
     /**
-     * Get current active domain based on UI mode ('cloud' | 'pvp' | 'local')
+     * Get current active domain based on UI mode ('cloud' | 'local')
      */
     getCurrentDomain() {
-        if (this.activeDribbbleMode === 'cloud') return 'cloud';
-        if (this.activeDribbbleMode === 'pvp') return 'pvp';
-        return 'local';
+        return this.activeDribbbleMode === 'cloud' ? 'cloud' : 'local';
     }
 
     /**
@@ -66,10 +70,7 @@ class RxcorpApp {
      */
     getActiveInstanceForDomain(domain = null) {
         const d = domain || this.getCurrentDomain();
-        let targetId = null;
-        if (d === 'cloud') targetId = this.activeCloudInstanceId;
-        else if (d === 'pvp') targetId = this.activePvpInstanceId;
-        else targetId = this.activeLocalInstanceId;
+        let targetId = (d === 'cloud') ? this.activeCloudInstanceId : this.activeLocalInstanceId;
 
         if (targetId) {
             const inst = instanceService.getInstance(targetId);
@@ -84,19 +85,11 @@ class RxcorpApp {
             return chosen;
         }
 
-        // Auto-provision if necessary
-        if (d === 'pvp') {
-            const pvpInst = pvpService.getOrCreatePvpProfile('1.21');
-            if (pvpInst) {
-                this.setActiveInstanceForDomain('pvp', pvpInst.id, false);
-                return pvpInst;
-            }
-        }
-
-        if (d === 'local' && instanceService.getLocalInstances().length === 0) {
+        // Auto-provision a default local instance if none exists
+        if (d === 'local') {
             const localInst = instanceService.createInstance({
-                name: 'Mon Profil Local',
-                version: '1.21.1',
+                name: 'Mon Profil Local 26.2',
+                version: '26.2',
                 loader: 'fabric',
                 domain: 'local'
             });
@@ -114,9 +107,6 @@ class RxcorpApp {
         if (domain === 'cloud') {
             this.activeCloudInstanceId = id;
             store.set('activeCloudInstanceId', id);
-        } else if (domain === 'pvp') {
-            this.activePvpInstanceId = id;
-            store.set('activePvpInstanceId', id);
         } else {
             this.activeLocalInstanceId = id;
             store.set('activeLocalInstanceId', id);
@@ -134,29 +124,31 @@ class RxcorpApp {
     }
 
     async init() {
-        console.log('[RXCORP] Initializing Launcher 2.2 (Riot/Dribbble UI)...');
+        console.log('[RXCORP] Initializing Launcher 2.4...');
         this.initWindowControls();
         this.initDribbbleShell();
         this.initModals();
         this.initSettings();
         this.initAccounts();
-        this.initModrinth();
-        this.initPvP();
+        this.initModDownloader();
         this.initLaunchDock();
         this.initUpdater();
         this.initWebAuth();
 
-        // Load initial instance
+        // Load initial instances
         await this.loadInstances();
 
         // Load cloud servers
         await this.loadCloudServers();
 
+        // Initial Discord RPC state
+        ipcRenderer.send('discord-rpc-idle');
+
         console.log('[RXCORP] Launcher ready.');
     }
 
     // ==========================================
-    // RIOT / DRIBBBLE STYLE UNIFIED SHELL
+    // UNIFIED SHELL NAVIGATION & DASHBOARD
     // ==========================================
     initDribbbleShell() {
         const railItems = document.querySelectorAll('.rail-item[data-view]');
@@ -180,39 +172,39 @@ class RxcorpApp {
         // Hero secondary button
         document.getElementById('btn-hero-secondary')?.addEventListener('click', () => {
             const mode = this.activeDribbbleMode || 'cloud';
-            if (mode === 'cloud') this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
-            else if (mode === 'pvp') this.openDrawer('pvp', 'CONFIGURATION DU CLIENT PVP');
-            else if (mode === 'instances') this.openDrawer('instances', 'MES PROFILS & INSTANCES');
-            else if (mode === 'modrinth') this.openDrawer('modrinth', 'CATALOGUE MODRINTH');
-            else if (mode === 'settings') this.openDrawer('settings', 'PARAMÈTRES & COMPTES');
+            if (mode === 'cloud') {
+                const curInst = this.getActiveInstanceForDomain('cloud');
+                if (curInst && curInst.serverAddress) {
+                    const server = this.cloudServers.find(s => `${s.ip}:${s.port}` === curInst.serverAddress);
+                    if (server) {
+                        this.handleSyncServerMods(server);
+                        return;
+                    }
+                }
+                this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
+            } else {
+                document.getElementById('modal-create-instance')?.classList.add('active');
+            }
         });
 
-        // Tactical Cards buttons
-        document.getElementById('btn-widget-activity')?.addEventListener('click', () => {
-            this.showNotification('Activité de jeu', '18.4 heures de jeu enregistrées sur RXCORP cette semaine.');
-        });
-
-        document.getElementById('btn-widget-pvp')?.addEventListener('click', () => {
-            this.selectDribbbleMode('pvp');
-            this.openDrawer('pvp', 'CONFIGURATION DU CLIENT PVP');
-        });
-
+        // Dashboard Real Cards Buttons
         document.getElementById('btn-widget-cloud')?.addEventListener('click', () => {
             this.selectDribbbleMode('cloud');
             this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
         });
 
+        document.getElementById('btn-widget-instances')?.addEventListener('click', () => {
+            this.selectDribbbleMode('instances');
+            this.openDrawer('instances', 'MES PROFILS & MODPACKS');
+        });
+
         // Default mode from store or cloud
         const savedMode = store.get('activeDribbbleMode') || 'cloud';
-        this.selectDribbbleMode(savedMode);
-
-        // Update RAM widget from saved store
-        const ram = store.get('ramMax') || 4;
-        const ramWidget = document.getElementById('widget-ram-text');
-        if (ramWidget) ramWidget.innerText = `${ram}.0 GB`;
+        this.selectDribbbleMode(savedMode === 'pvp' ? 'cloud' : savedMode);
     }
 
     selectDribbbleMode(mode) {
+        if (mode === 'pvp') mode = 'cloud';
         this.activeDribbbleMode = mode;
         store.set('activeDribbbleMode', mode);
 
@@ -230,45 +222,135 @@ class RxcorpApp {
         const secText = document.getElementById('hero-sec-text');
 
         // Reset hero theme classes
-        hero?.classList.remove('hero-cloud', 'hero-pvp', 'hero-instances', 'hero-modrinth', 'hero-settings');
+        hero?.classList.remove('hero-cloud', 'hero-instances', 'hero-modrinth', 'hero-settings');
 
         if (mode === 'cloud') {
             hero?.classList.add('hero-cloud');
-            if (tagText) tagText.innerText = 'OFFICIEL RXCORP • FORGE 26.2';
+            if (tagText) tagText.innerText = 'OFFICIEL RXCORP • SERVEUR CLOUD';
             if (heroDot) heroDot.style.background = 'var(--primary)';
             if (heroTitle) heroTitle.innerText = 'RXCORP CLOUD';
-            if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique Forge 26.2 et mods vérifiés.';
+            if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique Forge 26.2 et connexion instantanée.';
             if (playLabel) playLabel.innerText = 'JOUER (SERVEUR)';
-            if (secText) secText.innerText = '⚡ Liste des Serveurs';
+            if (secText) secText.innerText = '⚡ Synchroniser les Mods';
             this.closeDrawer();
             this.updateDockInstancePill();
-            this.loadCloudServers();
-        } else if (mode === 'pvp') {
-            hero?.classList.add('hero-pvp');
-            if (tagText) tagText.innerText = 'CLIENT COMPÉTITIF • 144+ FPS';
-            if (heroDot) heroDot.style.background = 'var(--cyan)';
-            if (heroTitle) heroTitle.innerText = 'RX PVP CLIENT';
-            if (heroDesc) heroDesc.innerText = 'Client e-sport autonome avec Sodium, Lithium, FerriteCore et ATH tactique de combat.';
-            if (playLabel) playLabel.innerText = 'JOUER (PVP)';
-            if (secText) secText.innerText = '🎯 Gérer les Mods PvP';
-            this.closeDrawer();
-            this.updateDockInstancePill();
-            this.renderPvPMods();
+            this.renderDashboardLists();
         } else if (mode === 'instances') {
             hero?.classList.add('hero-instances');
-            if (tagText) tagText.innerText = 'PROFILS LIBRES • MULTI-LOADER';
-            if (heroDot) heroDot.style.background = 'var(--emerald)';
-            if (heroTitle) heroTitle.innerText = 'MOD LOCAL & PROFILS';
-            if (heroDesc) heroDesc.innerText = 'Gestionnaire d\'instances personnalisées indépendant du Cloud et du Client PvP (Vanilla, Fabric, Forge, NeoForge).';
-            if (playLabel) playLabel.innerText = 'LANCER';
-            if (secText) secText.innerText = '📦 Gérer les Profils';
+            if (tagText) tagText.innerText = 'PROFILS & MODPACKS LOCAUX';
+            if (heroDot) heroDot.style.background = 'var(--cyan)';
+            if (heroTitle) heroTitle.innerText = 'GESTIONNAIRE LOCAL';
+            if (heroDesc) heroDesc.innerText = 'Profils et modpacks Minecraft locaux autonomes (Fabric, Forge, NeoForge, Vanilla).';
+            if (playLabel) playLabel.innerText = 'JOUER (LOCAL)';
+            if (secText) secText.innerText = '+ Nouveau Profil';
             this.closeDrawer();
             this.updateDockInstancePill();
-            this.loadInstances();
+            this.renderDashboardLists();
         } else if (mode === 'modrinth') {
-            this.openDrawer('modrinth', 'CATALOGUE MODRINTH');
+            this.openDrawer('modrinth', 'TÉLÉCHARGEUR DE MODS');
         } else if (mode === 'settings') {
             this.openDrawer('settings', 'CONFIGURATION DU SYSTÈME');
+        }
+    }
+
+    renderDashboardLists() {
+        // 1. Official Cloud Servers list
+        const cloudList = document.getElementById('dashboard-cloud-list');
+        if (cloudList) {
+            if (!this.cloudServers || this.cloudServers.length === 0) {
+                cloudList.innerHTML = `
+                    <div style="font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 10px;">
+                        Aucun serveur Pelican détecté.<br>
+                        <a href="#" id="link-connect-cloud-dash" style="color: var(--primary); text-decoration: underline; font-weight: 600;">Se connecter au Panel Pelican ↗</a>
+                    </div>
+                `;
+                document.getElementById('link-connect-cloud-dash')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
+                });
+            } else {
+                cloudList.innerHTML = this.cloudServers.map(srv => {
+                    const isSelected = this.activeInstance?.serverAddress === `${srv.ip}:${srv.port}` || 
+                                       (this.activeInstance?.name && this.activeInstance.name.includes(srv.name));
+                    const isOnline = srv.status === 'online' || srv.status === 'running';
+                    const ping = srv.ping || 18;
+                    const players = srv.players ? `${srv.players.online}/${srv.players.max}` : (isOnline ? 'En ligne' : 'Prêt');
+                    return `
+                        <div class="dash-item-row ${isSelected ? 'active' : ''}">
+                            <div class="dash-item-left">
+                                <span class="srv-dot ${isOnline ? 'online' : 'offline'}"></span>
+                                <div class="dash-item-info">
+                                    <span class="dash-item-name">${srv.name}</span>
+                                    <span class="dash-item-sub">${ping}ms • ${players} • ${srv.ip}:${srv.port}</span>
+                                </div>
+                            </div>
+                            <div class="dash-item-actions">
+                                <button class="dash-quick-btn btn-dash-select-server" data-name="${srv.name}">
+                                    ${isSelected ? '✓ Actif' : 'Sélectionner'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                cloudList.querySelectorAll('.btn-dash-select-server').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const srvName = e.currentTarget.dataset.name;
+                        const srv = this.cloudServers.find(s => s.name === srvName);
+                        if (srv) {
+                            await this.selectCloudServer(srv);
+                        }
+                    });
+                });
+            }
+        }
+
+        // 2. Local Instances list
+        const instList = document.getElementById('dashboard-instances-list');
+        if (instList) {
+            const locals = instanceService.getLocalInstances();
+            if (locals.length === 0) {
+                instList.innerHTML = `
+                    <div style="font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 10px;">
+                        Aucun profil local pour l'instant.<br>
+                        <a href="#" id="link-create-inst-dash" style="color: var(--cyan); text-decoration: underline; font-weight: 600;">+ Créer un profil local ↗</a>
+                    </div>
+                `;
+                document.getElementById('link-create-inst-dash')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('modal-create-instance')?.classList.add('active');
+                });
+            } else {
+                instList.innerHTML = locals.map(inst => {
+                    const isSelected = this.activeInstance?.id === inst.id;
+                    const loader = (inst.loader || 'fabric').toUpperCase();
+                    return `
+                        <div class="dash-item-row ${isSelected ? 'active' : ''}">
+                            <div class="dash-item-left">
+                                <div style="font-size: 15px;">📦</div>
+                                <div class="dash-item-info">
+                                    <span class="dash-item-name">${inst.name}</span>
+                                    <span class="dash-item-sub">MC ${inst.version || '26.2'} • ${loader} • ${inst.modCount || 0} mod(s)</span>
+                                </div>
+                            </div>
+                            <div class="dash-item-actions">
+                                <button class="dash-quick-btn btn-dash-select-instance" data-id="${inst.id}">
+                                    ${isSelected ? '✓ Actif' : 'Choisir'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                instList.querySelectorAll('.btn-dash-select-instance').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        this.selectDribbbleMode('instances');
+                        this.setActiveInstanceForDomain('local', id);
+                        this.renderDashboardLists();
+                    });
+                });
+            }
         }
     }
 
@@ -284,8 +366,8 @@ class RxcorpApp {
     closeDrawer() {
         const drawer = document.getElementById('dribbble-views-drawer');
         if (drawer) drawer.style.display = 'none';
+        this.renderDashboardLists();
     }
-
 
     // ==========================================
     // WINDOW CONTROLS & TITLEBAR
@@ -301,6 +383,10 @@ class RxcorpApp {
 
         document.getElementById('btn-close')?.addEventListener('click', () => {
             ipcRenderer.send('main-window-close');
+        });
+
+        document.getElementById('user-pill')?.addEventListener('click', () => {
+            this.openDrawer('settings', 'CONFIGURATION & COMPTES');
         });
 
         document.getElementById('link-create-key')?.addEventListener('click', (e) => {
@@ -369,8 +455,10 @@ class RxcorpApp {
             this.loadCloudServers();
         } else if (viewName === 'instances') {
             this.loadInstances();
-        } else if (viewName === 'pvp') {
-            this.renderPvPMods();
+        } else if (viewName === 'modrinth') {
+            if (typeof this.triggerModSearch === 'function') {
+                this.triggerModSearch();
+            }
         }
     }
 
@@ -387,60 +475,68 @@ class RxcorpApp {
         const pillDot = document.querySelector('#cloud-pill .status-dot');
 
         if (!apiKey) {
-            authCard.style.display = 'block';
-            grid.innerHTML = '';
-            pillText.innerText = 'Non connecté';
-            pillDot.className = 'status-dot offline';
+            if (authCard) authCard.style.display = 'block';
+            if (grid) grid.innerHTML = '';
+            if (pillText) pillText.innerText = 'Non connecté';
+            if (pillDot) pillDot.className = 'status-dot offline';
+            this.renderDashboardLists();
             return;
         }
 
-        authCard.style.display = 'none';
-        pillText.innerText = 'Connexion...';
-        pillDot.className = 'status-dot';
+        if (authCard) authCard.style.display = 'none';
+        if (pillText) pillText.innerText = 'Connexion...';
+        if (pillDot) pillDot.className = 'status-dot';
 
-        grid.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
-                <span>Chargement de vos serveurs RXCORP...</span>
-            </div>
-        `;
+        if (grid) {
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
+                    <span>Chargement de vos serveurs RXCORP...</span>
+                </div>
+            `;
+        }
 
         const res = await pelicanService.getServers(apiKey, panelUrl);
         if (!res.success) {
-            authCard.style.display = 'block';
-            grid.innerHTML = `
-                <div class="rx-card" style="grid-column: 1/-1; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); margin-bottom: 20px; text-align: center; padding: 20px;">
-                    <p style="color: var(--danger); font-weight: 700; margin-bottom: 6px;">Session expirée ou non autorisée</p>
-                    <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 0;">Cliquez sur <strong>« Connexion en 1 Clic »</strong> ci-dessus pour associer votre compte automatiquement.</p>
-                </div>
-            `;
-            pillText.innerText = 'Non connecté';
-            pillDot.className = 'status-dot offline';
+            if (authCard) authCard.style.display = 'block';
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="rx-card" style="grid-column: 1/-1; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); margin-bottom: 20px; text-align: center; padding: 20px;">
+                        <p style="color: var(--danger); font-weight: 700; margin-bottom: 6px;">Session expirée ou non autorisée</p>
+                        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 0;">Cliquez sur <strong>« Connexion en 1 Clic »</strong> ci-dessus pour associer votre compte automatiquement.</p>
+                    </div>
+                `;
+            }
+            if (pillText) pillText.innerText = 'Non connecté';
+            if (pillDot) pillDot.className = 'status-dot offline';
+            this.renderDashboardLists();
             return;
         }
 
         this.cloudServers = res.servers.filter(s => s.isMinecraft);
-        pillText.innerText = `${this.cloudServers.length} Serveur(s)`;
-        pillDot.className = 'status-dot online';
+        if (pillText) pillText.innerText = `${this.cloudServers.length} Serveur(s)`;
+        if (pillDot) pillDot.className = 'status-dot online';
 
-        if (this.cloudServers.length === 0) {
-            grid.innerHTML = `
-                <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
-                    <p style="color: var(--text-muted); margin-bottom: 12px;">Aucun serveur Minecraft actif trouvé sur votre compte.</p>
-                    <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
-                        Commander un serveur Minecraft
-                    </button>
-                </div>
-            `;
-            return;
+        if (grid) {
+            if (this.cloudServers.length === 0) {
+                grid.innerHTML = `
+                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p style="color: var(--text-muted); margin-bottom: 12px;">Aucun serveur Minecraft actif trouvé sur votre compte.</p>
+                        <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
+                            Commander un serveur Minecraft
+                        </button>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = '';
+                for (const server of this.cloudServers) {
+                    const card = this.createServerCard(server);
+                    grid.appendChild(card);
+                    this.fetchServerLiveStatus(server, card);
+                }
+            }
         }
 
-        grid.innerHTML = '';
-        for (const server of this.cloudServers) {
-            const card = this.createServerCard(server);
-            grid.appendChild(card);
-            // Fetch live status in background
-            this.fetchServerLiveStatus(server, card);
-        }
+        this.renderDashboardLists();
     }
 
     createServerCard(server) {
@@ -501,25 +597,17 @@ class RxcorpApp {
             </div>
         `;
 
-        // Click to copy address
-        card.querySelector('.server-address').addEventListener('click', () => {
-            navigator.clipboard.writeText(`${server.ip}:${server.port}`);
-            this.showNotification('Adresse copiée !', `${server.ip}:${server.port} dans le presse-papier`);
-        });
-
-        // Join server button (Sync + Launch + Connect)
         card.querySelector('.btn-join-server').addEventListener('click', () => {
             this.handleJoinServer(server);
         });
 
-        // Sync mods only button
         card.querySelector('.btn-sync-mods').addEventListener('click', () => {
             this.handleSyncServerMods(server);
         });
 
-        // Open in panel button
         card.querySelector('.btn-open-panel').addEventListener('click', () => {
-            shell.openExternal(`https://panel.rxcorp.fr/server/${server.id}`);
+            const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+            shell.openExternal(`${panelUrl}/server/${server.identifier}`);
         });
 
         return card;
@@ -528,25 +616,33 @@ class RxcorpApp {
     async fetchServerLiveStatus(server, card) {
         const apiKey = store.get('apiKey');
         const panelUrl = store.get('panelUrl');
-        const res = await pelicanService.getServerResources(server.id, apiKey, panelUrl);
-
         const badge = card.querySelector(`#badge-${server.id}`);
-        const badgeText = badge.querySelector('.badge-text');
         const ramValue = card.querySelector(`#ram-used-${server.id}`);
         const cpuValue = card.querySelector(`#cpu-used-${server.id}`);
 
-        if (res.success && res.state === 'running') {
-            badge.className = 'server-badge online';
-            badgeText.innerText = 'En ligne';
-            ramValue.innerText = `${(res.resources.memoryBytes / (1024 * 1024)).toFixed(0)} MB`;
-            cpuValue.innerText = `${res.resources.cpuAbsolute}%`;
-        } else if (res.state === 'starting') {
-            badge.className = 'server-badge online';
-            badgeText.innerText = 'Démarrage...';
-        } else {
+        try {
+            const res = await pelicanService.getServerResources(server.id, apiKey, panelUrl);
+            if (res.success && res.resources) {
+                const state = res.resources.current_state;
+                if (state === 'running') {
+                    badge.className = 'server-badge online';
+                    badge.querySelector('.badge-text').innerText = 'En ligne';
+                } else if (state === 'starting') {
+                    badge.className = 'server-badge starting';
+                    badge.querySelector('.badge-text').innerText = 'Démarrage...';
+                } else {
+                    badge.className = 'server-badge offline';
+                    badge.querySelector('.badge-text').innerText = 'Arrêté';
+                }
+
+                const ramMb = (res.resources.resources.memory_bytes / (1024 * 1024)).toFixed(0);
+                ramValue.innerText = `${ramMb} MB`;
+                cpuValue.innerText = `${res.resources.resources.cpu_absolute.toFixed(1)}%`;
+            }
+        } catch (_) {
             badge.className = 'server-badge offline';
-            badgeText.innerText = 'Hors-ligne';
-            ramValue.innerText = '0 MB';
+            badge.querySelector('.badge-text').innerText = 'Inaccessible';
+            ramValue.innerText = '-';
             cpuValue.innerText = '0%';
         }
 
@@ -612,6 +708,13 @@ class RxcorpApp {
         }
     }
 
+    async selectCloudServer(server) {
+        const instance = instanceService.getOrCreateServerInstance(server);
+        this.setActiveInstanceForDomain('cloud', instance.id);
+        this.selectDribbbleMode('cloud');
+        this.showNotification('Serveur Sélectionné', `${server.name} est maintenant actif.`);
+    }
+
     async handleJoinServer(server) {
         // 1. Sync mods first
         await this.handleSyncServerMods(server);
@@ -626,164 +729,126 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // INSTANCES MANAGEMENT (STRICT DOMAIN ISOLATION)
+    // INSTANCES MANAGEMENT (LOCAL PROFILES)
     // ==========================================
     async loadInstances() {
         const localInstances = instanceService.getLocalInstances();
-        const pvpInstances = instanceService.getPvpInstances();
-        const cloudInstances = instanceService.getCloudInstances();
-
         const grid = document.getElementById('instances-grid');
         const selectTarget = document.getElementById('select-target-instance');
-        const selectPvp = document.getElementById('select-pvp-instance');
 
-        // Populate dropdowns with STRICT domain separation:
-        // 1. PvP Select: ONLY PvP instances!
-        if (selectPvp) {
-            if (pvpInstances.length === 0) {
-                // Ensure default profiles exist
-                pvpService.getOrCreatePvpProfile('1.21');
-                pvpService.getOrCreatePvpProfile('1.8.9');
-                return this.loadInstances();
-            }
-            selectPvp.innerHTML = pvpInstances.map(i => {
-                const isSel = (i.id === this.activePvpInstanceId) ? 'selected' : '';
-                return `<option value="${i.id}" ${isSel}>${i.name}</option>`;
-            }).join('');
-        }
-
-        // 2. Modrinth Target Select: local profiles and pvp profiles (never cloud servers!)
+        // Mod target select dropdown:
         if (selectTarget) {
             let options = '';
             if (localInstances.length > 0) {
-                options += `<optgroup label="Profils Locaux Libres">` + localInstances.map(i => `<option value="${i.id}">${i.name} (${i.version} ${i.loader.toUpperCase()})</option>`).join('') + `</optgroup>`;
-            }
-            if (pvpInstances.length > 0) {
-                options += `<optgroup label="RX PvP Client">` + pvpInstances.map(i => `<option value="${i.id}">${i.name} (${i.version})</option>`).join('') + `</optgroup>`;
-            }
-            if (!options) {
-                options = `<option value="">Aucune instance disponible</option>`;
+                options = localInstances.map(i => `<option value="${i.id}">${i.name} (${i.version} ${(i.loader || 'fabric').toUpperCase()})</option>`).join('');
+            } else {
+                options = `<option value="">Aucun profil local</option>`;
             }
             selectTarget.innerHTML = options;
         }
 
-        // 3. Update current active instances per domain
+        // Active instance update
         const curDomain = this.getCurrentDomain();
         this.activeInstance = this.getActiveInstanceForDomain(curDomain);
         this.updateDockInstancePill();
-        if (typeof this.renderPvPVersions === 'function') {
-            this.renderPvPVersions();
-        }
 
-        // 4. Populate Local Instances Grid (view-instances)
-        if (!grid) return;
-        grid.innerHTML = '';
-
-        if (localInstances.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 48px 24px; background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border); border-radius: 16px;">
-                    <div style="font-size: 36px; margin-bottom: 12px;">📦</div>
-                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-white); margin-bottom: 6px;">Aucun profil local personnalisé</h3>
-                    <p style="font-size: 13px; color: var(--text-dim); max-width: 440px; margin: 0 auto 20px;">
-                        Les profils locaux sont entièrement isolés du Cloud Pelican et du Client PvP. Créez un profil pour installer vos propres mods Vanilla, Fabric, Forge ou NeoForge en toute liberté.
-                    </p>
-                    <button class="rx-btn rx-btn-primary" id="btn-empty-create-local" style="display: inline-flex; align-items: center; gap: 8px; margin: 0 auto;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        <span>Créer un Profil Local</span>
-                    </button>
-                </div>
-            `;
-            grid.querySelector('#btn-empty-create-local')?.addEventListener('click', () => {
-                document.getElementById('modal-create-instance')?.classList.add('active');
-            });
-            return;
-        }
-
-        for (const inst of localInstances) {
-            const card = document.createElement('div');
-            card.className = 'server-card';
-            const isCurrentLocal = (inst.id === this.activeLocalInstanceId);
-            if (isCurrentLocal) {
-                card.style.borderColor = 'var(--emerald)';
-                card.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.3)';
-            }
-
-            card.innerHTML = `
-                <div class="server-card-top">
-                    <div class="server-name-box">
-                        <h3>${inst.name}</h3>
-                        <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version} • ${inst.loader.toUpperCase()}</span>
+        // Populate Local Instances Grid (view-instances)
+        if (grid) {
+            grid.innerHTML = '';
+            if (localInstances.length === 0) {
+                grid.innerHTML = `
+                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p style="color: var(--text-muted); margin-bottom: 12px;">Aucun profil local pour le moment.</p>
+                        <button class="rx-btn rx-btn-primary" id="btn-create-first-instance">
+                            + Créer un Profil Local
+                        </button>
                     </div>
-                    <div class="server-badge online" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3);">
-                        <span>${inst.modCount} Mod(s)</span>
-                    </div>
-                </div>
-
-                <div class="server-stats-row">
-                    <div class="stat-item">
-                        <span class="stat-label">Domaine</span>
-                        <span class="stat-value" style="color: var(--emerald);">LOCAL LIBRE</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Modloader</span>
-                        <span class="stat-value">${inst.loader.toUpperCase()}</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Dossier</span>
-                        <span class="stat-value" style="font-size: 11px; cursor: pointer; color: var(--accent);" title="Ouvrir dans l'explorateur">Ouvrir ↗</span>
-                    </div>
-                </div>
-
-                <div class="server-actions">
-                    <button class="rx-btn ${isCurrentLocal ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-instance" style="flex: 1;" data-id="${inst.id}">
-                        <span>${isCurrentLocal ? '✓ Actif' : 'Sélectionner'}</span>
-                    </button>
-                    <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier" data-id="${inst.id}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    </button>
-                    <button class="rx-btn rx-btn-danger btn-delete-instance" title="Supprimer l'instance" data-id="${inst.id}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    </button>
-                </div>
-            `;
-
-            card.querySelector('.btn-select-instance').addEventListener('click', () => {
-                this.setActiveInstanceForDomain('local', inst.id);
-                this.loadInstances();
-            });
-
-            card.querySelector('.btn-folder-instance').addEventListener('click', () => {
-                instanceService.openFolder(inst.id);
-            });
-
-            card.querySelector('.stat-value[style*="cursor: pointer"]').addEventListener('click', () => {
-                instanceService.openFolder(inst.id);
-            });
-
-            card.querySelector('.btn-delete-instance').addEventListener('click', () => {
-                if (confirm(`Voulez-vous vraiment supprimer le profil local "${inst.name}" ?`)) {
-                    instanceService.deleteInstance(inst.id);
-                    if (this.activeLocalInstanceId === inst.id) {
-                        this.activeLocalInstanceId = null;
-                        store.delete('activeLocalInstanceId');
+                `;
+                document.getElementById('btn-create-first-instance')?.addEventListener('click', () => {
+                    this.openModal('modal-create-instance');
+                });
+            } else {
+                for (const inst of localInstances) {
+                    const card = document.createElement('div');
+                    card.className = 'server-card';
+                    const isCurrentLocal = (inst.id === this.activeLocalInstanceId);
+                    if (isCurrentLocal) {
+                        card.style.borderColor = 'var(--cyan)';
+                        card.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.25)';
                     }
-                    this.loadInstances();
+
+                    const loaderStr = (inst.loader || 'fabric').toUpperCase();
+                    card.innerHTML = `
+                        <div class="server-card-top">
+                            <div class="server-name-box">
+                                <h3>${inst.name}</h3>
+                                <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version || '26.2'} • ${loaderStr}</span>
+                            </div>
+                            <div class="server-badge online" style="background: rgba(0, 240, 255, 0.12); color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);">
+                                <span>${inst.modCount || 0} Mod(s)</span>
+                            </div>
+                        </div>
+
+                        <div class="server-stats-row">
+                            <div class="stat-item">
+                                <span class="stat-label">Version</span>
+                                <span class="stat-value" style="color: var(--cyan);">${inst.version || '26.2'}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Modloader</span>
+                                <span class="stat-value">${loaderStr}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Dossier</span>
+                                <span class="stat-value" style="font-size: 11px; cursor: pointer; color: var(--text-white);" title="Ouvrir dans l'explorateur">Ouvrir ↗</span>
+                            </div>
+                        </div>
+
+                        <div class="server-actions">
+                            <button class="rx-btn ${isCurrentLocal ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-instance" style="flex: 1;" data-id="${inst.id}">
+                                <span>${isCurrentLocal ? '✓ Actif' : 'Sélectionner'}</span>
+                            </button>
+                            <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier de mods" data-id="${inst.id}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                            </button>
+                            <button class="rx-btn rx-btn-danger btn-delete-instance" title="Supprimer l'instance" data-id="${inst.id}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    `;
+
+                    card.querySelector('.btn-select-instance').addEventListener('click', () => {
+                        this.setActiveInstanceForDomain('local', inst.id);
+                        this.loadInstances();
+                        this.renderDashboardLists();
+                    });
+
+                    card.querySelector('.btn-folder-instance').addEventListener('click', () => {
+                        instanceService.openFolder(inst.id);
+                    });
+
+                    card.querySelector('.stat-value[style*="cursor: pointer"]').addEventListener('click', () => {
+                        instanceService.openFolder(inst.id);
+                    });
+
+                    card.querySelector('.btn-delete-instance').addEventListener('click', () => {
+                        if (confirm(`Voulez-vous vraiment supprimer le profil local "${inst.name}" ?`)) {
+                            instanceService.deleteInstance(inst.id);
+                            if (this.activeLocalInstanceId === inst.id) {
+                                this.activeLocalInstanceId = null;
+                                store.delete('activeLocalInstanceId');
+                            }
+                            this.loadInstances();
+                            this.renderDashboardLists();
+                        }
+                    });
+
+                    grid.appendChild(card);
                 }
-            });
-
-            grid.appendChild(card);
+            }
         }
-    }
 
-    selectInstance(id) {
-        const inst = instanceService.getInstance(id);
-        if (!inst) return;
-        const domain = inst.domain || 'local';
-        this.setActiveInstanceForDomain(domain, id);
-        this.loadInstances();
-        if (domain === 'pvp') {
-            this.renderPvPMods();
-        }
+        this.renderDashboardLists();
     }
 
     updateDockInstancePill() {
@@ -798,18 +863,13 @@ class RxcorpApp {
             nameElem.innerText = inst.name;
             if (inst.domain === 'cloud') {
                 subElem.innerText = `Serveur Cloud RXCORP • Forge 26.2`;
-            } else if (inst.domain === 'pvp') {
-                subElem.innerText = `Client PvP • MC ${inst.version} • ${(inst.loader || 'fabric').toUpperCase()}`;
             } else {
-                subElem.innerText = `Profil Local • MC ${inst.version} • ${(inst.loader || 'forge').toUpperCase()}`;
+                subElem.innerText = `Profil Local • MC ${inst.version || '26.2'} • ${(inst.loader || 'fabric').toUpperCase()}`;
             }
         } else {
             if (curDomain === 'cloud') {
                 nameElem.innerText = 'Aucun serveur Cloud';
                 subElem.innerText = 'Sélectionnez un serveur Pelican';
-            } else if (curDomain === 'pvp') {
-                nameElem.innerText = 'RX PvP Client 1.21+';
-                subElem.innerText = 'Client Compétitif Dédié';
             } else {
                 nameElem.innerText = 'Aucun profil local';
                 subElem.innerText = 'Cliquez pour créer un profil';
@@ -818,325 +878,208 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // MODRINTH MOD BROWSER
+    // MOD DOWNLOADER (MODRINTH & CURSEFORGE)
     // ==========================================
-    initModrinth() {
+    initModDownloader() {
         const searchInput = document.getElementById('input-mod-search');
         const searchBtn = document.getElementById('btn-search-mods');
+        const btnModrinth = document.getElementById('btn-source-modrinth');
+        const btnCurseForge = document.getElementById('btn-source-curseforge');
 
-        const doSearch = async () => {
-            const query = searchInput.value;
-            const targetInstId = document.getElementById('select-target-instance')?.value;
-            const targetInst = targetInstId ? instanceService.getInstance(targetInstId) : this.activeInstance;
+        btnModrinth?.addEventListener('click', () => {
+            this.activeModSource = 'modrinth';
+            btnModrinth.classList.add('active');
+            btnCurseForge?.classList.remove('active');
+            this.triggerModSearch();
+        });
 
-            const grid = document.getElementById('modrinth-mods-grid');
-            grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
-                    Recherche sur Modrinth en cours...
-                </div>
-            `;
+        btnCurseForge?.addEventListener('click', () => {
+            this.activeModSource = 'curseforge';
+            btnCurseForge.classList.add('active');
+            btnModrinth?.classList.remove('active');
+            this.triggerModSearch();
+        });
 
-            const res = await modrinthService.searchMods({
+        const chips = document.querySelectorAll('.mod-chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                this.activeModCategory = chip.dataset.cat || '';
+                this.triggerModSearch();
+            });
+        });
+
+        searchInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.triggerModSearch();
+            }
+        });
+
+        searchBtn?.addEventListener('click', () => {
+            this.triggerModSearch();
+        });
+
+        // Trigger initial mod list
+        this.triggerModSearch();
+    }
+
+    async triggerModSearch() {
+        const searchInput = document.getElementById('input-mod-search');
+        const query = searchInput ? searchInput.value.trim() : '';
+        const targetInstId = document.getElementById('select-target-instance')?.value;
+        const targetInst = targetInstId ? instanceService.getInstance(targetInstId) : this.getActiveInstanceForDomain('local');
+
+        const grid = document.getElementById('modrinth-mods-grid');
+        if (!grid) return;
+
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
+                Recherche de mods sur ${this.activeModSource === 'curseforge' ? 'CurseForge' : 'Modrinth'}...
+            </div>
+        `;
+
+        let res = null;
+
+        if (this.activeModSource === 'curseforge') {
+            res = await curseforgeService.searchMods({
                 query: query,
                 version: targetInst?.version,
                 loader: targetInst?.loader,
                 limit: 24
             });
 
-            if (!res.success || !res.mods.length) {
+            if (res.needApiKey) {
                 grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
-                        Aucun mod trouvé pour cette recherche.
-                    </div>
-                `;
-                return;
-            }
-
-            grid.innerHTML = '';
-            for (const mod of res.mods) {
-                const card = document.createElement('div');
-                card.className = 'mod-card';
-
-                const iconSrc = mod.iconUrl || 'assets/images/icon/icon.png';
-                const downloadsFormatted = mod.downloads > 1000000 
-                    ? (mod.downloads / 1000000).toFixed(1) + 'M' 
-                    : (mod.downloads / 1000).toFixed(0) + 'k';
-
-                card.innerHTML = `
-                    <div class="mod-card-header">
-                        <img class="mod-icon" src="${iconSrc}" alt="Mod icon" onerror="this.src='assets/images/icon/icon.png'">
-                        <div class="mod-info-box">
-                            <div class="mod-title">${mod.title}</div>
-                            <div class="mod-author">par ${mod.author}</div>
-                        </div>
-                    </div>
-                    <div class="mod-desc">${mod.description || 'Aucune description fournie.'}</div>
-                    <div class="mod-footer">
-                        <div class="mod-stats">
-                            <span>⬇ ${downloadsFormatted}</span>
-                            <span>★ ${mod.follows}</span>
-                        </div>
-                        <button class="rx-btn rx-btn-primary btn-install-mod" data-slug="${mod.slug}">
-                            <span>📥 Installer</span>
+                    <div class="rx-card" style="grid-column: 1/-1; padding: 30px; text-align: center; max-width: 480px; margin: 20px auto;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">🔑</div>
+                        <h3 style="color: #fff; margin-bottom: 8px;">Clé API CurseForge requise</h3>
+                        <p style="font-size: 12.5px; color: var(--text-dim); margin-bottom: 16px;">
+                            CurseForge requiert une clé API personnelle. Entrez votre clé ci-dessous ou utilisez <strong>Modrinth</strong> (sans clé).
+                        </p>
+                        <input id="input-inline-curseforge" type="password" class="form-input" placeholder="$2a$10$..." style="margin-bottom: 12px;">
+                        <button id="btn-save-inline-curseforge" class="rx-btn rx-btn-primary" style="width: 100%;">
+                            Enregistrer la clé CurseForge
                         </button>
                     </div>
                 `;
-
-                card.querySelector('.btn-install-mod').addEventListener('click', async (e) => {
-                    const btn = e.currentTarget;
-                    btn.disabled = true;
-                    btn.innerText = 'Installation...';
-
-                    const currentTargetId = document.getElementById('select-target-instance')?.value || this.activeInstance?.id;
-                    const inst = instanceService.getInstance(currentTargetId);
-
-                    try {
-                        const versionsRes = await modrinthService.getCompatibleVersions(mod.slug, inst.version, inst.loader);
-                        if (!versionsRes.success || !versionsRes.versions.length) {
-                            alert(`Aucune version compatible avec MC ${inst.version} (${inst.loader})`);
-                            btn.disabled = false;
-                            btn.innerText = '📥 Installer';
-                            return;
-                        }
-
-                        const file = versionsRes.versions[0];
-                        await modrinthService.installMod(inst.modsPath, file.downloadUrl, file.fileName);
-                        btn.innerText = '✓ Installé';
-                        btn.classList.remove('rx-btn-primary');
-                        btn.classList.add('rx-btn-secondary');
-                        this.showNotification('Mod installé !', `${mod.title} ajouté à ${inst.name}`);
-                        this.loadInstances();
-                    } catch (err) {
-                        alert('Erreur: ' + err.message);
-                        btn.disabled = false;
-                        btn.innerText = '📥 Installer';
+                document.getElementById('btn-save-inline-curseforge')?.addEventListener('click', () => {
+                    const key = document.getElementById('input-inline-curseforge')?.value.trim();
+                    if (key) {
+                        curseforgeService.setApiKey(key);
+                        this.showNotification('Clé sauvegardée', 'Recherche CurseForge activée.');
+                        this.triggerModSearch();
                     }
                 });
-
-                grid.appendChild(card);
+                return;
             }
-        };
-
-        searchBtn?.addEventListener('click', doSearch);
-        searchInput?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') doSearch();
-        });
-
-        // Trigger initial search
-        setTimeout(doSearch, 1000);
-    }
-
-    // ==========================================
-    // PVP & COMPETITIVE CLIENT HUB (SOAR / LUNAR MULTI-VERSION STYLE)
-    // ==========================================
-    initPvP() {
-        const selectPvp = document.getElementById('select-pvp-instance');
-        selectPvp?.addEventListener('change', () => {
-            if (selectPvp.value) {
-                this.setActiveInstanceForDomain('pvp', selectPvp.value);
-                this.renderPvPVersions();
-                this.renderPvPMods();
-            }
-        });
-
-        // Add custom PvP version button
-        document.getElementById('btn-add-pvp-custom')?.addEventListener('click', () => {
-            const ver = prompt('Entrez la version Minecraft pour le client PvP (ex: 1.20.4, 1.19.4, 1.18.2, 1.16.5, 1.8.9) :', '1.20.4');
-            if (!ver || !ver.trim()) return;
-            const cleanVer = ver.trim();
-            const loader = (cleanVer.startsWith('1.8') || cleanVer.startsWith('1.7') || cleanVer.startsWith('1.12')) ? 'forge' : 'fabric';
-            const inst = pvpService.createCustomPvpProfile({
-                name: `RX PvP ${cleanVer} (${loader.toUpperCase()})`,
-                version: cleanVer,
-                loader: loader
+        } else {
+            res = await modrinthService.searchMods({
+                query: query,
+                version: targetInst?.version,
+                loader: targetInst?.loader,
+                category: this.activeModCategory || null,
+                limit: 24
             });
-            this.setActiveInstanceForDomain('pvp', inst.id);
-            this.loadInstances();
-            this.renderPvPVersions();
-            this.renderPvPMods();
-            this.showNotification('Version PvP Créée', `${inst.name} est prête à être configurée.`);
-        });
+        }
 
-        // Soar / Frost style category tabs
-        this.activePvPCategory = 'all';
-        const tabBtns = document.querySelectorAll('.pvp-tab-btn');
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                tabBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const cat = btn.dataset.cat;
-                this.activePvPCategory = cat;
+        if (!res.success || !res.mods || !res.mods.length) {
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
+                    ${res.error || 'Aucun mod trouvé pour cette recherche.'}
+                </div>
+            `;
+            return;
+        }
 
-                const modsGrid = document.getElementById('pvp-mods-grid');
-                const serversGrid = document.getElementById('pvp-servers-grid');
-
-                if (cat === 'servers') {
-                    if (modsGrid) modsGrid.style.display = 'none';
-                    if (serversGrid) {
-                        serversGrid.style.display = 'grid';
-                        this.renderPvPServers();
-                    }
-                } else {
-                    if (serversGrid) serversGrid.style.display = 'none';
-                    if (modsGrid) {
-                        modsGrid.style.display = 'grid';
-                        this.renderPvPMods();
-                    }
-                }
-            });
-        });
-
-        // Initial render of all PvP versions
-        this.renderPvPVersions();
-    }
-
-    renderPvPVersions() {
-        const container = document.getElementById('pvp-standards-container');
-        if (!container) return;
-
-        const profiles = pvpService.getProfiles();
-        const activeInst = this.getActiveInstanceForDomain('pvp');
-        container.innerHTML = '';
-
-        profiles.forEach(prof => {
-            const isSelected = (activeInst?.pvpProfile === prof.id || activeInst?.version === prof.versionKey);
+        grid.innerHTML = '';
+        for (const mod of res.mods) {
             const card = document.createElement('div');
-            card.className = `pvp-standard-card card-${prof.id.replace(/\./g, '')} ${isSelected ? 'active-profile' : ''}`;
-            if (isSelected) {
-                card.style.borderColor = prof.accentColor;
-                card.style.boxShadow = `0 0 20px ${prof.accentColor}44`;
-            }
+            card.className = 'mod-card';
 
-            const modesBadges = prof.modes.map(m => `<span class="pvp-mode-chip">${m}</span>`).join('');
-            const serversNames = prof.servers.map(s => s.name).join(', ');
+            const iconSrc = mod.iconUrl || 'assets/images/icon/icon.png';
+            const downloadsFormatted = mod.downloads > 1000000 
+                ? (mod.downloads / 1000000).toFixed(1) + 'M' 
+                : (mod.downloads / 1000).toFixed(0) + 'k';
+
+            const sourceBadge = this.activeModSource === 'curseforge' ? 'CurseForge' : 'Modrinth';
 
             card.innerHTML = `
                 <div>
-                    <div class="pvp-card-top">
-                        <span class="pvp-badge" style="background: ${prof.accentColor}1a; border: 1px solid ${prof.accentColor}55; color: ${prof.accentColor};">
-                            ${prof.tag}
-                        </span>
-                        <span class="pvp-version-tag">MC ${prof.versionKey}</span>
-                    </div>
-                    <h3 class="pvp-titan-title" style="font-size: 16px; margin-bottom: 2px;">${prof.name}</h3>
-                    <div style="font-family: var(--font-mono); font-size: 11px; color: ${prof.accentColor}; margin-bottom: 8px; font-weight: 700;">
-                        ${prof.style}
-                    </div>
-                    <p class="pvp-titan-desc" style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">
-                        ${prof.description}
-                    </p>
-                    <div class="pvp-modes-tags" style="margin-bottom: 12px;">
-                        ${modesBadges}
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 14px;">
-                        Serveurs phares : <span style="color: #cbd5e1; font-weight: 600;">${serversNames}</span>
-                    </div>
-                </div>
-
-                <div class="pvp-card-actions" style="display: flex; gap: 8px;">
-                    <button class="rx-btn ${isSelected ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-pvp-version" style="flex: 1; height: 36px; font-size: 12px; font-weight: 700;">
-                        <span>${isSelected ? '✓ Sélectionné' : 'Sélectionner'}</span>
-                    </button>
-                    <button class="rx-btn rx-btn-cyan btn-launch-pvp-version" style="height: 36px; padding: 0 14px; font-weight: 800; font-size: 12px;" title="Lancer directement cette version">
-                        <span>⚡ Jouer</span>
-                    </button>
-                </div>
-            `;
-
-            card.querySelector('.btn-select-pvp-version').addEventListener('click', async () => {
-                const inst = pvpService.getOrCreatePvpProfile(prof.id);
-                if (inst) {
-                    await this.loadInstances();
-                    this.setActiveInstanceForDomain('pvp', inst.id);
-                    this.renderPvPVersions();
-                    this.renderPvPMods();
-                    this.showNotification('Version PvP Sélectionnée', `${prof.name} est maintenant active.`);
-                }
-            });
-
-            card.querySelector('.btn-launch-pvp-version').addEventListener('click', async () => {
-                const inst = pvpService.getOrCreatePvpProfile(prof.id);
-                if (inst) {
-                    await this.loadInstances();
-                    this.setActiveInstanceForDomain('pvp', inst.id);
-                    this.selectDribbbleMode('pvp');
-                    this.renderPvPVersions();
-                    this.renderPvPMods();
-                    this.showNotification('Lancement de ' + prof.name, 'Démarrage du client PvP...');
-                    this.launchCurrentInstance();
-                }
-            });
-
-            container.appendChild(card);
-        });
-    }
-
-    renderPvPMods() {
-        const grid = document.getElementById('pvp-mods-grid');
-        const selectPvp = document.getElementById('select-pvp-instance');
-        
-        let pvpInst = this.getActiveInstanceForDomain('pvp');
-        if (!pvpInst) {
-            pvpInst = pvpService.getOrCreatePvpProfile('1.21');
-            if (pvpInst) this.setActiveInstanceForDomain('pvp', pvpInst.id);
-        }
-
-        const targetId = selectPvp?.value || pvpInst?.id;
-        if (!grid || !targetId) return;
-
-        let catalog = pvpService.getCatalog();
-        if (this.activePvPCategory && this.activePvPCategory !== 'all' && this.activePvPCategory !== 'servers') {
-            catalog = catalog.filter(m => m.category === this.activePvPCategory);
-        }
-
-        const installedStatus = pvpService.checkInstalledMods(targetId);
-
-        grid.innerHTML = '';
-        for (const item of catalog) {
-            const status = installedStatus[item.id] || { installed: false, enabled: false };
-            const card = document.createElement('div');
-            card.className = 'pvp-card';
-
-            card.innerHTML = `
-                <div class="pvp-card-left">
-                    <div class="pvp-icon-box">${item.icon}</div>
-                    <div class="pvp-text">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <h4>${item.name}</h4>
-                            <span class="perf-chip" style="font-size: 8.5px;">${item.category}</span>
+                    <div class="mod-card-header">
+                        <img class="mod-icon" src="${iconSrc}" alt="Mod icon" onerror="this.src='assets/images/icon/icon.png'">
+                        <div class="mod-info-box">
+                            <div class="mod-title" title="${mod.title}">${mod.title}</div>
+                            <div class="mod-author">par ${mod.author}</div>
+                            <div class="mod-tags-row">
+                                <span class="mod-tag-badge" style="color: ${this.activeModSource === 'curseforge' ? 'var(--amber)' : 'var(--emerald)'};">${sourceBadge}</span>
+                                ${(mod.categories || []).slice(0, 2).map(c => `<span class="mod-tag-badge">${c}</span>`).join('')}
+                            </div>
                         </div>
-                        <p>${item.description}</p>
+                    </div>
+                    <div class="mod-desc" style="margin-top: 10px;" title="${mod.description || ''}">
+                        ${mod.description || 'Aucune description fournie.'}
                     </div>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" class="pvp-toggle" data-id="${item.id}" ${status.installed ? 'checked' : ''}>
-                    <span class="slider"></span>
-                </label>
+                <div class="mod-footer">
+                    <div class="mod-stats">
+                        <span>⬇ ${downloadsFormatted}</span>
+                        <span>★ ${mod.follows || 0}</span>
+                    </div>
+                    <button class="rx-btn rx-btn-primary btn-install-mod" data-id="${mod.id || mod.slug}" data-source="${this.activeModSource}">
+                        <span>📥 Installer</span>
+                    </button>
+                </div>
             `;
 
-            const checkbox = card.querySelector('.pvp-toggle');
-            checkbox.addEventListener('change', async (e) => {
-                const checked = e.target.checked;
-                checkbox.disabled = true;
+            card.querySelector('.btn-install-mod').addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                btn.disabled = true;
+                btn.innerHTML = '<span>Installation...</span>';
+
+                const currentTargetId = document.getElementById('select-target-instance')?.value || this.activeInstance?.id;
+                const inst = instanceService.getInstance(currentTargetId) || this.getActiveInstanceForDomain('local');
+
+                if (!inst) {
+                    alert('Veuillez sélectionner un profil local cible avant d\'installer un mod.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>📥 Installer</span>';
+                    return;
+                }
 
                 try {
-                    if (checked) {
-                        this.updateDockStatus(`Installation de ${item.name}...`, 0);
-                        await pvpService.installMod(targetId, item.id, (prog) => {
-                            this.updateDockStatus(prog.message, prog.percent || 0);
-                        });
-                        this.showNotification('Mod PvP activé', `${item.name} installé dans RX PvP Client.`);
+                    if (this.activeModSource === 'curseforge') {
+                        const filesRes = await curseforgeService.getCompatibleVersions(mod.id, inst.version, inst.loader);
+                        if (!filesRes.success || !filesRes.versions.length) {
+                            alert(`Aucun fichier CurseForge compatible avec MC ${inst.version} (${inst.loader})`);
+                            btn.disabled = false;
+                            btn.innerHTML = '<span>📥 Installer</span>';
+                            return;
+                        }
+                        const file = filesRes.versions[0];
+                        await curseforgeService.installMod(inst.modsPath, file.downloadUrl, file.fileName);
                     } else {
-                        pvpService.removeMod(targetId, item.id);
-                        this.showNotification('Mod PvP retiré', `${item.name} désinstallé de RX PvP Client.`);
+                        const versionsRes = await modrinthService.getCompatibleVersions(mod.slug, inst.version, inst.loader);
+                        if (!versionsRes.success || !versionsRes.versions.length) {
+                            alert(`Aucune version Modrinth compatible avec MC ${inst.version} (${inst.loader})`);
+                            btn.disabled = false;
+                            btn.innerHTML = '<span>📥 Installer</span>';
+                            return;
+                        }
+                        const file = versionsRes.versions[0];
+                        await modrinthService.installMod(inst.modsPath, file.downloadUrl, file.fileName);
                     }
+
+                    btn.innerHTML = '<span>✓ Installé</span>';
+                    btn.classList.remove('rx-btn-primary');
+                    btn.classList.add('rx-btn-secondary');
+                    this.showNotification('Mod installé !', `« ${mod.title} » a été ajouté à ${inst.name}.`);
                     this.loadInstances();
                 } catch (err) {
-                    alert('Erreur: ' + err.message);
-                    e.target.checked = !checked;
-                } finally {
-                    checkbox.disabled = false;
-                    this.updateDockStatus('Prêt à jouer', 0);
+                    alert('Erreur lors du téléchargement : ' + err.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>📥 Installer</span>';
                 }
             });
 
@@ -1144,65 +1087,8 @@ class RxcorpApp {
         }
     }
 
-    renderPvPServers() {
-        const grid = document.getElementById('pvp-servers-grid');
-        if (!grid) return;
-
-        const profiles = pvpService.getProfiles();
-        grid.innerHTML = '';
-
-        profiles.forEach(prof => {
-            prof.servers.forEach(srv => {
-                const card = document.createElement('div');
-                card.className = 'pvp-server-card';
-                card.innerHTML = `
-                    <div>
-                        <div class="srv-card-top">
-                            <span class="srv-card-title">${srv.name}</span>
-                            <span class="srv-card-ping">● ${srv.ping}</span>
-                        </div>
-                        <div class="srv-card-desc">${srv.desc}</div>
-                        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-white); margin-top: 6px;">${srv.ip}</div>
-                    </div>
-                    <div class="srv-card-actions">
-                        <button class="rx-btn rx-btn-secondary btn-copy-ip" data-ip="${srv.ip}" style="flex: 1; height: 34px; font-size: 11.5px;">
-                            <span>Copier IP</span>
-                        </button>
-                        <button class="rx-btn rx-btn-primary btn-join-srv" data-ip="${srv.ip}" data-version="${prof.versionKey}" style="flex: 1; height: 34px; font-size: 11.5px; font-weight: 700;">
-                            <span>⚡ Rejoindre</span>
-                        </button>
-                    </div>
-                `;
-
-                card.querySelector('.btn-copy-ip').addEventListener('click', (e) => {
-                    const ip = e.currentTarget.dataset.ip;
-                    const { clipboard } = require('electron');
-                    clipboard.writeText(ip);
-                    e.currentTarget.innerHTML = '<span>✓ Copié !</span>';
-                    setTimeout(() => { e.currentTarget.innerHTML = '<span>Copier IP</span>'; }, 2000);
-                });
-
-                card.querySelector('.btn-join-srv').addEventListener('click', async (e) => {
-                    const ip = e.currentTarget.dataset.ip;
-                    const ver = e.currentTarget.dataset.version;
-                    const profileKey = ver.startsWith('1.8') ? '1.8.9' : (ver.startsWith('1.7') ? '1.7.10' : '1.21');
-                    const inst = pvpService.getOrCreatePvpProfile(profileKey);
-                    if (inst) {
-                        inst.serverAddress = ip;
-                        await this.loadInstances();
-                        this.setActiveInstanceForDomain('pvp', inst.id);
-                        this.selectDribbbleMode('pvp');
-                        this.launchCurrentInstance();
-                    }
-                });
-
-                grid.appendChild(card);
-            });
-        });
-    }
-
     // ==========================================
-    // GAME LAUNCH DOCK (DOMAIN-AWARE)
+    // GAME LAUNCH DOCK
     // ==========================================
     initLaunchDock() {
         const launchBtn = document.getElementById('btn-launch-game');
@@ -1214,10 +1100,8 @@ class RxcorpApp {
             const domain = this.getCurrentDomain();
             if (domain === 'cloud') {
                 this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
-            } else if (domain === 'pvp') {
-                this.openDrawer('pvp', 'RX PVP CLIENT (COMPÉTITION)');
             } else {
-                this.openDrawer('instances', 'MES PROFILS & INSTANCES LOCALES');
+                this.openDrawer('instances', 'MES PROFILS & MODPACKS');
             }
         });
     }
@@ -1229,16 +1113,9 @@ class RxcorpApp {
             if (domain === 'cloud') {
                 alert('Veuillez sélectionner un serveur Cloud Pelican ou vous connecter à votre compte.');
                 this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
-            } else if (domain === 'pvp') {
-                alert('Initialisation du profil RX PvP Client...');
-                const pvpInst = pvpService.getOrCreatePvpProfile('1.21');
-                if (pvpInst) {
-                    this.setActiveInstanceForDomain('pvp', pvpInst.id);
-                    return this.launchCurrentInstance();
-                }
             } else {
                 alert('Veuillez d\'abord créer ou sélectionner un profil local.');
-                this.openDrawer('instances', 'MES PROFILS & INSTANCES');
+                this.openDrawer('instances', 'MES PROFILS & MODPACKS');
             }
             return;
         }
@@ -1252,6 +1129,9 @@ class RxcorpApp {
         const ramMax = store.get('ramMax') || 4;
         const javaPath = store.get('javaPath') || null;
         const account = this.getActiveAccount();
+
+        // Discord RPC Launching Event
+        ipcRenderer.send('discord-rpc-launching', targetInst.name);
 
         try {
             await gameLauncher.launch(
@@ -1269,23 +1149,30 @@ class RxcorpApp {
                     onGameStart: () => {
                         this.updateDockStatus('Minecraft est en cours d\'exécution...', 100);
                         launchBtn.innerHTML = '<span>EN JEU</span>';
+                        // Discord RPC In-Game
+                        ipcRenderer.send('discord-rpc-playing', targetInst.name);
                     },
                     onGameClose: () => {
                         this.updateDockStatus('Prêt à jouer', 0);
                         launchBtn.disabled = false;
                         launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
+                        // Discord RPC Idle
+                        ipcRenderer.send('discord-rpc-idle');
                     },
                     onError: (err) => {
                         alert('Erreur lors du lancement du jeu:\n' + (err.message || err));
                         this.updateDockStatus('Erreur de lancement', 0);
                         launchBtn.disabled = false;
                         launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
+                        // Discord RPC Idle
+                        ipcRenderer.send('discord-rpc-idle');
                     }
                 }
             );
         } catch (err) {
             launchBtn.disabled = false;
             launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
+            ipcRenderer.send('discord-rpc-idle');
         }
     }
 
@@ -1318,24 +1205,23 @@ class RxcorpApp {
         const inputJava = document.getElementById('input-java-path');
         const inputUrl = document.getElementById('settings-panel-url');
         const inputKey = document.getElementById('settings-panel-key');
+        const inputCurseForge = document.getElementById('input-curseforge-key');
         const btnSave = document.getElementById('btn-save-settings');
 
         // Populate saved values
         if (rangeRam) {
             rangeRam.value = store.get('ramMax') || 4;
             labelRam.innerText = `${rangeRam.value} GB`;
-            const ramWidget = document.getElementById('widget-ram-text');
-            if (ramWidget) ramWidget.innerText = `${rangeRam.value}.0 GB`;
 
             rangeRam.addEventListener('input', () => {
                 labelRam.innerText = `${rangeRam.value} GB`;
-                if (ramWidget) ramWidget.innerText = `${rangeRam.value}.0 GB`;
             });
         }
 
         if (inputJava) inputJava.value = store.get('javaPath') || '';
         if (inputUrl) inputUrl.value = store.get('panelUrl') || 'https://panel.rxcorp.fr';
         if (inputKey) inputKey.value = store.get('apiKey') || '';
+        if (inputCurseForge) inputCurseForge.value = curseforgeService.getApiKey() || '';
 
         btnSave?.addEventListener('click', () => {
             store.set('ramMax', parseInt(rangeRam.value, 10));
@@ -1343,8 +1229,9 @@ class RxcorpApp {
             store.set('panelUrl', inputUrl.value.trim());
             store.set('apiKey', inputKey.value.trim());
 
-            const ramWidget = document.getElementById('widget-ram-text');
-            if (ramWidget) ramWidget.innerText = `${rangeRam.value}.0 GB`;
+            if (inputCurseForge) {
+                curseforgeService.setApiKey(inputCurseForge.value.trim());
+            }
 
             this.showNotification('Paramètres sauvegardés', 'Vos réglages ont été mis à jour.');
             this.loadCloudServers();
@@ -1566,9 +1453,14 @@ class RxcorpApp {
         const list = document.getElementById('accounts-list');
         const activeAccount = this.getActiveAccount();
         const userNameElem = document.getElementById('user-name');
+        const userAvatarElem = document.getElementById('user-avatar');
 
-        if (userNameElem && activeAccount) {
-            userNameElem.innerText = activeAccount.name;
+        if (activeAccount) {
+            if (userNameElem) userNameElem.innerText = activeAccount.name;
+            if (userAvatarElem) {
+                userAvatarElem.src = `https://mc-heads.net/avatar/${activeAccount.name}/32`;
+                userAvatarElem.onerror = () => { userAvatarElem.src = 'assets/images/icon/icon.png'; };
+            }
         }
 
         if (!list) return;

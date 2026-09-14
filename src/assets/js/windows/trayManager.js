@@ -1,4 +1,4 @@
-﻿const { app, Tray, Menu, nativeImage, shell, Notification } = require('electron');
+const { app, Tray, Menu, nativeImage, shell, Notification } = require('electron');
 const path = require('path');
 
 let tray = null;
@@ -22,11 +22,11 @@ function createTray(getMainWindow) {
     }
 
     tray = new Tray(icon);
-    tray.setToolTip('DeltaZone - Terminal Tactique');
+    tray.setToolTip('RXCORP Launcher');
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: '☣ DeltaZone Terminal',
+            label: 'RXCORP Launcher',
             enabled: false
         },
         { type: 'separator' },
@@ -37,14 +37,20 @@ function createTray(getMainWindow) {
             }
         },
         {
-            label: 'Rejoindre le Discord',
+            label: 'Site Officiel (rxcorp.fr)',
             click: () => {
-                shell.openExternal('https://discord.gg/deltazone');
+                shell.openExternal('https://rxcorp.fr');
+            }
+        },
+        {
+            label: 'Panel Cloud (panel.rxcorp.fr)',
+            click: () => {
+                shell.openExternal('https://panel.rxcorp.fr');
             }
         },
         { type: 'separator' },
         {
-            label: 'Quitter DeltaZone',
+            label: 'Quitter RXCORP',
             click: () => {
                 app.isQuitting = true;
                 if (mainWindowGetter) {
@@ -86,8 +92,8 @@ function hideWindow(showNotif = true) {
             hasShownBalloon = true;
             try {
                 const notif = new Notification({
-                    title: '☣ DELTAZONE RÉDUIT',
-                    body: 'Le launcher reste actif en arrière-plan dans la barre des tâches (icône DeltaZone).',
+                    title: 'RXCORP Launcher Réduit',
+                    body: 'Le launcher reste actif en arrière-plan dans la barre des tâches.',
                     icon: path.join(__dirname, '../../images/icon/icon.png'),
                     silent: true
                 });
@@ -102,16 +108,11 @@ function toggleWindow() {
     const win = mainWindowGetter ? mainWindowGetter() : null;
     if (win) {
         if (win.isVisible()) {
-            win.hide();
+            hideWindow(false);
         } else {
-            win.show();
-            win.focus();
+            showWindow();
         }
     }
-}
-
-function getTray() {
-    return tray;
 }
 
 function destroyTray() {
@@ -123,7 +124,6 @@ function destroyTray() {
 
 module.exports = {
     createTray,
-    getTray,
     showWindow,
     hideWindow,
     toggleWindow,

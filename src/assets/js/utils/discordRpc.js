@@ -15,7 +15,7 @@ class DiscordManager {
         try {
             DiscordRPC.register(this.clientId);
         } catch (e) {
-            console.warn('[Discord RPC] Enregistrement protocole ignore:', e.message);
+            console.warn('[Discord RPC] Enregistrement protocole ignoré:', e.message);
         }
 
         this.connect();
@@ -27,7 +27,7 @@ class DiscordManager {
 
         this.client.on('ready', () => {
             this.connected = true;
-            console.log(`[Discord RPC] Connecte a Discord en tant que ${this.client.user.username}`);
+            console.log(`[Discord RPC] Connecté à Discord en tant que ${this.client.user.username}`);
             if (this.currentActivity) {
                 this.setActivity(this.currentActivity);
             } else {
@@ -36,18 +36,18 @@ class DiscordManager {
         });
 
         this.client.on('error', (err) => {
-            console.warn('[Discord RPC] Erreur de communication:', err.message);
+            console.warn('[Discord RPC] Erreur communication:', err.message);
         });
 
         this.client.on('disconnected', () => {
             this.connected = false;
-            console.log('[Discord RPC] Deconnecte de Discord. Nouvelle tentative dans 30s...');
+            console.log('[Discord RPC] Déconnecté de Discord. Nouvelle tentative dans 30s...');
             this.scheduleReconnect();
         });
 
         this.client.login({ clientId: this.clientId }).catch((err) => {
             this.connected = false;
-            console.log('[Discord RPC] Discord n\'est pas ouvert ou inaccessible (' + err.message + '). Reconnexion dans 30s...');
+            console.log('[Discord RPC] Discord inaccessible (' + err.message + '). Reconnexion dans 30s...');
             this.scheduleReconnect();
         });
     }
@@ -65,12 +65,12 @@ class DiscordManager {
 
         try {
             const data = {
-                details: activity.details || 'Launcher RXCORP',
-                state: activity.state || 'En attente',
-                largeImageKey: activity.largeImageKey || 'logo',
-                largeImageText: activity.largeImageText || 'RXCORP - Launcher & Cloud Minecraft',
-                smallImageKey: activity.smallImageKey || 'icon',
-                smallImageText: activity.smallImageText || 'v2.1',
+                details: activity.details || 'RXCORP Launcher',
+                state: activity.state || 'Dans le launcher • Prêt',
+                largeImageKey: activity.largeImageKey || 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
+                largeImageText: activity.largeImageText || 'RXCORP - Infrastructure Gaming & Cloud',
+                smallImageKey: activity.smallImageKey || 'https://rxcorp.fr/assets/logo.png',
+                smallImageText: activity.smallImageText || 'RXCORP v2.4',
                 instance: false,
             };
 
@@ -78,14 +78,16 @@ class DiscordManager {
                 data.startTimestamp = activity.startTimestamp;
             }
 
-            if (activity.buttons && Array.isArray(activity.buttons) && activity.buttons.length > 0) {
-                data.buttons = activity.buttons.slice(0, 2);
-            }
+            // High priority official buttons
+            data.buttons = [
+                { label: 'Site Officiel', url: 'https://rxcorp.fr' },
+                { label: 'Rejoindre RXCORP', url: 'https://rxcorp.fr' }
+            ];
 
             this.client.setActivity(data).then(() => {
-                console.log(`[Discord RPC] Activité mise à jour : "${data.details}" | Image: "${data.largeImageKey}"`);
+                console.log(`[Discord RPC] Statut mis à jour: "${data.details}" - "${data.state}"`);
             }).catch((err) => {
-                console.warn('[Discord RPC] Impossible de definir l\'activite:', err.message);
+                console.warn('[Discord RPC] Impossible de définir l\'activité:', err.message);
             });
         } catch (err) {
             console.error('[Discord RPC] Exception setActivity:', err);
@@ -94,46 +96,37 @@ class DiscordManager {
 
     setIdle() {
         this.setActivity({
-            details: 'Menu Principal',
-            state: 'En attente dans le launcher',
-            largeImageKey: 'logo',
-            largeImageText: 'RXCORP - Launcher & Cloud Minecraft',
-            smallImageKey: 'icon',
+            details: 'RXCORP Launcher',
+            state: 'Menu Principal • Prêt à jouer',
+            largeImageKey: 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
+            largeImageText: 'RXCORP - Infrastructure Gaming & Cloud',
+            smallImageKey: 'https://rxcorp.fr/assets/logo.png',
             smallImageText: 'En attente',
-            startTimestamp: this.startTimestamp,
-            buttons: [
-                { label: 'Site Officiel', url: 'https://rxcorp.fr' }
-            ]
+            startTimestamp: this.startTimestamp
         });
     }
 
-    setLaunching() {
+    setLaunching(targetName = 'Minecraft') {
         this.setActivity({
-            details: 'Lancement du jeu',
-            state: 'Synchronisation des mods & ressources...',
-            largeImageKey: 'logo',
-            largeImageText: 'RXCORP - Launcher & Cloud Minecraft',
-            smallImageKey: 'icon',
+            details: 'RXCORP Launcher',
+            state: `Lancement de ${targetName}...`,
+            largeImageKey: 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
+            largeImageText: 'RXCORP - Infrastructure Gaming & Cloud',
+            smallImageKey: 'https://rxcorp.fr/assets/logo.png',
             smallImageText: 'Chargement...',
-            startTimestamp: Date.now(),
-            buttons: [
-                { label: 'Site Officiel', url: 'https://rxcorp.fr' }
-            ]
+            startTimestamp: Date.now()
         });
     }
 
-    setPlaying(instanceName = 'RX Serv') {
+    setPlaying(instanceOrServerName = 'RX Cloud') {
         this.setActivity({
             details: 'En jeu sur Minecraft',
-            state: `Profil : ${instanceName}`,
-            largeImageKey: 'logo',
-            largeImageText: 'RXCORP - Launcher & Cloud Minecraft',
-            smallImageKey: 'icon',
+            state: `Serveur : ${instanceOrServerName}`,
+            largeImageKey: 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
+            largeImageText: 'RXCORP - Infrastructure Gaming & Cloud',
+            smallImageKey: 'https://rxcorp.fr/assets/logo.png',
             smallImageText: 'En jeu',
-            startTimestamp: Date.now(),
-            buttons: [
-                { label: 'Site Officiel', url: 'https://rxcorp.fr' }
-            ]
+            startTimestamp: Date.now()
         });
     }
 
