@@ -59,6 +59,8 @@ const translations = {
         welcome_sub: "Choisissez votre mode de connexion pour commencer votre aventure :",
         login_microsoft_btn: "Connexion Compte Microsoft",
         login_microsoft_sub: "Ouvre votre navigateur pour une connexion officielle sécurisée",
+        login_pelican_web_btn: "Lier mon compte Panel RXCORP",
+        login_pelican_web_sub: "Ouvre le navigateur web pour synchroniser vos serveurs Cloud",
         login_offline_title: "Mode Hors-ligne (Pseudo Libre)",
         login_offline_placeholder: "Entrez votre pseudo (ex: Salem, Steve...)",
         login_offline_btn: "Jouer en Hors-ligne",
@@ -151,6 +153,8 @@ const translations = {
         welcome_sub: "Choose your authentication method to start your journey:",
         login_microsoft_btn: "Login with Microsoft",
         login_microsoft_sub: "Opens your web browser for a secure 1-click login",
+        login_pelican_web_btn: "Link RXCORP Panel Account",
+        login_pelican_web_sub: "Opens browser to sync your Pelican Cloud servers",
         login_offline_title: "Offline Mode (Free Username)",
         login_offline_placeholder: "Enter your username (e.g. Salem, Steve...)",
         login_offline_btn: "Play in Offline Mode",
@@ -190,6 +194,288 @@ const translations = {
         pelican_section: "Pelican Panel & Whitelist Sync",
         language_section: "Launcher Language",
         skin_ready: "Ready for Minecraft 1.21.4"
+    },
+    es: {
+        // Titlebar & Status
+        brand_title: "RXCORP",
+        cloud_sync_ok: "RXCORP CLOUD • SINCRONIZADO",
+        cloud_sync_local: "MODO JUGADOR LOCAL",
+        update_available: "ACT. DISPONIBLE",
+        config_btn: "⚙️ Configurar",
+        ready_to_play: "Listo para jugar",
+        launching: "Lanzando el juego...",
+        downloading: "Descargando...",
+
+        // Left Navigation Rail Tooltips
+        nav_home: "Inicio y Noticias",
+        nav_cloud: "Servidores Cloud Pelican",
+        nav_instances: "Perfiles & Modpacks Locales",
+        nav_mods: "Tienda de Mods & Shaders",
+        nav_settings: "Ajustes & Whitelist",
+        nav_add_instance: "Nuevo Perfil Local",
+
+        // Home View
+        hero_tag_cloud: "OFICIAL RXCORP • SERVIDOR CLOUD",
+        hero_tag_local: "PERFIL LOCAL • MINECRAFT",
+        hero_title_cloud: "RXCORP CLOUD & SUPERVIVENCIA",
+        hero_desc_cloud: "Infraestructura Cloud Pelican oficial con sincronización automática de whitelist y conexión instantánea.",
+        hero_title_local: "GESTOR LOCAL",
+        hero_desc_local: "Perfiles y modpacks locales de Minecraft (Fabric, Forge, NeoForge, Vanilla).",
+        play_btn: "JUGAR",
+        play_btn_local: "LANZAR",
+        sync_mods_btn: "⚡ Sincronizar Mods",
+        create_profile_btn: "+ Nuevo Perfil",
+
+        // News
+        news_section_title: "NOTICIAS & EVENTOS",
+        news_view_all: "Sitio Web ↗",
+        news_1_tag: "ACT. SERVIDOR",
+        news_1_date: "14 Septiembre 2026",
+        news_1_title: "Apertura Temporada Supervivencia 1.21.4",
+        news_1_desc: "Explora nuevas zonas y disfruta de la sincronización automática de tu whitelist.",
+        news_2_tag: "OPTIMIZACIÓN",
+        news_2_date: "12 Septiembre 2026",
+        news_2_title: "Pack de Shaders & Sodium",
+        news_2_desc: "Más de 140 FPS garantizados con nuestra selección de mods de optimización.",
+        news_3_tag: "COMUNIDAD",
+        news_3_date: "10 Septiembre 2026",
+        news_3_title: "Únete al Discord Oficial",
+        news_3_desc: "Eventos semanales, torneos y soporte técnico en directo.",
+
+        // First Launch Modal
+        welcome_title: "Bienvenido a RXCORP Launcher",
+        welcome_sub: "Elige tu método de autenticación para comenzar:",
+        login_microsoft_btn: "Iniciar sesión con Microsoft",
+        login_microsoft_sub: "Abre tu navegador para un inicio de sesión seguro",
+        login_pelican_web_btn: "Vincular cuenta Panel RXCORP",
+        login_pelican_web_sub: "Abre el navegador para sincronizar servidores Cloud",
+        login_offline_title: "Modo Sin Conexión (Nombre libre)",
+        login_offline_placeholder: "Introduce tu nombre (ej: Salem, Steve...)",
+        login_offline_btn: "Jugar Sin Conexión",
+        login_terms: "No afiliado a Mojang, AB. Todos los derechos reservados.",
+
+        // Cloud
+        cloud_title: "Servidores Cloud Pelican",
+        cloud_subtitle: "Servidores oficiales RXCORP • Whitelist auto y conexión 1-clic",
+        cloud_refresh: "Actualizar",
+        sync_detected: "Cuenta Detectada",
+        sync_btn: "Sincronizar Whitelist",
+        sync_active: "Whitelist Sincronizada",
+        srv_online: "En línea",
+        srv_offline: "Sin conexión",
+        srv_connect: "Unirse",
+
+        // Instances
+        instances_title: "Mis Perfiles & Modpacks",
+        instances_subtitle: "Gestiona tus instalaciones de Minecraft (Fabric, Forge, NeoForge, Vanilla)",
+        new_instance_btn: "Nuevo Perfil",
+        launch_instance: "Lanzar",
+
+        // Mods
+        mods_title: "Tienda de Mods & Shaders",
+        mods_subtitle: "Busca e instala mods desde Modrinth y CurseForge",
+        mods_search_placeholder: "Buscar mods, shaders, paquetes (Sodium, Iris, Create...)",
+        mods_search_btn: "Buscar",
+        install_btn: "Instalar",
+
+        // Settings
+        settings_title: "Configuración del Sistema",
+        settings_subtitle: "Cuentas, sincronización Pelican, whitelist y RAM",
+        save_settings_btn: "Guardar Ajustes",
+        account_section: "Cuenta Minecraft & Autenticación",
+        ram_section: "Asignación de Memoria RAM",
+        java_section: "Java & APIs",
+        pelican_section: "Panel Pelican & Sincronización",
+        language_section: "Idioma del Launcher",
+        skin_ready: "Listo para Minecraft 1.21.4"
+    },
+    de: {
+        // Titlebar & Status
+        brand_title: "RXCORP",
+        cloud_sync_ok: "RXCORP CLOUD • SYNCHRONISIERT",
+        cloud_sync_local: "LOKALER SPIELER MODUS",
+        update_available: "UPDATE VERFÜGBAR",
+        config_btn: "⚙️ Einstellungen",
+        ready_to_play: "Bereit zum Spielen",
+        launching: "Spiel wird gestartet...",
+        downloading: "Wird heruntergeladen...",
+
+        // Navigation
+        nav_home: "Start & Neuigkeiten",
+        nav_cloud: "Pelican Cloud Server",
+        nav_instances: "Lokale Profile & Modpacks",
+        nav_mods: "Mods & Shader Katalog",
+        nav_settings: "Einstellungen & Whitelist",
+        nav_add_instance: "Neues lokales Profil",
+
+        // Home
+        hero_tag_cloud: "OFFIZIEL RXCORP • CLOUD SERVER",
+        hero_tag_local: "LOKALES PROFIL • MINECRAFT",
+        hero_title_cloud: "RXCORP CLOUD & ÜBERLEBEN",
+        hero_desc_cloud: "Offizielle Pelican Cloud Infrastruktur mit automatischer Whitelist-Synchronisation.",
+        hero_title_local: "LOKALER MANAGER",
+        hero_desc_local: "Lokale Minecraft Profile und Modpacks (Fabric, Forge, NeoForge, Vanilla).",
+        play_btn: "SPIELEN",
+        play_btn_local: "STARTEN",
+        sync_mods_btn: "⚡ Mods synchronisieren",
+        create_profile_btn: "+ Neues Profil",
+
+        // News
+        news_section_title: "NEUIGKEITEN & EVENTS",
+        news_view_all: "Webseite ↗",
+        news_1_tag: "SERVER UPDATE",
+        news_1_date: "14. September 2026",
+        news_1_title: "Start der Überlebenssaison 1.21.4",
+        news_1_desc: "Erkunde neue Gebiete und genieße die automatische Whitelist-Synchronisation.",
+        news_2_tag: "OPTIMIERUNG",
+        news_2_date: "12. September 2026",
+        news_2_title: "Sodium & Shader Paket",
+        news_2_desc: "Über 140 FPS garantiert mit unserem integrierten Optimierungspaket.",
+        news_3_tag: "COMMUNITY",
+        news_3_date: "10. September 2026",
+        news_3_title: "Tritt dem Discord bei",
+        news_3_desc: "Wöchentliche Events, Turniere und Live-Support.",
+
+        // First Launch Modal
+        welcome_title: "Willkommen bei RXCORP Launcher",
+        welcome_sub: "Wähle deine Authentifizierungsmethode:",
+        login_microsoft_btn: "Mit Microsoft anmelden",
+        login_microsoft_sub: "Öffnet deinen Browser für sicheres 1-Klick-Login",
+        login_pelican_web_btn: "RXCORP Panel-Konto verknüpfen",
+        login_pelican_web_sub: "Öffnet den Browser zur Synchronisierung deiner Cloud-Server",
+        login_offline_title: "Offline-Modus (Freier Benutzername)",
+        login_offline_placeholder: "Benutzername eingeben (z.B. Salem, Steve...)",
+        login_offline_btn: "Offline spielen",
+        login_terms: "Nicht mit Mojang, AB. verbunden. Alle Rechte vorbehalten.",
+
+        // Cloud
+        cloud_title: "Pelican Cloud Server",
+        cloud_subtitle: "Offizielle RXCORP Server • Auto-Whitelist und 1-Klick-Beitritt",
+        cloud_refresh: "Aktualisieren",
+        sync_detected: "Konto erkannt",
+        sync_btn: "Whitelist synchronisieren",
+        sync_active: "Whitelist synchronisiert",
+        srv_online: "Online",
+        srv_offline: "Offline",
+        srv_connect: "Beitreten",
+
+        // Instances
+        instances_title: "Meine Profile & Modpacks",
+        instances_subtitle: "Verwalte deine Minecraft-Installationen (Fabric, Forge, NeoForge, Vanilla)",
+        new_instance_btn: "Neues Profil",
+        launch_instance: "Starten",
+
+        // Mods
+        mods_title: "Mods & Shader Shop",
+        mods_subtitle: "Suche und installiere Mods von Modrinth und CurseForge",
+        mods_search_placeholder: "Mods suchen (Sodium, Iris, Create...)",
+        mods_search_btn: "Suchen",
+        install_btn: "Installieren",
+
+        // Settings
+        settings_title: "Systemkonfiguration",
+        settings_subtitle: "Konten, Pelican-Sync, Whitelist und RAM",
+        save_settings_btn: "Einstellungen speichern",
+        account_section: "Minecraft-Konto & Authentifizierung",
+        ram_section: "RAM-Speicherzuweisung",
+        java_section: "Java & APIs",
+        pelican_section: "Pelican Panel & Whitelist-Sync",
+        language_section: "Launcher-Sprache",
+        skin_ready: "Bereit für Minecraft 1.21.4"
+    },
+    pt: {
+        // Titlebar & Status
+        brand_title: "RXCORP",
+        cloud_sync_ok: "RXCORP CLOUD • SINCRONIZADO",
+        cloud_sync_local: "MODO JOGADOR LOCAL",
+        update_available: "ATZ. DISPONÍVEL",
+        config_btn: "⚙️ Configurar",
+        ready_to_play: "Pronto para jogar",
+        launching: "Iniciando o jogo...",
+        downloading: "A transferir...",
+
+        // Navigation
+        nav_home: "Início & Notícias",
+        nav_cloud: "Servidores Cloud Pelican",
+        nav_instances: "Perfis & Modpacks Locais",
+        nav_mods: "Loja de Mods & Shaders",
+        nav_settings: "Definições & Whitelist",
+        nav_add_instance: "Novo Perfil Local",
+
+        // Home
+        hero_tag_cloud: "OFICIAL RXCORP • SERVIDOR CLOUD",
+        hero_tag_local: "PERFIL LOCAL • MINECRAFT",
+        hero_title_cloud: "RXCORP CLOUD & SOBREVIVÊNCIA",
+        hero_desc_cloud: "Infraestrutura Cloud Pelican oficial com sincronização automática da whitelist.",
+        hero_title_local: "GESTOR LOCAL",
+        hero_desc_local: "Perfis e modpacks locais de Minecraft (Fabric, Forge, NeoForge, Vanilla).",
+        play_btn: "JOGAR",
+        play_btn_local: "LANÇAR",
+        sync_mods_btn: "⚡ Sincronizar Mods",
+        create_profile_btn: "+ Novo Perfil",
+
+        // News
+        news_section_title: "NOTÍCIAS & EVENTOS",
+        news_view_all: "Site Web ↗",
+        news_1_tag: "ATZ. SERVIDOR",
+        news_1_date: "14 Setembro 2026",
+        news_1_title: "Abertura da Temporada Sobrevivência 1.21.4",
+        news_1_desc: "Explora novas zonas e aproveita a sincronização automática da whitelist.",
+        news_2_tag: "OTIMIZAÇÃO",
+        news_2_date: "12 Setembro 2026",
+        news_2_title: "Pack de Shaders & Sodium",
+        news_2_desc: "Mais de 140 FPS garantidos com a nossa seleção de mods de desempenho.",
+        news_3_tag: "COMUNIDADE",
+        news_3_date: "10 Setembro 2026",
+        news_3_title: "Junta-te ao Discord Oficial",
+        news_3_desc: "Eventos semanais, torneios e suporte técnico em direto.",
+
+        // First Launch Modal
+        welcome_title: "Bem-vindo ao RXCORP Launcher",
+        welcome_sub: "Escolhe o teu método de autenticação para começar:",
+        login_microsoft_btn: "Entrar com Microsoft",
+        login_microsoft_sub: "Abre o teu browser para login seguro com 1 clique",
+        login_pelican_web_btn: "Vincular conta do Painel RXCORP",
+        login_pelican_web_sub: "Abre o navegador para sincronizar servidores Cloud",
+        login_offline_title: "Modo Offline (Nome livre)",
+        login_offline_placeholder: "Introduz o teu nome (ex: Salem, Steve...)",
+        login_offline_btn: "Jogar em Modo Offline",
+        login_terms: "Não afiliado com Mojang, AB. Todos os direitos reservados.",
+
+        // Cloud
+        cloud_title: "Servidores Cloud Pelican",
+        cloud_subtitle: "Servidores oficiais RXCORP • Whitelist automática e ligação 1-clique",
+        cloud_refresh: "Atualizar",
+        sync_detected: "Conta Detetada",
+        sync_btn: "Sincronizar Whitelist",
+        sync_active: "Whitelist Sincronizada",
+        srv_online: "Online",
+        srv_offline: "Offline",
+        srv_connect: "Entrar",
+
+        // Instances
+        instances_title: "Os Meus Perfis & Modpacks",
+        instances_subtitle: "Gere as tuas instalações de Minecraft (Fabric, Forge, NeoForge, Vanilla)",
+        new_instance_btn: "Novo Perfil",
+        launch_instance: "Lançar",
+
+        // Mods
+        mods_title: "Loja de Mods & Shaders",
+        mods_subtitle: "Pesquisa e instala mods do Modrinth e CurseForge",
+        mods_search_placeholder: "Pesquisar mods, shaders (Sodium, Iris, Create...)",
+        mods_search_btn: "Pesquisar",
+        install_btn: "Instalar",
+
+        // Settings
+        settings_title: "Configuração do Sistema",
+        settings_subtitle: "Contas, sincronização Pelican, whitelist e RAM",
+        save_settings_btn: "Guardar Definições",
+        account_section: "Conta Minecraft & Autenticação",
+        ram_section: "Alocação de Memória RAM",
+        java_section: "Java & APIs",
+        pelican_section: "Painel Pelican & Sincronização",
+        language_section: "Idioma do Launcher",
+        skin_ready: "Pronto para Minecraft 1.21.4"
     }
 };
 

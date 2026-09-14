@@ -35,6 +35,9 @@
             <div class="lang-switch-pill" id="titlebar-lang-pill" title="Changer la langue / Change language">
                 <button type="button" class="lang-btn-switch active" data-lang="fr">🇫🇷 FR</button>
                 <button type="button" class="lang-btn-switch" data-lang="en">🇬🇧 EN</button>
+                <button type="button" class="lang-btn-switch" data-lang="es">🇪🇸 ES</button>
+                <button type="button" class="lang-btn-switch" data-lang="de">🇩🇪 DE</button>
+                <button type="button" class="lang-btn-switch" data-lang="pt">🇵🇹 PT</button>
             </div>
 
             <button id="btn-open-config-wizard" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;" title="Gérer mon compte">
@@ -184,7 +187,7 @@
                                 <span class="stat-lbl">Whitelist Active</span>
                             </div>
                             <div class="status-box-actions">
-                                <a href="https://discord.gg/rxcorp" target="_blank" class="mini-social-btn" title="Discord">
+                                <a href="https://discord.gg/YETMStb2dN" target="_blank" class="mini-social-btn" title="Discord">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
                                 </a>
                                 <a href="https://rxcorp.fr" target="_blank" class="mini-social-btn" title="Site Web">
@@ -238,7 +241,7 @@
                         </article>
 
                         <!-- News Card 3 -->
-                        <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://discord.gg/rxcorp')">
+                        <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://discord.gg/YETMStb2dN')">
                             <div class="news-thumb-box">
                                 <img class="news-thumb-img" src="assets/images/heroes/hero_instances.jpg" alt="Communauté">
                                 <span class="news-tag-badge" style="color: var(--amber);" data-i18n="news_3_tag">COMMUNAUTÉ</span>
@@ -454,6 +457,20 @@
                         <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                     </div>
 
+                    <!-- Language Selection Card -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span class="settings-card-title" data-i18n="language_section">Langue du Launcher</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="fr" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇫🇷 Français</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="en" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇬🇧 English</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="es" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇪🇸 Español</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="de" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇩🇪 Deutsch</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="pt" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇵🇹 Português</button>
+                        </div>
+                    </div>
+
                     <!-- Pelican Sync & Whitelist Settings Card -->
                     <div class="settings-card" id="settings-card-pelican">
                         <div class="settings-card-header">
@@ -530,7 +547,7 @@
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <span class="settings-card-title">Mises à Jour Automatiques</span>
-                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--emerald-light);">v2.5.1</span>
+                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.5.2</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
                             Le launcher vérifie et applique automatiquement les nouvelles versions en arrière-plan. Vous pouvez forcer une vérification immédiate du cloud.
@@ -572,7 +589,7 @@
 
                     <!-- Info Box -->
                     <div class="settings-card" style="font-size: 11px; color: var(--text-dim); line-height: 1.6;">
-                        <strong style="color: #fff;">RXCORP Launcher v2.5.0</strong><br>
+                        <strong style="color: #fff;">RXCORP Launcher v2.5.2</strong><br>
                         Développé avec amour pour la communauté RXCORP.<br>
                         Infrastructure Cloud Pelican • Modpacks • CurseForge & Modrinth.
                     </div>
@@ -597,6 +614,9 @@
                 <div class="first-launch-lang-row">
                     <button type="button" class="lang-btn-switch active" data-lang="fr">🇫🇷 FR</button>
                     <button type="button" class="lang-btn-switch" data-lang="en">🇬🇧 EN</button>
+                    <button type="button" class="lang-btn-switch" data-lang="es">🇪🇸 ES</button>
+                    <button type="button" class="lang-btn-switch" data-lang="de">🇩🇪 DE</button>
+                    <button type="button" class="lang-btn-switch" data-lang="pt">🇵🇹 PT</button>
                     <button type="button" id="btn-close-onboard" class="modal-close-btn" style="display: none; margin-left: 8px;" title="Fermer">✕</button>
                 </div>
             </div>
@@ -613,6 +633,17 @@
                     <div style="display: flex; flex-direction: column; text-align: left;">
                         <span style="font-size: 14px; font-weight: 700; color: #0f172a;" data-i18n="login_microsoft_btn">Connexion Compte Microsoft</span>
                         <span style="font-size: 11px; color: #64748b; font-weight: 500;" data-i18n="login_microsoft_sub">Ouvre votre navigateur pour une connexion officielle sécurisée</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Option 1b: Pelican Cloud Web SSO -->
+            <div class="first-launch-option" style="margin-top: 8px;">
+                <button id="btn-onboard-web-auth" type="button" class="first-launch-ms-btn" style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35);">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <div style="display: flex; flex-direction: column; text-align: left;">
+                        <span style="font-size: 14px; font-weight: 700; color: #ffffff;" data-i18n="login_pelican_web_btn">Lier mon compte Panel RXCORP</span>
+                        <span style="font-size: 11px; color: #f43f5e; font-weight: 500;" data-i18n="login_pelican_web_sub">Ouvre le navigateur web pour synchroniser vos serveurs Cloud</span>
                     </div>
                 </button>
             </div>

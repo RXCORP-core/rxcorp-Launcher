@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RXCORP Launcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #08090e;
+            color: #ffffff;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-app-region: drag;
+        }
+
+        .splash-bg {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(244, 63, 94, 0.18) 0%, transparent 55%),
+                radial-gradient(circle at 70% 70%, rgba(244, 63, 94, 0.08) 0%, transparent 55%),
+                #08090e;
+            z-index: 0;
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-glow {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.35) 0%, transparent 70%);
+            filter: blur(20px);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .logo-img {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            object-fit: cover;
+            box-shadow: 0 0 30px rgba(244, 63, 94, 0.5);
+            animation: logoIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: scale(0.7);
+        }
+
+        @keyframes logoIn {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .brand-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            animation: fadeUp 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .brand-version {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #f43f5e;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 220px;
+            animation: fadeUp 0.6s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f43f5e, #fb7185);
+            border-radius: 2px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 8px rgba(244, 63, 94, 0.6);
+        }
+
+        .progress-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+        }
+
+        .corner-badge {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.2);
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-bg"></div>
+
+    <div class="splash-content">
+        <div class="logo-container">
+            <div class="logo-glow"></div>
+            <img class="logo-img" src="assets/images/icon/icon.png" alt="RXCORP" 
+                 onerror="this.style.display='none'">
+        </div>
+
+        <div class="brand-row">
+            <div class="brand-name">RXCORP</div>
+            <div class="brand-version">LAUNCHER 2.5</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-track">
+                <div class="progress-fill" id="splash-progress"></div>
+            </div>
+            <div class="progress-label" id="splash-label">Initialisation...</div>
+        </div>
+    </div>
+
+    <div class="corner-badge">rxcorp.fr</div>
+
+    <script>
+        const progressEl = document.getElementById('splash-progress');
+        const labelEl = document.getElementById('splash-label');
+
+        const steps = [
+            { pct: 15, label: 'Chargement des ressources...' },
+            { pct: 35, label: 'Connexion au Cloud...' },
+            { pct: 60, label: 'Vérification des mises à jour...' },
+            { pct: 80, label: 'Préparation de l\'interface...' },
+            { pct: 95, label: 'Presque prêt...' },
+        ];
+
+        let i = 0;
+        function nextStep() {
+            if (i < steps.length) {
+                const s = steps[i++];
+                progressEl.style.width = s.pct + '%';
+                labelEl.textContent = s.label;
+                setTimeout(nextStep, 400 + Math.random() * 200);
+            }
+        }
+
+        setTimeout(nextStep, 300);
+    </script>
+</body>
+</html>

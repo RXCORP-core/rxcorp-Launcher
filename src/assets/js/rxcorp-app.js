@@ -481,10 +481,8 @@ class RxcorpApp {
                     this.updateDockInstancePill();
                     const readyText = i18n.t('ready_to_play');
                     this.updateDockStatus(readyText, 0);
-                    this.showNotification(
-                        lang === 'fr' ? 'Langue changée' : 'Language changed',
-                        lang === 'fr' ? 'Interface en Français 🇫🇷' : 'English interface 🇬🇧'
-                    );
+                    const langNames = { fr: 'Français 🇫🇷', en: 'English 🇬🇧', es: 'Español 🇪🇸', de: 'Deutsch 🇩🇪', pt: 'Português 🇵🇹' };
+                    this.showNotification('Langue / Language', `Interface : ${langNames[lang] || lang}`);
                 }
             });
         });
@@ -953,7 +951,7 @@ class RxcorpApp {
     async handlePelicanSync(silent = false) {
         const account = this.getActiveAccount();
         if (!account || !account.name) {
-            if (!silent) alert('Veuillez sélectionner un compte Minecraft actif avant de synchroniser.');
+            if (!silent) this.showNotification('Compte requis', 'Sélectionnez un compte Minecraft actif avant de synchroniser.');
             return;
         }
 
@@ -968,7 +966,7 @@ class RxcorpApp {
 
         if (!apiKey) {
             if (!silent) {
-                alert('Veuillez renseigner votre Clé API Client Pelican dans les Paramètres pour activer la synchronisation.');
+                this.showNotification('Clé API manquante', 'Renseignez votre Clé API Pelican dans les Paramètres.');
                 this.selectDribbbleMode('settings');
             }
             return;
@@ -1003,11 +1001,11 @@ class RxcorpApp {
                 });
                 this.showNotification('Synchronisation Réussie', `Compte ${account.name} synchronisé sur ${res.syncedCount} serveur(s) Pelican !`);
             } else {
-                if (!silent) alert(`Erreur synchronisation Pelican: ${res.error || 'Aucun serveur synchronisé'}`);
+                if (!silent) this.showNotification('Erreur Pelican', res.error || 'Aucun serveur synchronisé');
             }
         } catch (err) {
             console.error('[Pelican Sync Error]:', err);
-            if (!silent) alert('Erreur lors de la synchronisation: ' + err.message);
+            if (!silent) this.showNotification('Erreur de synchronisation', err.message);
         } finally {
             syncBtns.forEach(btn => {
                 if (btn) {
@@ -1480,7 +1478,7 @@ class RxcorpApp {
                 const inst = instanceService.getInstance(currentTargetId) || this.getActiveInstanceForDomain('local');
 
                 if (!inst) {
-                    alert('Veuillez sélectionner un profil local cible avant d\'installer un mod.');
+                    this.showNotification('Profil requis', 'Sélectionnez un profil local cible avant d\'installer un mod.');
                     btn.disabled = false;
                     btn.innerHTML = '<span>📥 Installer</span>';
                     return;
@@ -1490,7 +1488,7 @@ class RxcorpApp {
                     if (this.activeModSource === 'curseforge') {
                         const filesRes = await curseforgeService.getCompatibleVersions(mod.id, inst.version, inst.loader);
                         if (!filesRes.success || !filesRes.versions.length) {
-                            alert(`Aucun fichier CurseForge compatible avec MC ${inst.version} (${inst.loader})`);
+                            this.showNotification('Incompatible', `Aucun fichier CurseForge pour MC ${inst.version} (${inst.loader})`);
                             btn.disabled = false;
                             btn.innerHTML = '<span>📥 Installer</span>';
                             return;
@@ -1500,7 +1498,7 @@ class RxcorpApp {
                     } else {
                         const versionsRes = await modrinthService.getCompatibleVersions(mod.slug, inst.version, inst.loader);
                         if (!versionsRes.success || !versionsRes.versions.length) {
-                            alert(`Aucune version Modrinth compatible avec MC ${inst.version} (${inst.loader})`);
+                            this.showNotification('Incompatible', `Aucune version Modrinth pour MC ${inst.version} (${inst.loader})`);
                             btn.disabled = false;
                             btn.innerHTML = '<span>📥 Installer</span>';
                             return;
@@ -1515,7 +1513,7 @@ class RxcorpApp {
                     this.showNotification('Mod installé !', `« ${mod.title} » a été ajouté à ${inst.name}.`);
                     this.loadInstances();
                 } catch (err) {
-                    alert('Erreur lors du téléchargement : ' + err.message);
+                    this.showNotification('Erreur de téléchargement', err.message);
                     btn.disabled = false;
                     btn.innerHTML = '<span>📥 Installer</span>';
                 }
@@ -1549,10 +1547,10 @@ class RxcorpApp {
         if (!targetInst) {
             const domain = this.getCurrentDomain();
             if (domain === 'cloud') {
-                alert('Veuillez sélectionner un serveur Cloud Pelican ou vous connecter à votre compte.');
+                this.showNotification('Aucun serveur', 'Sélectionnez un serveur Cloud Pelican ou connectez-vous.');
                 this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
             } else {
-                alert('Veuillez d\'abord créer ou sélectionner un profil local.');
+                this.showNotification('Aucun profil', 'Créez ou sélectionnez un profil local d\'abord.');
                 this.openDrawer('instances', 'MES PROFILS & MODPACKS');
             }
             return;
@@ -1599,7 +1597,7 @@ class RxcorpApp {
                         ipcRenderer.send('discord-rpc-idle');
                     },
                     onError: (err) => {
-                        alert('Erreur lors du lancement du jeu:\n' + (err.message || err));
+                        this.showNotification('Erreur de lancement', err.message || String(err));
                         this.updateDockStatus('Erreur de lancement', 0);
                         launchBtn.disabled = false;
                         launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
@@ -1706,7 +1704,7 @@ class RxcorpApp {
             const url = document.getElementById('input-panel-url').value.trim();
 
             if (!key) {
-                alert('Veuillez entrer une clé API Client valide.');
+                this.showNotification('Clé manquante', 'Entrez une clé API Client valide.');
                 return;
             }
 
@@ -1721,9 +1719,9 @@ class RxcorpApp {
             const url = inputUrl.value.trim();
             const res = await pelicanService.testConnection(key, url);
             if (res.success) {
-                alert(`Connexion réussie !\nConnecté en tant que: ${res.user.username} (${res.user.email})`);
+                this.showNotification('Connexion réussie !', `Connecté : ${res.user.username} (${res.user.email})`);
             } else {
-                alert(`Échec de connexion: ${res.error}`);
+                this.showNotification('Échec de connexion', res.error);
             }
         });
 
@@ -1732,7 +1730,7 @@ class RxcorpApp {
             store.set('apiKey', '');
             if (inputKey) inputKey.value = '';
             this.loadCloudServers();
-            alert('Déconnecté du Panel.');
+            this.showNotification('Déconnecté', 'Vous avez été déconnecté du Panel Pelican.');
         });
     }
 
@@ -1847,7 +1845,7 @@ class RxcorpApp {
         const handleOfflineSubmit = () => {
             const val = (inputUsername?.value || '').trim();
             if (!val) {
-                alert(i18n.t('login_offline_placeholder') || 'Veuillez entrer un pseudo valide.');
+                this.showNotification('Pseudo requis', 'Entrez un pseudo valide pour continuer.');
                 return;
             }
             let accList = store.get('accounts') || [];
@@ -1871,6 +1869,12 @@ class RxcorpApp {
         btnConfirmOffline?.addEventListener('click', handleOfflineSubmit);
         inputUsername?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleOfflineSubmit();
+        });
+
+        // Handle Pelican Web Auth
+        document.getElementById('btn-onboard-web-auth')?.addEventListener('click', () => {
+            this.showNotification('Connexion Web', 'Ouverture de votre navigateur pour validation...');
+            ipcRenderer.send('start-web-auth');
         });
 
         // Handle Microsoft 1-Click login
@@ -1902,7 +1906,7 @@ class RxcorpApp {
                     }
                 }
             } catch (err) {
-                alert('Erreur Microsoft : ' + err.message);
+                this.showNotification('Erreur Microsoft', err.message);
             } finally {
                 this.updateDockStatus(i18n.t('ready_to_play'), 0);
             }
@@ -1929,6 +1933,9 @@ class RxcorpApp {
                         store.set('accounts', accounts);
                     }
                 }
+                store.set('configured', true);
+                const firstLaunchModal = document.getElementById('modal-first-launch');
+                if (firstLaunchModal) firstLaunchModal.style.display = 'none';
                 this.showNotification('Connexion Cloud Réussie', `Bienvenue ${data.username || ''} ! Vos serveurs sont prêts.`);
                 this.renderAccountsList();
                 this.loadCloudServers();
@@ -2028,7 +2035,7 @@ class RxcorpApp {
             const input = document.getElementById('input-offline-username');
             const username = (input.value || '').trim();
             if (!username) {
-                alert('Veuillez entrer un pseudo.');
+                this.showNotification('Pseudo requis', 'Entrez un pseudo pour votre compte hors-ligne.');
                 return;
             }
 
@@ -2066,7 +2073,7 @@ class RxcorpApp {
                     }
                 }
             } catch (err) {
-                alert('Erreur Microsoft: ' + err.message);
+                this.showNotification('Erreur Microsoft', err.message);
             } finally {
                 this.updateDockStatus('Prêt à jouer', 0);
             }
@@ -2191,7 +2198,7 @@ class RxcorpApp {
             const loader = document.getElementById('select-new-loader').value;
 
             if (!name) {
-                alert('Veuillez donner un nom à votre instance.');
+                this.showNotification('Nom requis', 'Donnez un nom à votre profil avant de continuer.');
                 return;
             }
 

@@ -3,7 +3,7 @@
  * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
  */
 
-const { app, ipcMain, nativeTheme, Notification, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeTheme, Notification, dialog, shell } = require('electron');
 const { Microsoft } = require('minecraft-java-core');
 const { autoUpdater } = require('electron-updater');
 const http = require('http');
@@ -22,6 +22,7 @@ const Store = require('electron-store');
 
 const UpdateWindow = require("./assets/js/windows/updateWindow.js");
 const MainWindow = require("./assets/js/windows/mainWindow.js");
+const SplashWindow = require("./assets/js/windows/splashWindow.js");
 const discordRpc = require("./assets/js/utils/discordRpc.js");
 const trayManager = require("./assets/js/windows/trayManager.js");
 
@@ -69,9 +70,19 @@ else {
         } catch (e) {
             console.error('[Tray] Init error:', e);
         }
-        MainWindow.createWindow();
-        setTimeout(checkLauncherUpdates, 3000);
-        setInterval(checkLauncherUpdates, 15 * 60 * 1000);
+
+        // Show splash first, then main window
+        SplashWindow.createSplash();
+        
+        // Small delay then create main window (hidden initially)
+        setTimeout(() => {
+            MainWindow.createWindowHidden(() => {
+                // Called when main window is ready-to-show
+                SplashWindow.closeSplash();
+            });
+            setTimeout(checkLauncherUpdates, 3000);
+            setInterval(checkLauncherUpdates, 15 * 60 * 1000);
+        }, 600);
     });
 }
 
@@ -134,9 +145,83 @@ ipcMain.on('discord-rpc-idle', () => discordRpc.setIdle());
 ipcMain.on('discord-rpc-launching', (event, targetName) => discordRpc.setLaunching(targetName));
 ipcMain.on('discord-rpc-playing', (event, instanceName) => discordRpc.setPlaying(instanceName));
 
-ipcMain.handle('Microsoft-window', async (_, client_id) => {
-    return await new Microsoft(client_id).getAuth();
-})
+ipcMain.handle('Microsoft-window', async (_, client_id = "00000000402b5328") => {
+    try {
+        const ms = new Microsoft(client_id);
+        const redirectUri = "https://login.live.com/oauth20_desktop.srf";
+        const authUrl = `https://login.live.com/oauth20_authorize.srf?client_id=${client_id}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=XboxLive.signin%20offline_access&cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d&prompt=select_account`;
+
+        const authWindow = new BrowserWindow({
+            title: "Connexion Compte Microsoft // RXCORP",
+            width: 680,
+            height: 720,
+            minWidth: 480,
+            minHeight: 560,
+            center: true,
+            resizable: true,
+            backgroundColor: '#090b10',
+            icon: path.join(__dirname, 'assets/images/icon/icon.png'),
+            webPreferences: {
+                partition: 'persist:minecraft_auth', // Conserve la session & cookies Microsoft
+                nodeIntegration: false,
+                contextIsolation: true
+            }
+        });
+
+        authWindow.setMenu(null);
+
+        return await new Promise((resolve, reject) => {
+            let isDone = false;
+
+            const handleUrl = (targetUrl) => {
+                if (!targetUrl || isDone) return;
+                if (targetUrl.startsWith(redirectUri)) {
+                    isDone = true;
+                    try {
+                        const urlObj = new URL(targetUrl);
+                        const code = urlObj.searchParams.get('code');
+                        const error = urlObj.searchParams.get('error');
+
+                        try {
+                            if (!authWindow.isDestroyed()) authWindow.close();
+                        } catch (e) {}
+
+                        if (code) {
+                            ms.exchangeCodeForToken(code)
+                                .then(accountData => resolve(accountData))
+                                .catch(err => reject(err));
+                        } else {
+                            resolve(null);
+                        }
+                    } catch (e) {
+                        try { if (!authWindow.isDestroyed()) authWindow.close(); } catch (err) {}
+                        reject(e);
+                    }
+                }
+            };
+
+            authWindow.webContents.on('will-redirect', (event, newUrl) => handleUrl(newUrl));
+            authWindow.webContents.on('did-navigate', (event, newUrl) => handleUrl(newUrl));
+            authWindow.webContents.on('did-finish-load', () => {
+                if (!authWindow.isDestroyed()) {
+                    handleUrl(authWindow.webContents.getURL());
+                }
+            });
+
+            authWindow.on('closed', () => {
+                if (!isDone) {
+                    isDone = true;
+                    resolve(null);
+                }
+            });
+
+            authWindow.loadURL(authUrl);
+        });
+    } catch (err) {
+        console.error('[Microsoft Auth Error]:', err);
+        throw err;
+    }
+});
 
 ipcMain.handle('is-dark-theme', (_, theme) => {
     if (theme === 'dark') return true
