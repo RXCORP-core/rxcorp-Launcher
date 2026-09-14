@@ -49,10 +49,9 @@ class RxcorpApp {
     }
 
     async init() {
-        console.log('[RXCORP] Initializing Launcher 2.0...');
+        console.log('[RXCORP] Initializing Launcher 2.2 (Riot/Dribbble UI)...');
         this.initWindowControls();
-        this.initNavigation();
-        this.initModeSelector();
+        this.initDribbbleShell();
         this.initModals();
         this.initSettings();
         this.initAccounts();
@@ -72,76 +71,133 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // MODE SELECTOR (3 VERTICAL BARS - NOCTRA STYLE)
+    // RIOT / DRIBBBLE STYLE UNIFIED SHELL
     // ==========================================
-    initModeSelector() {
-        const screen = document.getElementById('screen-mode-selector');
-        const btnTitlebar = document.getElementById('btn-switch-mode');
-        const btnSidebar = document.getElementById('sidebar-switch-mode');
-        const slices = document.querySelectorAll('.mode-slice');
-
-        if (!screen) return;
-
-        slices.forEach(slice => {
-            slice.addEventListener('click', () => {
-                const mode = slice.dataset.mode;
-                this.selectMode(mode);
+    initDribbbleShell() {
+        const railItems = document.querySelectorAll('.rail-item[data-view]');
+        railItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetView = item.dataset.view;
+                this.selectDribbbleMode(targetView);
             });
         });
 
-        if (btnTitlebar) {
-            btnTitlebar.addEventListener('click', () => this.showModeSelector());
-        }
+        // Add instance button on left rail
+        document.getElementById('btn-rail-add')?.addEventListener('click', () => {
+            document.getElementById('modal-create-instance')?.classList.add('active');
+        });
 
-        if (btnSidebar) {
-            btnSidebar.addEventListener('click', () => this.showModeSelector());
-        }
+        // Drawer back button
+        document.getElementById('btn-back-dashboard')?.addEventListener('click', () => {
+            this.closeDrawer();
+        });
 
-        // Show mode selector on startup as requested
-        this.showModeSelector();
+        // Hero secondary button
+        document.getElementById('btn-hero-secondary')?.addEventListener('click', () => {
+            const mode = this.activeDribbbleMode || 'cloud';
+            if (mode === 'cloud') this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
+            else if (mode === 'pvp') this.openDrawer('pvp', 'CONFIGURATION DU CLIENT PVP');
+            else if (mode === 'instances') this.openDrawer('instances', 'MES PROFILS & INSTANCES');
+            else if (mode === 'modrinth') this.openDrawer('modrinth', 'CATALOGUE MODRINTH');
+            else if (mode === 'settings') this.openDrawer('settings', 'PARAMÈTRES & COMPTES');
+        });
+
+        // Tactical Cards buttons
+        document.getElementById('btn-widget-activity')?.addEventListener('click', () => {
+            this.showNotification('Activité de jeu', '18.4 heures de jeu enregistrées sur RXCORP cette semaine.');
+        });
+
+        document.getElementById('btn-widget-pvp')?.addEventListener('click', () => {
+            this.selectDribbbleMode('pvp');
+            this.openDrawer('pvp', 'CONFIGURATION DU CLIENT PVP');
+        });
+
+        document.getElementById('btn-widget-cloud')?.addEventListener('click', () => {
+            this.selectDribbbleMode('cloud');
+            this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
+        });
+
+        // Default mode from store or cloud
+        const savedMode = store.get('activeDribbbleMode') || 'cloud';
+        this.selectDribbbleMode(savedMode);
+
+        // Update RAM widget from saved store
+        const ram = store.get('ramMax') || 4;
+        const ramWidget = document.getElementById('widget-ram-text');
+        if (ramWidget) ramWidget.innerText = `${ram}.0 GB`;
     }
 
-    showModeSelector() {
-        const screen = document.getElementById('screen-mode-selector');
-        const appContainer = document.querySelector('.app-container');
-        const appDock = document.querySelector('.app-dock');
-        const badge = document.getElementById('current-mode-badge');
+    selectDribbbleMode(mode) {
+        this.activeDribbbleMode = mode;
+        store.set('activeDribbbleMode', mode);
 
-        if (screen) {
-            screen.classList.remove('hidden');
-            screen.style.display = 'flex';
+        // Update active class on rail items
+        document.querySelectorAll('.rail-item[data-view]').forEach(item => {
+            item.classList.toggle('active', item.dataset.view === mode);
+        });
+
+        const hero = document.getElementById('dribbble-hero');
+        const tagText = document.getElementById('hero-tag-text');
+        const heroDot = document.querySelector('.hero-dot');
+        const heroTitle = document.getElementById('hero-title');
+        const heroDesc = document.getElementById('hero-desc');
+        const playLabel = document.getElementById('hero-play-label');
+        const secText = document.getElementById('hero-sec-text');
+
+        // Reset hero theme classes
+        hero?.classList.remove('hero-cloud', 'hero-pvp', 'hero-instances', 'hero-modrinth', 'hero-settings');
+
+        if (mode === 'cloud') {
+            hero?.classList.add('hero-cloud');
+            if (tagText) tagText.innerText = 'OFFICIEL RXCORP • FORGE 26.2';
+            if (heroDot) heroDot.style.background = 'var(--primary)';
+            if (heroTitle) heroTitle.innerText = 'RXCORP CLOUD';
+            if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique Forge 26.2 et mods vérifiés.';
+            if (playLabel) playLabel.innerText = 'JOUER';
+            if (secText) secText.innerText = '⚡ Liste des Serveurs';
+            this.closeDrawer();
+            this.loadCloudServers();
+        } else if (mode === 'pvp') {
+            hero?.classList.add('hero-pvp');
+            if (tagText) tagText.innerText = 'COMPÉTITION • 144+ FPS BOOST';
+            if (heroDot) heroDot.style.background = 'var(--cyan)';
+            if (heroTitle) heroTitle.innerText = 'PVP ARENA';
+            if (heroDesc) heroDesc.innerText = 'Client compétitif ultra optimisé avec Sodium, Lithium, FerriteCore et ATH tactique de combat.';
+            if (playLabel) playLabel.innerText = 'JOUER (PVP)';
+            if (secText) secText.innerText = '🎯 Configurer les Mods';
+            this.closeDrawer();
+            this.renderPvPMods();
+        } else if (mode === 'instances') {
+            hero?.classList.add('hero-instances');
+            if (tagText) tagText.innerText = 'PROFILS LOCAUX • MULTI-LOADER';
+            if (heroDot) heroDot.style.background = 'var(--emerald)';
+            if (heroTitle) heroTitle.innerText = 'MOD LOCAL';
+            if (heroDesc) heroDesc.innerText = 'Gestionnaire d\'instances isolées. Compatible Vanilla, Fabric, Forge et NeoForge avec gestion de versions.';
+            if (playLabel) playLabel.innerText = 'LANCER';
+            if (secText) secText.innerText = '📦 Gérer les Profils';
+            this.closeDrawer();
+            this.loadInstances();
+        } else if (mode === 'modrinth') {
+            this.openDrawer('modrinth', 'CATALOGUE MODRINTH');
+        } else if (mode === 'settings') {
+            this.openDrawer('settings', 'CONFIGURATION DU SYSTÈME');
         }
-        if (appContainer) appContainer.style.display = 'none';
-        if (appDock) appDock.style.display = 'none';
-        if (badge) badge.innerText = 'CHOIX DU MODE';
     }
 
-    selectMode(mode) {
-        const screen = document.getElementById('screen-mode-selector');
-        const appContainer = document.querySelector('.app-container');
-        const appDock = document.querySelector('.app-dock');
-        const badge = document.getElementById('current-mode-badge');
+    openDrawer(viewName, title = '') {
+        const drawer = document.getElementById('dribbble-views-drawer');
+        const drawerTitle = document.getElementById('drawer-title');
+        if (drawer) drawer.style.display = 'flex';
+        if (drawerTitle && title) drawerTitle.innerText = title;
 
-        if (screen) {
-            screen.classList.add('hidden');
-            setTimeout(() => {
-                screen.style.display = 'none';
-            }, 250);
-        }
-
-        if (appContainer) appContainer.style.display = 'flex';
-        if (appDock) appDock.style.display = 'flex';
-
-        store.set('activeMode', mode);
-
-        if (badge) {
-            if (mode === 'cloud') badge.innerText = 'MODE : RX SERV';
-            else if (mode === 'pvp') badge.innerText = 'MODE : PVP';
-            else if (mode === 'instances') badge.innerText = 'MODE : MOD LOCAL';
-        }
-
-        this.switchView(mode);
+        this.switchView(viewName);
     }
+
+    closeDrawer() {
+        const drawer = document.getElementById('dribbble-views-drawer');
+        if (drawer) drawer.style.display = 'none';
+    }
+
 
     // ==========================================
     // WINDOW CONTROLS & TITLEBAR
@@ -802,7 +858,7 @@ class RxcorpApp {
         });
 
         document.getElementById('dock-instance-pill')?.addEventListener('click', () => {
-            this.switchView('instances');
+            this.openDrawer('instances', 'SÉLECTION DU PROFIL');
         });
     }
 
@@ -840,19 +896,19 @@ class RxcorpApp {
                     onGameClose: () => {
                         this.updateDockStatus('Prêt à jouer', 0);
                         launchBtn.disabled = false;
-                        launchBtn.innerHTML = '<span>▶ JOUER</span>';
+                        launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
                     },
                     onError: (err) => {
                         alert('Erreur lors du lancement du jeu:\n' + (err.message || err));
                         this.updateDockStatus('Erreur de lancement', 0);
                         launchBtn.disabled = false;
-                        launchBtn.innerHTML = '<span>▶ JOUER</span>';
+                        launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
                     }
                 }
             );
         } catch (err) {
             launchBtn.disabled = false;
-            launchBtn.innerHTML = '<span>▶ JOUER</span>';
+            launchBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span id="hero-play-label">JOUER</span>';
         }
     }
 
@@ -891,8 +947,12 @@ class RxcorpApp {
         if (rangeRam) {
             rangeRam.value = store.get('ramMax') || 4;
             labelRam.innerText = `${rangeRam.value} GB`;
+            const ramWidget = document.getElementById('widget-ram-text');
+            if (ramWidget) ramWidget.innerText = `${rangeRam.value}.0 GB`;
+
             rangeRam.addEventListener('input', () => {
                 labelRam.innerText = `${rangeRam.value} GB`;
+                if (ramWidget) ramWidget.innerText = `${rangeRam.value}.0 GB`;
             });
         }
 
@@ -905,6 +965,9 @@ class RxcorpApp {
             store.set('javaPath', inputJava.value.trim());
             store.set('panelUrl', inputUrl.value.trim());
             store.set('apiKey', inputKey.value.trim());
+
+            const ramWidget = document.getElementById('widget-ram-text');
+            if (ramWidget) ramWidget.innerText = `${rangeRam.value}.0 GB`;
 
             this.showNotification('Paramètres sauvegardés', 'Vos réglages ont été mis à jour.');
             this.loadCloudServers();
