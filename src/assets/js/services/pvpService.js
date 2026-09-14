@@ -23,7 +23,7 @@ class PvpService {
                 style: 'Spam-click & Vitesse',
                 tag: 'COMPÉTITION HISTORIQUE',
                 accentColor: 'var(--primary)',
-                description: 'Le standard historique de l\'e-sport Minecraft (BedWars, SkyWars, PotPvP, UHC). Zéro cooldown d\'attaque, combos rod/épée rapides, block-hitting et fluidité 1.8 maximale.',
+                description: 'Le standard mondial historique du PvP compétitif (BedWars, SkyWars, PotPvP, UHC, Practice). Zéro cooldown d\'attaque, combos rod/épée rapides, block-hitting et fluidité 1.8 maximale.',
                 modes: ['BedWars', 'SkyWars', 'PotPvP', 'UHC', 'Practice'],
                 servers: [
                     { name: 'Hypixel Network', ip: 'mc.hypixel.net', ping: '18ms', desc: 'BedWars, SkyWars, Duels' },
@@ -34,19 +34,70 @@ class PvpService {
             {
                 id: '1.21',
                 versionKey: '1.21.1',
-                name: 'RX PvP 1.21 (Moderne)',
+                name: 'RX PvP 1.21+ (Moderne)',
                 shortName: 'PvP 1.21+ Moderne',
                 version: '1.21.1',
                 loader: 'fabric',
                 style: 'Timing, Bouclier & Cristaux',
                 tag: 'NOUVELLE GÉNÉRATION',
                 accentColor: 'var(--cyan)',
-                description: 'Le standard moderne du PvP Minecraft compétitif (Lifesteal, BoxPvP, PvP Survival). Timing d\'arme calculé, blocage au bouclier, crystal PvP, totems et moteur Sodium 200+ FPS.',
+                description: 'Le standard moderne du PvP Minecraft (Lifesteal, BoxPvP, PvP Survival, Maces). Timing d\'arme calculé, blocage au bouclier, crystal PvP, totems et moteur Sodium 200+ FPS.',
                 modes: ['Lifesteal SMP', 'BoxPvP', 'PvP Survival', 'End Crystal', 'Maces'],
                 servers: [
                     { name: 'DonutSMP', ip: 'donutsmp.net', ping: '19ms', desc: 'Lifesteal SMP N°1 Mondial' },
                     { name: 'PvP Land', ip: 'play.pvp.land', ping: '16ms', desc: 'Crystal & Shield Practice' },
                     { name: 'BoxPvP Network', ip: 'play.boxpvp.net', ping: '24ms', desc: 'BoxPvP & Mines Compétitives' }
+                ]
+            },
+            {
+                id: '1.20',
+                versionKey: '1.20.4',
+                name: 'RX PvP 1.20.4 (Tournois)',
+                shortName: 'PvP 1.20.4 Tournois',
+                version: '1.20.4',
+                loader: 'fabric',
+                style: 'Axe, Sword & Shield',
+                tag: 'STANDARD E-SPORT 1.20',
+                accentColor: '#38bdf8',
+                description: 'La référence des tournois e-sport compétitifs modernes. Combats précis à la hache et au bouclier, fluidité Sodium et zéro latence d\'animation.',
+                modes: ['Axe & Shield', 'Sword Duels', 'Hoplite Battle', 'SMP Practice'],
+                servers: [
+                    { name: 'Hoplite PvP', ip: 'play.hoplite.gg', ping: '16ms', desc: 'Battle Royale E-sport & Ranked' },
+                    { name: 'MCHub Network', ip: 'mchub.com', ping: '26ms', desc: 'BoxPvP & Duels 1.20' }
+                ]
+            },
+            {
+                id: '1.16',
+                versionKey: '1.16.5',
+                name: 'RX PvP 1.16.5 (Netherite)',
+                shortName: 'PvP 1.16.5 Netherite',
+                version: '1.16.5',
+                loader: 'fabric',
+                style: 'Netherite & Manhunts',
+                tag: 'NETHER UPDATE & MANHUNT',
+                accentColor: '#f97316',
+                description: 'L\'âge d\'or des Manhunts et du combat au Netherite. Maîtrise des ancres de réapparition (Respawn Anchors), lits explosifs et combos hache critique.',
+                modes: ['Speedrun Manhunt', 'Anchor PvP', 'Netherite Duels', 'Factions 1.16'],
+                servers: [
+                    { name: 'PvP Temple', ip: 'pvptemple.com', ping: '22ms', desc: 'Manhunts & Ranked 1.16' },
+                    { name: 'AstralPvP', ip: 'astralpvp.net', ping: '25ms', desc: 'Factions Netherite' }
+                ]
+            },
+            {
+                id: '1.12',
+                versionKey: '1.12.2',
+                name: 'RX PvP 1.12.2 (Anarchie)',
+                shortName: 'PvP 1.12.2 Anarchie',
+                version: '1.12.2',
+                loader: 'forge',
+                style: 'Anarchie & End Crystal',
+                tag: 'ANARCHIE & 2B2T',
+                accentColor: '#eab308',
+                description: 'La référence mondiale des serveurs anarchie (2b2t) et du Crystal PvP originel 1.12 sans cooldown ni règles.',
+                modes: ['2b2t Anarchie', 'Crystal PvP Originel', 'PvP Factions Moddé'],
+                servers: [
+                    { name: '2b2t Anarchy', ip: '2b2t.org', ping: '32ms', desc: 'Le plus vieux serveur anarchie' },
+                    { name: 'Constantiam', ip: 'constantiam.net', ping: '28ms', desc: 'Anarchie 1.12 pure' }
                 ]
             },
             {
@@ -225,6 +276,20 @@ class PvpService {
         });
 
         return found;
+    }
+
+    /**
+     * Create a custom PvP client instance for any Minecraft version
+     */
+    createCustomPvpProfile({ name, version, loader = 'fabric' }) {
+        return instanceService.createInstance({
+            name: name || `RX PvP ${version}`,
+            version: version,
+            loader: loader,
+            icon: 'shield',
+            domain: 'pvp',
+            pvpProfile: version
+        });
     }
 
     /**

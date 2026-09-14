@@ -671,6 +671,9 @@ class RxcorpApp {
         const curDomain = this.getCurrentDomain();
         this.activeInstance = this.getActiveInstanceForDomain(curDomain);
         this.updateDockInstancePill();
+        if (typeof this.renderPvPVersions === 'function') {
+            this.renderPvPVersions();
+        }
 
         // 4. Populate Local Instances Grid (view-instances)
         if (!grid) return;
@@ -924,48 +927,34 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // PVP & COMPETITIVE CLIENT HUB (SOAR / FROST STYLE)
+    // PVP & COMPETITIVE CLIENT HUB (SOAR / LUNAR MULTI-VERSION STYLE)
     // ==========================================
     initPvP() {
         const selectPvp = document.getElementById('select-pvp-instance');
         selectPvp?.addEventListener('change', () => {
             if (selectPvp.value) {
                 this.setActiveInstanceForDomain('pvp', selectPvp.value);
+                this.renderPvPVersions();
                 this.renderPvPMods();
             }
         });
 
-        // Quick Launch / Switch Buttons for the 2 Titans & Purist
-        document.getElementById('btn-quick-pvp-189')?.addEventListener('click', async () => {
-            const inst = pvpService.getOrCreatePvpProfile('1.8.9');
-            if (inst) {
-                await this.loadInstances();
-                this.setActiveInstanceForDomain('pvp', inst.id);
-                this.selectDribbbleMode('pvp');
-                this.showNotification('RX PvP Client 1.8.9 Prêt !', 'Profil 1.8.9 (Spam-Click & BedWars) sélectionné.');
-                this.launchCurrentInstance();
-            }
-        });
-
-        document.getElementById('btn-quick-pvp-121')?.addEventListener('click', async () => {
-            const inst = pvpService.getOrCreatePvpProfile('1.21');
-            if (inst) {
-                await this.loadInstances();
-                this.setActiveInstanceForDomain('pvp', inst.id);
-                this.selectDribbbleMode('pvp');
-                this.showNotification('RX PvP Client 1.21+ Prêt !', 'Profil 1.21+ (Bouclier & Cristaux) sélectionné.');
-                this.launchCurrentInstance();
-            }
-        });
-
-        document.getElementById('btn-quick-pvp-1710')?.addEventListener('click', async () => {
-            const inst = pvpService.getOrCreatePvpProfile('1.7.10');
-            if (inst) {
-                await this.loadInstances();
-                this.setActiveInstanceForDomain('pvp', inst.id);
-                this.selectDribbbleMode('pvp');
-                this.showNotification('RX PvP Client 1.7.10 HCF Prêt !', 'Profil 1.7.10 puriste sélectionné.');
-            }
+        // Add custom PvP version button
+        document.getElementById('btn-add-pvp-custom')?.addEventListener('click', () => {
+            const ver = prompt('Entrez la version Minecraft pour le client PvP (ex: 1.20.4, 1.19.4, 1.18.2, 1.16.5, 1.8.9) :', '1.20.4');
+            if (!ver || !ver.trim()) return;
+            const cleanVer = ver.trim();
+            const loader = (cleanVer.startsWith('1.8') || cleanVer.startsWith('1.7') || cleanVer.startsWith('1.12')) ? 'forge' : 'fabric';
+            const inst = pvpService.createCustomPvpProfile({
+                name: `RX PvP ${cleanVer} (${loader.toUpperCase()})`,
+                version: cleanVer,
+                loader: loader
+            });
+            this.setActiveInstanceForDomain('pvp', inst.id);
+            this.loadInstances();
+            this.renderPvPVersions();
+            this.renderPvPMods();
+            this.showNotification('Version PvP Créée', `${inst.name} est prête à être configurée.`);
         });
 
         // Soar / Frost style category tabs
@@ -995,6 +984,90 @@ class RxcorpApp {
                     }
                 }
             });
+        });
+
+        // Initial render of all PvP versions
+        this.renderPvPVersions();
+    }
+
+    renderPvPVersions() {
+        const container = document.getElementById('pvp-standards-container');
+        if (!container) return;
+
+        const profiles = pvpService.getProfiles();
+        const activeInst = this.getActiveInstanceForDomain('pvp');
+        container.innerHTML = '';
+
+        profiles.forEach(prof => {
+            const isSelected = (activeInst?.pvpProfile === prof.id || activeInst?.version === prof.versionKey);
+            const card = document.createElement('div');
+            card.className = `pvp-standard-card card-${prof.id.replace(/\./g, '')} ${isSelected ? 'active-profile' : ''}`;
+            if (isSelected) {
+                card.style.borderColor = prof.accentColor;
+                card.style.boxShadow = `0 0 20px ${prof.accentColor}44`;
+            }
+
+            const modesBadges = prof.modes.map(m => `<span class="pvp-mode-chip">${m}</span>`).join('');
+            const serversNames = prof.servers.map(s => s.name).join(', ');
+
+            card.innerHTML = `
+                <div>
+                    <div class="pvp-card-top">
+                        <span class="pvp-badge" style="background: ${prof.accentColor}1a; border: 1px solid ${prof.accentColor}55; color: ${prof.accentColor};">
+                            ${prof.tag}
+                        </span>
+                        <span class="pvp-version-tag">MC ${prof.versionKey}</span>
+                    </div>
+                    <h3 class="pvp-titan-title" style="font-size: 16px; margin-bottom: 2px;">${prof.name}</h3>
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: ${prof.accentColor}; margin-bottom: 8px; font-weight: 700;">
+                        ${prof.style}
+                    </div>
+                    <p class="pvp-titan-desc" style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">
+                        ${prof.description}
+                    </p>
+                    <div class="pvp-modes-tags" style="margin-bottom: 12px;">
+                        ${modesBadges}
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 14px;">
+                        Serveurs phares : <span style="color: #cbd5e1; font-weight: 600;">${serversNames}</span>
+                    </div>
+                </div>
+
+                <div class="pvp-card-actions" style="display: flex; gap: 8px;">
+                    <button class="rx-btn ${isSelected ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-pvp-version" style="flex: 1; height: 36px; font-size: 12px; font-weight: 700;">
+                        <span>${isSelected ? '✓ Sélectionné' : 'Sélectionner'}</span>
+                    </button>
+                    <button class="rx-btn rx-btn-cyan btn-launch-pvp-version" style="height: 36px; padding: 0 14px; font-weight: 800; font-size: 12px;" title="Lancer directement cette version">
+                        <span>⚡ Jouer</span>
+                    </button>
+                </div>
+            `;
+
+            card.querySelector('.btn-select-pvp-version').addEventListener('click', async () => {
+                const inst = pvpService.getOrCreatePvpProfile(prof.id);
+                if (inst) {
+                    await this.loadInstances();
+                    this.setActiveInstanceForDomain('pvp', inst.id);
+                    this.renderPvPVersions();
+                    this.renderPvPMods();
+                    this.showNotification('Version PvP Sélectionnée', `${prof.name} est maintenant active.`);
+                }
+            });
+
+            card.querySelector('.btn-launch-pvp-version').addEventListener('click', async () => {
+                const inst = pvpService.getOrCreatePvpProfile(prof.id);
+                if (inst) {
+                    await this.loadInstances();
+                    this.setActiveInstanceForDomain('pvp', inst.id);
+                    this.selectDribbbleMode('pvp');
+                    this.renderPvPVersions();
+                    this.renderPvPMods();
+                    this.showNotification('Lancement de ' + prof.name, 'Démarrage du client PvP...');
+                    this.launchCurrentInstance();
+                }
+            });
+
+            container.appendChild(card);
         });
     }
 

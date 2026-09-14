@@ -1746,9 +1746,19 @@ input:checked + .slider:before {
    -------------------------------------------------------------------------- */
 .pvp-standards-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 14px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+@media (max-width: 1200px) {
+    .pvp-standards-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 800px) {
+    .pvp-standards-container {
+        grid-template-columns: 1fr;
+    }
 }
 
 .pvp-standard-card {
@@ -1756,7 +1766,7 @@ input:checked + .slider:before {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 18px;
-    padding: 18px 20px;
+    padding: 16px 18px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
@@ -1764,16 +1774,15 @@ input:checked + .slider:before {
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.card-189:hover {
-    border-color: rgba(244, 63, 94, 0.6);
-    box-shadow: 0 12px 32px rgba(244, 63, 94, 0.22);
+.pvp-standard-card:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
     transform: translateY(-3px);
 }
 
-.card-121:hover {
-    border-color: rgba(0, 240, 255, 0.6);
-    box-shadow: 0 12px 32px rgba(0, 240, 255, 0.22);
-    transform: translateY(-3px);
+.pvp-standard-card.active-profile {
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
 }
 
 .pvp-card-top {
