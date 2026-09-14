@@ -496,25 +496,118 @@ class RxcorpApp {
     initUpdater() {
         const updatePill = document.getElementById('update-pill');
         const updateText = document.getElementById('update-pill-text');
-        if (!updatePill || !updateText) return;
+        const floatingBanner = document.getElementById('floating-update-pill');
+        const floatingText = document.getElementById('floating-update-text');
+        const floatingBtn = document.getElementById('btn-floating-update-action');
+        const btnCheckUpdate = document.getElementById('btn-check-update');
+        const feedbackCheck = document.getElementById('update-check-feedback');
+
+        if (btnCheckUpdate) {
+            btnCheckUpdate.addEventListener('click', () => {
+                btnCheckUpdate.disabled = true;
+                btnCheckUpdate.innerHTML = '<span>⏳ Recherche...</span>';
+                if (feedbackCheck) feedbackCheck.textContent = 'Connexion au serveur...';
+                ipcRenderer.send('check-for-update');
+                setTimeout(() => {
+                    if (btnCheckUpdate.disabled) {
+                        btnCheckUpdate.disabled = false;
+                        btnCheckUpdate.innerHTML = '<span>🔄 Vérifier les Mises à Jour</span>';
+                    }
+                }, 8000);
+            });
+        }
+
+        if (floatingBtn) {
+            floatingBtn.addEventListener('click', () => {
+                ipcRenderer.send('install-update-now');
+            });
+        }
 
         ipcRenderer.on('updater-event', (event, data) => {
             console.log('[RXCORP Updater Event]', data);
-            if (data.status === 'available') {
-                updatePill.style.display = 'inline-flex';
-                updateText.textContent = `⚡ Téléchargement v${data.version || ''}...`;
+
+            if (data.status === 'checking') {
+                if (feedbackCheck) feedbackCheck.textContent = 'Vérification du cloud...';
+            } else if (data.status === 'available') {
+                const targetVer = data.version || '';
+                if (updatePill) {
+                    updatePill.style.display = 'inline-flex';
+                    updatePill.style.borderColor = 'var(--cyan)';
+                    updatePill.style.background = 'rgba(14, 165, 233, 0.15)';
+                }
+                if (updateText) {
+                    updateText.style.color = 'var(--cyan)';
+                    updateText.textContent = `⚡ Téléchargement v${targetVer}...`;
+                }
+
+                if (floatingBanner && floatingText && floatingBtn) {
+                    floatingBanner.style.display = 'flex';
+                    floatingBanner.style.borderColor = 'var(--cyan)';
+                    floatingText.textContent = `⚡ Version v${targetVer} détectée ! Téléchargement en cours...`;
+                    floatingBtn.textContent = 'Téléchargement...';
+                    floatingBtn.disabled = true;
+                }
+
+                if (feedbackCheck) feedbackCheck.textContent = `Mise à jour v${targetVer} détectée !`;
+                this.showNotification('Mise à jour disponible !', `Téléchargement de la version ${targetVer} en arrière-plan.`);
             } else if (data.status === 'downloading') {
-                updatePill.style.display = 'inline-flex';
-                updateText.textContent = `📥 Téléchargement: ${data.percent}%`;
+                const pct = data.percent || 0;
+                if (updatePill) updatePill.style.display = 'inline-flex';
+                if (updateText) updateText.textContent = `📥 ${pct}%`;
+
+                if (floatingBanner && floatingText) {
+                    floatingBanner.style.display = 'flex';
+                    floatingText.textContent = `📥 Téléchargement de la mise à jour : ${pct}%`;
+                }
+                if (feedbackCheck) feedbackCheck.textContent = `Téléchargement : ${pct}%`;
             } else if (data.status === 'ready') {
-                updatePill.style.display = 'inline-flex';
-                updatePill.style.borderColor = '#10b981';
-                updatePill.style.background = 'rgba(16, 185, 129, 0.2)';
-                updateText.style.color = '#10b981';
-                updateText.textContent = `🚀 Relancer pour appliquer v${data.version || ''}`;
-                updatePill.onclick = () => {
-                    ipcRenderer.send('install-update-now');
-                };
+                const readyVer = data.version || '';
+                if (updatePill) {
+                    updatePill.style.display = 'inline-flex';
+                    updatePill.style.borderColor = 'var(--emerald)';
+                    updatePill.style.background = 'rgba(16, 185, 129, 0.2)';
+                    updatePill.onclick = () => ipcRenderer.send('install-update-now');
+                }
+                if (updateText) {
+                    updateText.style.color = 'var(--emerald)';
+                    updateText.textContent = `🚀 Relancer pour v${readyVer}`;
+                }
+
+                if (floatingBanner && floatingText && floatingBtn) {
+                    floatingBanner.style.display = 'flex';
+                    floatingBanner.style.borderColor = 'var(--emerald)';
+                    floatingText.textContent = `🚀 Version v${readyVer} prête ! Redémarrez pour installer.`;
+                    floatingBtn.textContent = 'Redémarrer';
+                    floatingBtn.disabled = false;
+                    floatingBtn.style.background = 'var(--emerald)';
+                    floatingBtn.style.borderColor = 'var(--emerald-light)';
+                }
+
+                if (feedbackCheck) feedbackCheck.textContent = `Version v${readyVer} prête !`;
+                this.showNotification('Mise à jour prête ! 🚀', `La version ${readyVer} a été téléchargée. Cliquez pour redémarrer.`);
+            } else if (data.status === 'not-available') {
+                const currentV = data.version || data.currentVersion || '2.5.1';
+                if (data.isManual) {
+                    this.showNotification('À jour !', `Votre launcher est à la version la plus récente (v${currentV}).`);
+                }
+                if (feedbackCheck) feedbackCheck.textContent = `À jour (v${currentV})`;
+                if (btnCheckUpdate) {
+                    btnCheckUpdate.disabled = false;
+                    btnCheckUpdate.innerHTML = '<span>✓ Vous êtes à jour</span>';
+                    setTimeout(() => {
+                        btnCheckUpdate.innerHTML = '<span>🔄 Vérifier les Mises à Jour</span>';
+                    }, 4000);
+                }
+            } else if (data.status === 'error') {
+                console.warn('[Updater Error]', data.error);
+                if (feedbackCheck) feedbackCheck.textContent = `Erreur: ${data.error}`;
+                if (data.isManual) {
+                    this.showNotification('Erreur de mise à jour', `${data.error}`);
+                }
+                if (btnCheckUpdate) {
+                    btnCheckUpdate.disabled = false;
+                    btnCheckUpdate.innerHTML = '<span>🔄 Réessayer</span>';
+                }
             }
         });
     }

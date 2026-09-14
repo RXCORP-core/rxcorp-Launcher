@@ -28,23 +28,37 @@ if (!fs.existsSync(TARGET_UPDATE_DIR)) {
 // 2. Locate built files
 const files = fs.readdirSync(DIST_DIR);
 const ymlFile = files.find(f => f.endsWith('latest.yml'));
-const exeFile = files.find(f => f.endsWith('.exe') && !f.startsWith('__uninstaller'));
-const blockmapFile = files.find(f => f.endsWith('.blockmap'));
+if (!ymlFile) {
+    console.error('[ERREUR] Fichier latest.yml manquant dans dist/');
+    process.exit(1);
+}
 
-if (!ymlFile || !exeFile) {
-    console.error('[ERREUR] Fichiers latest.yml ou .exe manquants dans dist/');
+const ymlContent = fs.readFileSync(path.join(DIST_DIR, ymlFile), 'utf8');
+const pathMatch = ymlContent.match(/path:\s*(.+)/);
+const exeFile = pathMatch ? pathMatch[1].trim() : files.find(f => f.endsWith('.exe') && !f.includes('Portable') && !f.startsWith('__uninstaller'));
+const blockmapFile = files.find(f => f.endsWith('.blockmap') && f.includes(exeFile.replace('.exe', '')));
+
+if (!exeFile || !fs.existsSync(path.join(DIST_DIR, exeFile))) {
+    console.error(`[ERREUR] Fichier .exe (${exeFile}) manquant dans dist/`);
     process.exit(1);
 }
 
 console.log(`[1/4] Copie de ${ymlFile}...`);
 fs.copyFileSync(path.join(DIST_DIR, ymlFile), path.join(TARGET_UPDATE_DIR, 'latest.yml'));
 
-console.log(`[2/4] Copie de ${exeFile}...`);
+console.log(`[2/4] Copie de l'installateur ${exeFile}...`);
 fs.copyFileSync(path.join(DIST_DIR, exeFile), path.join(TARGET_UPDATE_DIR, exeFile));
 
 // Also copy as direct download root
 fs.copyFileSync(path.join(DIST_DIR, exeFile), TARGET_EXE);
 fs.copyFileSync(path.join(DIST_DIR, exeFile), '/var/www/landing/RXCORP-Launcher-v2.exe');
+
+// Check if standalone portable .exe was built
+const portableExe = files.find(f => f.includes('Portable') && f.endsWith('.exe'));
+if (portableExe && fs.existsSync(path.join(DIST_DIR, portableExe))) {
+    console.log(`[2b/4] Copie de la version portable autonome ${portableExe}...`);
+    fs.copyFileSync(path.join(DIST_DIR, portableExe), '/var/www/landing/RXCORP-Launcher-Portable.exe');
+}
 
 const unpackedDir = path.join(DIST_DIR, 'win-unpacked');
 if (fs.existsSync(unpackedDir)) {

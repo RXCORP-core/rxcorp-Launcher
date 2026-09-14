@@ -102,7 +102,11 @@ class Index {
                         arch: "x64"
                     }]
                 },
+                portable: {
+                    artifactName: "${productName}-Portable.${ext}"
+                },
                 nsis: {
+                    artifactName: "${productName}-${os}-${arch}.${ext}",
                     oneClick: true,
                     allowToChangeInstallationDirectory: false,
                     createDesktopShortcut: true,

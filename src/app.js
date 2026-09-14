@@ -154,22 +154,39 @@ app.on('window-all-closed', () => {
     app.quit();
 });
 
+autoUpdater.logger = console;
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
+if (!app.isPackaged) {
+    autoUpdater.forceDevUpdateConfig = true;
+}
+
 autoUpdater.setFeedURL({
     provider: 'generic',
     url: 'https://rxcorp.fr/launcher/update/'
 });
 
-function checkLauncherUpdates() {
-    if (app.isPackaged) {
-        autoUpdater.checkForUpdates().catch(err => {
-            console.log('[AutoUpdater] Check skipped/error:', err ? err.message : '');
+let isCheckingManually = false;
+
+function checkLauncherUpdates(manual = false) {
+    isCheckingManually = manual;
+    console.log(`[AutoUpdater] Checking for updates (manual: ${manual}, isPackaged: ${app.isPackaged})...`);
+    const win = MainWindow.getWindow();
+    if (win) win.webContents.send('updater-event', { status: 'checking', isManual: manual });
+
+    autoUpdater.checkForUpdates().then(res => {
+        console.log('[AutoUpdater] Check complete:', res ? res.updateInfo?.version : 'up to date');
+    }).catch(err => {
+        console.error('[AutoUpdater] Check error:', err ? err.message : err);
+        if (win) win.webContents.send('updater-event', {
+            status: 'error',
+            error: err ? err.message : 'Erreur inconnue',
+            isManual: isCheckingManually
         });
-    }
+    });
 }
 
-ipcMain.on('check-for-update', () => checkLauncherUpdates());
+ipcMain.on('check-for-update', () => checkLauncherUpdates(true));
 ipcMain.on('install-update-now', () => {
     console.log('[AutoUpdater] Applying update now (quitAndInstall)...');
     try {
@@ -188,17 +205,24 @@ ipcMain.on('install-update-now', () => {
 
 autoUpdater.on('checking-for-update', () => {
     const win = MainWindow.getWindow();
-    if (win) win.webContents.send('updater-event', { status: 'checking' });
+    if (win) win.webContents.send('updater-event', { status: 'checking', isManual: isCheckingManually });
 });
 
 autoUpdater.on('update-available', (info) => {
     const win = MainWindow.getWindow();
-    if (win) win.webContents.send('updater-event', { status: 'available', version: info ? info.version : '' });
+    const ver = info ? info.version : '';
+    console.log('[AutoUpdater] Update available:', ver);
+    if (win) win.webContents.send('updater-event', { 
+        status: 'available', 
+        version: ver,
+        currentVersion: app.getVersion(),
+        isManual: isCheckingManually 
+    });
     if (Notification && Notification.isSupported()) {
         try {
             const notif = new Notification({
                 title: '⚡ RXCORP // MISE À JOUR DISPONIBLE',
-                body: `La version ${info ? info.version : ''} est en cours de téléchargement...`,
+                body: `La version ${ver} est en cours de téléchargement...`,
                 icon: path.join(__dirname, 'assets/images/icon/icon.png')
             });
             notif.show();
@@ -208,7 +232,14 @@ autoUpdater.on('update-available', (info) => {
 
 autoUpdater.on('update-not-available', (info) => {
     const win = MainWindow.getWindow();
-    if (win) win.webContents.send('updater-event', { status: 'not-available', version: info ? info.version : null });
+    const ver = info ? info.version : app.getVersion();
+    console.log('[AutoUpdater] Update not available. Already at latest:', ver);
+    if (win) win.webContents.send('updater-event', { 
+        status: 'not-available', 
+        version: ver,
+        currentVersion: app.getVersion(),
+        isManual: isCheckingManually 
+    });
 });
 
 autoUpdater.on('download-progress', (progress) => {
@@ -278,7 +309,7 @@ autoUpdater.on('update-downloaded', (info) => {
 autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err ? err.message : err);
     const win = MainWindow.getWindow();
-    if (win) win.webContents.send('updater-event', { status: 'error', error: err ? err.message : 'Unknown' });
+    if (win) win.webContents.send('updater-event', { status: 'error', error: err ? err.message : 'Unknown', isManual: isCheckingManually });
 });
 
 // ==========================================
