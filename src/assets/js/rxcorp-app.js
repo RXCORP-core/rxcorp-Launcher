@@ -22,6 +22,13 @@ const modrinthService = require(path.join(servicesDir, 'modrinthService.js'));
 const curseforgeService = require(path.join(servicesDir, 'curseforgeService.js'));
 const gameLauncher = require(path.join(servicesDir, 'gameLauncher.js'));
 
+const utilsDir = fs.existsSync(path.join(__dirname, 'utils'))
+    ? path.join(__dirname, 'utils')
+    : (fs.existsSync(path.join(__dirname, 'assets/js/utils')) 
+        ? path.join(__dirname, 'assets/js/utils') 
+        : path.join(__dirname, 'src/assets/js/utils'));
+const i18n = require(path.join(utilsDir, 'i18n.js'));
+
 // Local storage
 const store = new Store({
     defaults: {
@@ -124,8 +131,9 @@ class RxcorpApp {
     }
 
     async init() {
-        console.log('[RXCORP] Initializing Launcher 2.4...');
+        console.log('[RXCORP] Initializing Launcher 2.5...');
         this.initWindowControls();
+        this.initI18n();
         this.initDribbbleShell();
         this.initModals();
         this.initSettings();
@@ -452,6 +460,33 @@ class RxcorpApp {
         document.getElementById('link-create-key')?.addEventListener('click', (e) => {
             e.preventDefault();
             shell.openExternal('https://panel.rxcorp.fr/account/api');
+        });
+    }
+
+    // ==========================================
+    // MULTI-LANGUAGE I18N SYSTEM
+    // ==========================================
+    initI18n() {
+        // Initial application of active language
+        i18n.applyTranslations();
+
+        // Bind all language switch pills/buttons
+        document.querySelectorAll('.lang-btn-switch').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const lang = btn.dataset.lang;
+                if (lang) {
+                    i18n.setLang(lang);
+                    this.renderAccountsList();
+                    this.updateDockInstancePill();
+                    const readyText = i18n.t('ready_to_play');
+                    this.updateDockStatus(readyText, 0);
+                    this.showNotification(
+                        lang === 'fr' ? 'Langue changée' : 'Language changed',
+                        lang === 'fr' ? 'Interface en Français 🇫🇷' : 'English interface 🇬🇧'
+                    );
+                }
+            });
         });
     }
 
@@ -1595,182 +1630,105 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // ONBOARDING SETUP WIZARD (PAGE DE CONFIG)
+    // ONBOARDING SETUP WIZARD (FIRST LAUNCH SIMPLE LOGIN)
     // ==========================================
     initOnboardingWizard() {
         const overlay = document.getElementById('page-onboarding');
         const btnOpen = document.getElementById('btn-open-config-wizard');
-        const btnFinish = document.getElementById('btn-onboard-finish');
+        const btnClose = document.getElementById('btn-close-onboard');
         const btnMicrosoft = document.getElementById('btn-onboard-microsoft');
-        const btnToggleOffline = document.getElementById('btn-onboard-toggle-offline');
-        const offlineWrap = document.getElementById('onboard-offline-input-wrap');
         const inputUsername = document.getElementById('input-onboard-username');
         const btnConfirmOffline = document.getElementById('btn-onboard-confirm-offline');
-        const cardCloud = document.getElementById('onboard-card-cloud');
-        const cardLocal = document.getElementById('onboard-card-local');
-        const pelicanDetails = document.getElementById('onboard-pelican-details');
-        const inputUrl = document.getElementById('input-onboard-panel-url');
-        const inputKey = document.getElementById('input-onboard-panel-key');
-        const btnSso = document.getElementById('btn-onboard-sso');
 
         if (!overlay) return;
 
-        let selectedMode = (store.get('hasPelicanServer') ?? (store.get('apiKey') ? true : false)) ? 'cloud' : 'local';
-
-        const updateModeCards = (mode) => {
-            selectedMode = mode;
-            if (cardCloud && cardLocal) {
-                cardCloud.classList.toggle('active-cloud', mode === 'cloud');
-                cardLocal.classList.toggle('active-local', mode === 'local');
-            }
-            if (pelicanDetails) {
-                pelicanDetails.style.display = mode === 'cloud' ? 'block' : 'none';
-            }
-        };
-
-        const updateAccountPreview = () => {
-            const acc = this.getActiveAccount();
-            const avatar = document.getElementById('onboard-preview-avatar');
-            const nameElem = document.getElementById('onboard-preview-name');
-            const typeElem = document.getElementById('onboard-preview-type');
-            const badgeElem = document.getElementById('onboard-preview-badge');
-
-            if (acc && acc.name) {
-                if (avatar) avatar.src = `https://mc-heads.net/avatar/${acc.name}/36`;
-                if (nameElem) nameElem.innerText = acc.name;
-                const isMs = acc.meta?.type === 'Xbox' || acc.access_token;
-                if (typeElem) typeElem.innerText = isMs ? 'Compte Microsoft Officiel' : 'Pseudo Hors-Ligne';
-                if (badgeElem) {
-                    badgeElem.innerText = '✓ Compte Prêt';
-                    badgeElem.style.color = 'var(--emerald)';
-                    badgeElem.style.background = 'rgba(16, 185, 129, 0.15)';
-                }
-            } else {
-                if (nameElem) nameElem.innerText = 'Aucun compte sélectionné';
-                if (typeElem) typeElem.innerText = 'Veuillez vous connecter ou entrer un pseudo ci-dessus';
-                if (badgeElem) {
-                    badgeElem.innerText = 'En attente de connexion';
-                    badgeElem.style.color = 'var(--amber)';
-                    badgeElem.style.background = 'rgba(245, 158, 11, 0.15)';
-                }
-            }
-        };
-
-        // Pre-fill fields
-        if (inputUrl) inputUrl.value = store.get('panelUrl') || 'https://panel.rxcorp.fr';
-        if (inputKey) inputKey.value = store.get('apiKey') || '';
-        updateModeCards(selectedMode);
-        updateAccountPreview();
-
-        // Check if onboarding was already completed
+        // Check if user already configured an account
         const isConfigured = store.get('configured');
-        if (!isConfigured) {
+        const accounts = store.get('accounts') || [];
+        const hasRealAccount = accounts.some(a => a.name && a.name !== 'Player');
+
+        if (!isConfigured && !hasRealAccount) {
             overlay.style.display = 'flex';
+            if (btnClose) btnClose.style.display = 'none';
+        } else {
+            overlay.style.display = 'none';
         }
 
-        // Open config button from top titlebar
+        // Open config modal from top titlebar
         btnOpen?.addEventListener('click', () => {
-            updateAccountPreview();
-            updateModeCards((store.get('hasPelicanServer') ?? false) ? 'cloud' : 'local');
+            if (btnClose) btnClose.style.display = 'inline-flex';
             overlay.style.display = 'flex';
+            if (inputUsername) inputUsername.focus();
         });
 
-        // Mode cards click
-        cardCloud?.addEventListener('click', () => updateModeCards('cloud'));
-        cardLocal?.addEventListener('click', () => updateModeCards('local'));
-
-        // Toggle Offline input
-        btnToggleOffline?.addEventListener('click', () => {
-            if (offlineWrap) {
-                offlineWrap.style.display = offlineWrap.style.display === 'none' ? 'block' : 'none';
-                if (offlineWrap.style.display === 'block') inputUsername?.focus();
-            }
+        // Close modal if user already has an account
+        btnClose?.addEventListener('click', () => {
+            overlay.style.display = 'none';
         });
 
-        // Confirm offline username
-        btnConfirmOffline?.addEventListener('click', () => {
+        // Handle offline pseudo login
+        const handleOfflineSubmit = () => {
             const val = (inputUsername?.value || '').trim();
             if (!val) {
-                alert('Veuillez entrer un pseudo valide.');
+                alert(i18n.t('login_offline_placeholder') || 'Veuillez entrer un pseudo valide.');
                 return;
             }
-            const accounts = store.get('accounts') || [];
-            if (!accounts.some(a => a.name.toLowerCase() === val.toLowerCase())) {
-                accounts.push({
+            let accList = store.get('accounts') || [];
+            // Remove placeholder 'Player'
+            accList = accList.filter(a => a.name !== 'Player');
+            if (!accList.some(a => a.name.toLowerCase() === val.toLowerCase())) {
+                accList.push({
                     name: val,
                     uuid: 'offline-' + Date.now(),
                     meta: { type: 'Offline', online: false }
                 });
-                store.set('accounts', accounts);
             }
+            store.set('accounts', accList);
             store.set('activeAccountName', val);
+            store.set('configured', true);
             this.renderAccountsList();
-            updateAccountPreview();
-            if (offlineWrap) offlineWrap.style.display = 'none';
-            this.showNotification('Pseudo configuré', `Joueur ${val} actif.`);
+            overlay.style.display = 'none';
+            this.showNotification('Bienvenue', `Joueur ${val} prêt à jouer !`);
+        };
+
+        btnConfirmOffline?.addEventListener('click', handleOfflineSubmit);
+        inputUsername?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleOfflineSubmit();
         });
 
-        // Microsoft Login in Onboarding
+        // Handle Microsoft 1-Click login
         btnMicrosoft?.addEventListener('click', async () => {
             try {
-                this.updateDockStatus('Connexion Microsoft en cours...');
+                this.updateDockStatus(i18n.t('launching') || 'Connexion Microsoft en cours...');
                 const client_id = "00000000402b5328";
                 const auth = await ipcRenderer.invoke('Microsoft-window', client_id);
                 if (auth && auth.name) {
-                    const accounts = store.get('accounts') || [];
-                    accounts.push(auth);
-                    store.set('accounts', accounts);
+                    let accList = store.get('accounts') || [];
+                    accList = accList.filter(a => a.name !== 'Player');
+                    const existingIdx = accList.findIndex(a => a.name.toLowerCase() === auth.name.toLowerCase());
+                    if (existingIdx >= 0) {
+                        accList[existingIdx] = auth;
+                    } else {
+                        accList.push(auth);
+                    }
+                    store.set('accounts', accList);
                     store.set('activeAccountName', auth.name);
+                    store.set('configured', true);
                     this.renderAccountsList();
-                    updateAccountPreview();
                     this.updatePelicanSyncUI();
-                    this.showNotification('Compte Microsoft connecté', `Bienvenue ${auth.name} !`);
+                    overlay.style.display = 'none';
+                    this.showNotification('Compte Microsoft Connecté', `Bienvenue ${auth.name} !`);
+
+                    // Propagate to Pelican whitelist if configured
+                    if (store.get('apiKey')) {
+                        this.handlePelicanSync(true);
+                    }
                 }
             } catch (err) {
                 alert('Erreur Microsoft : ' + err.message);
             } finally {
-                this.updateDockStatus('Prêt à jouer', 0);
+                this.updateDockStatus(i18n.t('ready_to_play'), 0);
             }
-        });
-
-        // Web SSO Button in Onboarding
-        btnSso?.addEventListener('click', () => {
-            this.showNotification('Connexion Panel', 'Ouverture du navigateur pour validation...');
-            ipcRenderer.send('start-web-auth');
-        });
-
-        // Finish configuration button
-        btnFinish?.addEventListener('click', () => {
-            const curAcc = this.getActiveAccount();
-            if (!curAcc) {
-                alert('Veuillez choisir un compte Minecraft (Compte Microsoft ou Pseudo libre) avant de valider.');
-                return;
-            }
-
-            const hasServer = selectedMode === 'cloud';
-            store.set('hasPelicanServer', hasServer);
-
-            if (hasServer && inputKey && inputKey.value.trim()) {
-                store.set('apiKey', inputKey.value.trim());
-            }
-            if (hasServer && inputUrl && inputUrl.value.trim()) {
-                store.set('panelUrl', inputUrl.value.trim());
-            }
-
-            store.set('configured', true);
-            this.updateRailOrder(hasServer);
-
-            // Switch to appropriate view
-            this.selectDribbbleMode(hasServer ? 'cloud' : 'instances');
-
-            // Trigger sync if cloud
-            if (hasServer && store.get('apiKey')) {
-                this.loadCloudServers();
-                this.handlePelicanSync(true);
-            }
-
-            overlay.style.display = 'none';
-            this.showNotification('Configuration terminée !', `Bienvenue sur le launcher RXCORP, ${curAcc.name} !`);
         });
     }
 

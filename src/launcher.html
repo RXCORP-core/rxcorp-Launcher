@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="assets/css/rxcorp.css">
 </head>
 <body>
-    <!-- Background atmospheric Minecraft render & vignette -->
+    <!-- Background atmospheric Minecraft render & soft glass vignette -->
     <div class="app-background"></div>
     <div class="app-background-overlay"></div>
 
@@ -15,24 +15,30 @@
     <header class="app-titlebar">
         <div class="brand-section">
             <img class="brand-logo" src="assets/images/icon/icon.png" alt="RX">
-            <span class="brand-title">RXCORP</span>
+            <span class="brand-title" data-i18n="brand_title">RXCORP</span>
             <span class="brand-badge">2.5</span>
         </div>
 
         <div class="titlebar-center">
             <div id="cloud-pill" class="status-pill" title="Statut de l'infrastructure Cloud">
                 <span class="status-dot online"></span>
-                <span id="cloud-pill-text">RXCORP CLOUD • SYNCHRONISÉ</span>
+                <span id="cloud-pill-text" data-i18n="cloud_sync_ok">RXCORP CLOUD • SYNCHRONISÉ</span>
             </div>
             <div id="update-pill" class="status-pill" style="display: none; cursor: pointer; border-color: var(--cyan); background: rgba(14, 165, 233, 0.12);" title="Mise à jour disponible">
                 <span class="status-dot" style="background: var(--cyan); box-shadow: 0 0 8px var(--cyan);"></span>
-                <span id="update-pill-text" style="color: var(--cyan); font-weight: 700;">MAJ DISPONIBLE</span>
+                <span id="update-pill-text" style="color: var(--cyan); font-weight: 700;" data-i18n="update_available">MAJ DISPONIBLE</span>
             </div>
         </div>
 
         <div class="titlebar-controls">
-            <button id="btn-open-config-wizard" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;" title="Ouvrir la configuration initiale">
-                <span>⚙️ Configuration</span>
+            <!-- Language Switcher Pill -->
+            <div class="lang-switch-pill" id="titlebar-lang-pill" title="Changer la langue / Change language">
+                <button type="button" class="lang-btn-switch active" data-lang="fr">🇫🇷 FR</button>
+                <button type="button" class="lang-btn-switch" data-lang="en">🇬🇧 EN</button>
+            </div>
+
+            <button id="btn-open-config-wizard" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;" title="Gérer mon compte">
+                <span data-i18n="config_btn">⚙️ Compte</span>
             </button>
 
             <div id="user-pill" class="user-pill" title="Mon Compte & Profil">
@@ -52,16 +58,16 @@
     <!-- FLOATING LEFT NAVIGATION RAIL (BEHANCE MINECRAFT LAUNCHER) -->
     <aside class="dribbble-rail behance-rail">
         <div class="rail-top">
-            <!-- 1. Home / Vitrine Behance -->
-            <button class="rail-item active" data-view="home" title="Accueil & Vitrine (Tableau de Bord)">
+            <!-- 1. Home / Actualités -->
+            <button class="rail-item active" data-view="home" data-i18n-title="nav_home" title="Accueil & Actualités">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
             </button>
 
-            <!-- 2. Cloud Pelican Servers -->
-            <button class="rail-item" data-view="cloud" title="Serveurs Cloud Pelican (Officiels RXCORP)">
+            <!-- 2. Serveurs Cloud Pelican -->
+            <button class="rail-item" data-view="cloud" data-i18n-title="nav_cloud" title="Serveurs Cloud Pelican">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                     <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
@@ -70,8 +76,8 @@
                 </svg>
             </button>
 
-            <!-- 3. Local Profiles & Instances -->
-            <button class="rail-item" data-view="instances" title="Profils Locaux (Fabric, Forge, NeoForge, Vanilla)">
+            <!-- 3. Profils Locaux & Modpacks -->
+            <button class="rail-item" data-view="instances" data-i18n-title="nav_instances" title="Profils & Modpacks Locaux">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -79,8 +85,8 @@
                 </svg>
             </button>
 
-            <!-- 4. Mod Catalog (CurseForge & Modrinth) -->
-            <button class="rail-item" data-view="modrinth" title="Catalogue Mods & Shaders (Modrinth & CurseForge)">
+            <!-- 4. Catalogue Mods & Shaders -->
+            <button class="rail-item" data-view="modrinth" data-i18n-title="nav_mods" title="Catalogue Mods & Shaders">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                     <line x1="7" y1="7" x2="7.01" y2="7"></line>
@@ -90,7 +96,7 @@
 
         <div class="rail-bottom">
             <!-- Add Instance Quick Action -->
-            <button id="btn-rail-add" class="rail-item rail-add-btn" title="Créer un nouveau profil local">
+            <button id="btn-rail-add" class="rail-item rail-add-btn" data-i18n-title="nav_add_instance" title="Créer un nouveau profil local">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -98,7 +104,7 @@
             </button>
 
             <!-- Settings & Whitelist Sync -->
-            <button class="rail-item" data-view="settings" title="Paramètres, Whitelist & Mémoire RAM">
+            <button class="rail-item" data-view="settings" data-i18n-title="nav_settings" title="Paramètres & Whitelist">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -110,192 +116,33 @@
     <!-- MAIN APP STAGE -->
     <main class="behance-stage">
         <!-- =========================================================================
-             VIEW 1: HOME (BEHANCE 1:1 SHOWCASE DASHBOARD)
+             VIEW 1: HOME (CLEAN, AIRY SHOWCASE WITH NEWS - BEHANCE SLICE 2)
              ========================================================================= -->
         <section id="view-home" class="view-container active">
-            <div class="showcase-layout">
-                <!-- LEFT COLUMN: BANNER + 6 CARDS GRID + QUICK LISTS -->
-                <div class="showcase-left">
-                    <!-- Top Banner -->
-                    <div class="showcase-banner">
-                        <div class="banner-tag-row">
-                            <span class="banner-tag active">OFFICIEL RXCORP</span>
-                            <span class="banner-tag">MINECRAFT 1.21.4</span>
-                            <span class="banner-tag">PELICAN CLOUD</span>
-                        </div>
-                        <h2 class="banner-title">RXCORP CLOUD & LOCAL</h2>
-                        <p class="banner-subtitle">Synchronisation automatique de la whitelist Microsoft, serveurs haute performance et profils autonomes.</p>
-                    </div>
-
-                    <!-- 6 Game / Instance Cards Grid (Exact Behance layout) -->
-                    <div class="behance-cards-grid">
-                        <!-- Card 1: Serveur Cloud Pelican -->
-                        <div class="game-card card-quick-play" data-target-type="cloud" data-target-name="Serveur Survie Pelican">
-                            <div class="game-card-thumb-wrap">
-                                <img class="game-card-thumb" src="assets/images/heroes/hero_cloud.jpg" alt="Survie Cloud">
-                                <span class="game-card-badge" style="color: var(--emerald-light);">PELICAN</span>
-                            </div>
-                            <div class="game-card-body">
-                                <span class="game-card-title">Survie Officielle</span>
-                                <span class="game-card-sub">MC 1.21.4 • 18ms • En ligne</span>
-                                <div class="game-card-footer">
-                                    <span class="game-card-status-dot"></span>
-                                    <button class="card-action-btn btn-dash-card-act">JOUER</button>
-                                </div>
-                            </div>
+            <div class="home-modern-layout">
+                <!-- 1. TOP HERO SHOWCASE (Clean, spacious, modern glassmorphism) -->
+                <div class="hero-showcase-card" id="dribbble-hero">
+                    <div class="hero-card-left">
+                        <div id="hero-tag" class="hero-tag-badge">
+                            <span class="status-dot online"></span>
+                            <span id="hero-tag-text" data-i18n="hero_tag_cloud">OFFICIEL RXCORP • SERVEUR CLOUD</span>
                         </div>
 
-                        <!-- Card 2: Fabric 1.21.4 Optimisé -->
-                        <div class="game-card card-quick-play" data-target-type="local" data-target-loader="fabric" data-target-version="1.21.4">
-                            <div class="game-card-thumb-wrap">
-                                <img class="game-card-thumb" src="assets/images/heroes/hero_instances.jpg" alt="Fabric 1.21.4">
-                                <span class="game-card-badge" style="color: #60a5fa;">FABRIC</span>
-                            </div>
-                            <div class="game-card-body">
-                                <span class="game-card-title">Fabric Performance</span>
-                                <span class="game-card-sub">MC 1.21.4 • Sodium, Lithium</span>
-                                <div class="game-card-footer">
-                                    <span class="game-card-status-dot"></span>
-                                    <button class="card-action-btn btn-dash-card-act">LANCER</button>
-                                </div>
-                            </div>
-                        </div>
+                        <h1 id="hero-title" class="hero-main-title" data-i18n="hero_title_cloud">RXCORP CLOUD & SURVIE</h1>
+                        <p id="hero-desc" class="hero-main-desc" data-i18n="hero_desc_cloud">
+                            Infrastructure Cloud Pelican officielle avec synchronisation automatique de la whitelist et connexion 1-clic.
+                        </p>
 
-                        <!-- Card 3: NeoForge 1.21.1 Aventure -->
-                        <div class="game-card card-quick-play" data-target-type="local" data-target-loader="neoforge" data-target-version="1.21.1">
-                            <div class="game-card-thumb-wrap">
-                                <img class="game-card-thumb" src="assets/images/heroes/hero_modrinth.jpg" alt="NeoForge 1.21.1">
-                                <span class="game-card-badge" style="color: var(--amber);">NEOFORGE</span>
-                            </div>
-                            <div class="game-card-body">
-                                <span class="game-card-title">NeoForge Aventure</span>
-                                <span class="game-card-sub">MC 1.21.1 • Modpack Quêtes</span>
-                                <div class="game-card-footer">
-                                    <span class="game-card-status-dot"></span>
-                                    <button class="card-action-btn btn-dash-card-act">LANCER</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 4: Forge 1.20.1 Classic -->
-                        <div class="game-card card-quick-play" data-target-type="local" data-target-loader="forge" data-target-version="1.20.1">
-                            <div class="game-card-thumb-wrap">
-                                <img class="game-card-thumb" src="assets/images/heroes/hero_settings.jpg" alt="Forge 1.20.1">
-                                <span class="game-card-badge" style="color: #f87171;">FORGE</span>
-                            </div>
-                            <div class="game-card-body">
-                                <span class="game-card-title">Forge 1.20.1 Classic</span>
-                                <span class="game-card-sub">MC 1.20.1 • Create, JEI</span>
-                                <div class="game-card-footer">
-                                    <span class="game-card-status-dot"></span>
-                                    <button class="card-action-btn btn-dash-card-act">LANCER</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 5: Minecraft Vanilla 1.21.4 -->
-                        <div class="game-card card-quick-play" data-target-type="local" data-target-loader="vanilla" data-target-version="1.21.4">
-                            <div class="game-card-thumb-wrap">
-                                <img class="game-card-thumb" src="assets/images/heroes/hero_cloud.jpg" alt="Vanilla 1.21.4">
-                                <span class="game-card-badge" style="color: var(--emerald-light);">VANILLA</span>
-                            </div>
-                            <div class="game-card-body">
-                                <span class="game-card-title">Vanilla 1.21.4</span>
-                                <span class="game-card-sub">Officiel Mojang pur</span>
-                                <div class="game-card-footer">
-                                    <span class="game-card-status-dot"></span>
-                                    <button class="card-action-btn btn-dash-card-act">LANCER</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 6: Catalogue Mods & Shaders -->
-                        <div class="game-card card-quick-mods" data-action="open-mods">
-                            <div class="game-card-thumb-wrap">
-                                <img class="game-card-thumb" src="assets/images/heroes/hero_modrinth.jpg" alt="Mods & Shaders">
-                                <span class="game-card-badge" style="color: #c084fc;">STORE</span>
-                            </div>
-                            <div class="game-card-body">
-                                <span class="game-card-title">Catalogue Mods</span>
-                                <span class="game-card-sub">CurseForge & Modrinth</span>
-                                <div class="game-card-footer">
-                                    <span class="game-card-status-dot" style="background: var(--cyan);"></span>
-                                    <button class="card-action-btn">EXPLORER</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pelican Whitelist Sync Banner -->
-                    <div id="pelican-sync-banner" class="pelican-sync-banner">
-                        <div class="sync-banner-info">
-                            <span class="sync-banner-dot" id="sync-banner-dot"></span>
-                            <span id="sync-banner-text">Synchronisation Microsoft ⟷ Whitelist Pelican</span>
-                        </div>
-                        <button id="btn-sync-microsoft-pelican" class="sync-banner-btn" type="button" title="Synchronise votre compte Microsoft officiel sur vos serveurs Pelican">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                            <span id="btn-sync-text">Synchroniser</span>
-                        </button>
-                    </div>
-
-                    <!-- Quick Lists (Real Pelican Servers & Local Instances) -->
-                    <div class="quick-lists-row" id="dribbble-widgets">
-                        <!-- Cloud Servers -->
-                        <div class="tactical-card">
-                            <div class="card-header-bar">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span class="status-dot online"></span>
-                                    <span class="card-label">SERVEURS PELICAN</span>
-                                </div>
-                                <button class="tactical-link-btn" id="btn-widget-cloud">EXPLORER ↗</button>
-                            </div>
-                            <div id="dashboard-cloud-list" class="dashboard-list-body"></div>
-                        </div>
-
-                        <!-- Local Instances -->
-                        <div class="tactical-card">
-                            <div class="card-header-bar">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span class="status-dot" style="background: var(--cyan);"></span>
-                                    <span class="card-label">PROFILS LOCAUX</span>
-                                </div>
-                                <button class="tactical-link-btn" id="btn-widget-instances">GÉRER ↗</button>
-                            </div>
-                            <div id="dashboard-instances-list" class="dashboard-list-body"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIGHT COLUMN: FEATURED SHOWCASE CARD (Matching Behance) -->
-                <div class="showcase-right">
-                    <div class="showcase-featured-card" id="dribbble-hero">
-                        <!-- Top Artwork -->
-                        <div class="featured-art-wrap">
-                            <img class="featured-art-img" src="assets/images/heroes/hero_cloud.jpg" alt="Featured Minecraft Artwork">
-                            <div id="hero-tag" class="featured-tag-pill">
-                                <span class="status-dot online"></span>
-                                <span id="hero-tag-text">OFFICIEL RXCORP • SERVEUR CLOUD</span>
-                            </div>
-                        </div>
-
-                        <!-- Title & Description -->
-                        <div class="featured-meta-box">
-                            <h3 id="hero-title" class="featured-title">RXCORP CLOUD</h3>
-                            <p id="hero-desc" class="featured-desc">
-                                Infrastructure Cloud Pelican officielle avec synchronisation automatique et connexion instantanée en un clic.
-                            </p>
-                        </div>
-
-                        <!-- Launch & Action Stack -->
-                        <div class="featured-action-stack">
-                            <!-- Big Solid Emerald Play Button -->
-                            <button id="btn-launch-game" class="featured-play-btn" title="Lancer Minecraft">
+                        <!-- ACTION ROW (Tactile human buttons, zero AI pills) -->
+                        <div class="hero-action-row">
+                            <!-- Big Tactile Emerald Play Button -->
+                            <button id="btn-launch-game" class="hero-play-tactile" title="Lancer Minecraft">
                                 <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                                <span id="hero-play-label">JOUER</span>
+                                <span id="hero-play-label" data-i18n="play_btn">JOUER</span>
                             </button>
 
-                            <!-- Active Instance / Server Capsule Selector -->
-                            <div id="dock-instance-pill" class="hero-instance-capsule" title="Cliquez pour choisir un profil ou serveur">
+                            <!-- Discrete Instance / Server Capsule Selector -->
+                            <div id="dock-instance-pill" class="hero-instance-select-pill" title="Choisir un profil ou serveur">
                                 <div class="capsule-meta">
                                     <span id="dock-instance-name" class="capsule-title">Minecraft 1.21.4</span>
                                     <span id="dock-instance-sub" class="capsule-sub">Serveur Cloud Pelican</span>
@@ -304,46 +151,144 @@
                             </div>
 
                             <!-- Secondary Action Capsule -->
-                            <button id="btn-hero-secondary" class="hero-secondary-capsule" title="Action secondaire">
-                                <span id="hero-sec-text">⚡ Synchroniser les Mods</span>
+                            <button id="btn-hero-secondary" class="hero-secondary-tactile" title="Action secondaire">
+                                <span id="hero-sec-text" data-i18n="sync_mods_btn">⚡ Synchroniser les Mods</span>
                             </button>
                         </div>
 
-                        <!-- Progress & Status -->
-                        <div class="hero-progress-area">
-                            <div id="dock-status" class="hero-status-readout">
+                        <!-- Progress & Status Track -->
+                        <div class="hero-progress-row">
+                            <div id="dock-status" class="hero-status-text">
                                 <span class="status-dot online"></span>
-                                <span>Prêt à jouer</span>
+                                <span data-i18n="ready_to_play">Prêt à jouer</span>
                             </div>
                             <div id="dock-progress-container" class="hero-progress-track" style="display: none;">
                                 <div id="dock-progress-fill" class="hero-progress-fill"></div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Bottom Social Pills (Behance Slice 1 & 2) -->
-                        <div class="social-pills-row">
-                            <a href="https://discord.gg/rxcorp" target="_blank" class="social-pill discord" title="Rejoindre notre Discord">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-                                <div class="social-pill-info">
-                                    <span class="social-pill-title">Discord</span>
-                                    <span class="social-pill-sub">discord.gg/rxcorp</span>
-                                </div>
-                            </a>
-
-                            <a href="https://rxcorp.fr" target="_blank" class="social-pill youtube" title="Visiter le site web">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                                <div class="social-pill-info">
-                                    <span class="social-pill-title">Site Web</span>
-                                    <span class="social-pill-sub">rxcorp.fr</span>
-                                </div>
-                            </a>
-
-                            <button class="social-circle-btn" onclick="require('electron').shell.openExternal('https://rxcorp.fr')" title="Explorer">
-                                <span>❯</span>
-                            </button>
+                    <!-- Hero Card Right: Live Server & Player Mini Widget -->
+                    <div class="hero-card-right">
+                        <div class="hero-mini-status-box">
+                            <div class="status-box-header">
+                                <span class="status-dot online"></span>
+                                <span style="font-weight: 700; font-size: 11px; color: #fff;">SERVEUR SURVIE</span>
+                            </div>
+                            <div class="status-box-stat">
+                                <span class="stat-num">18 ms</span>
+                                <span class="stat-lbl">Latence Cloud</span>
+                            </div>
+                            <div class="status-box-stat" style="margin-top: 6px;">
+                                <span class="stat-num" style="color: var(--emerald-light);">En Ligne</span>
+                                <span class="stat-lbl">Whitelist Active</span>
+                            </div>
+                            <div class="status-box-actions">
+                                <a href="https://discord.gg/rxcorp" target="_blank" class="mini-social-btn" title="Discord">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                                </a>
+                                <a href="https://rxcorp.fr" target="_blank" class="mini-social-btn" title="Site Web">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 2. ACTUALITÉS & ÉVÉNEMENTS (Matching Behance Slice 2 Weekly News) -->
+                <div class="home-news-section">
+                    <div class="news-section-header">
+                        <div class="news-header-left">
+                            <span class="news-header-dot"></span>
+                            <h2 class="news-header-title" data-i18n="news_section_title">ACTUALITÉS & ÉVÉNEMENTS</h2>
+                        </div>
+                        <a href="https://rxcorp.fr" target="_blank" class="news-header-link" data-i18n="news_view_all">Site Web ↗</a>
+                    </div>
+
+                    <!-- 3 Clean News Cards in a row -->
+                    <div class="news-cards-row">
+                        <!-- News Card 1 -->
+                        <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://rxcorp.fr')">
+                            <div class="news-thumb-box">
+                                <img class="news-thumb-img" src="assets/images/heroes/hero_cloud.jpg" alt="Saison Survie">
+                                <span class="news-tag-badge" data-i18n="news_1_tag">MAJ SERVEUR</span>
+                            </div>
+                            <div class="news-body-box">
+                                <span class="news-date-text" data-i18n="news_1_date">14 Septembre 2026</span>
+                                <h3 class="news-card-title" data-i18n="news_1_title">Ouverture de la Saison Survie 1.21.4</h3>
+                                <p class="news-card-desc" data-i18n="news_1_desc">
+                                    Découvrez les nouvelles zones et profitez de la synchronisation automatique de votre whitelist.
+                                </p>
+                            </div>
+                        </article>
+
+                        <!-- News Card 2 -->
+                        <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://rxcorp.fr')">
+                            <div class="news-thumb-box">
+                                <img class="news-thumb-img" src="assets/images/heroes/hero_modrinth.jpg" alt="Optimisation">
+                                <span class="news-tag-badge" style="color: #60a5fa;" data-i18n="news_2_tag">OPTIMISATION</span>
+                            </div>
+                            <div class="news-body-box">
+                                <span class="news-date-text" data-i18n="news_2_date">12 Septembre 2026</span>
+                                <h3 class="news-card-title" data-i18n="news_2_title">Pack de Shaders & Sodium</h3>
+                                <p class="news-card-desc" data-i18n="news_2_desc">
+                                    Plus de 140 FPS garantis avec notre sélection de mods d'optimisation intégrés au launcher.
+                                </p>
+                            </div>
+                        </article>
+
+                        <!-- News Card 3 -->
+                        <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://discord.gg/rxcorp')">
+                            <div class="news-thumb-box">
+                                <img class="news-thumb-img" src="assets/images/heroes/hero_instances.jpg" alt="Communauté">
+                                <span class="news-tag-badge" style="color: var(--amber);" data-i18n="news_3_tag">COMMUNAUTÉ</span>
+                            </div>
+                            <div class="news-body-box">
+                                <span class="news-date-text" data-i18n="news_3_date">10 Septembre 2026</span>
+                                <h3 class="news-card-title" data-i18n="news_3_title">Rejoignez le Discord Communautaire</h3>
+                                <p class="news-card-desc" data-i18n="news_3_desc">
+                                    Événements hebdomadaires, annonces de tournois et support technique en direct.
+                                </p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- 3. QUICK ACCESS FOOTER PILLS (Clean & Breathable) -->
+                <div class="home-quick-row">
+                    <!-- Pelican Sync Banner -->
+                    <div id="pelican-sync-banner" class="pelican-sync-pill">
+                        <div class="sync-banner-info">
+                            <span class="sync-banner-dot" id="sync-banner-dot"></span>
+                            <span id="sync-banner-text">Synchronisation Microsoft ⟷ Whitelist Pelican</span>
+                        </div>
+                        <button id="btn-sync-microsoft-pelican" class="sync-banner-btn" type="button">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                            <span id="btn-sync-text">Synchroniser</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Navigation Links -->
+                    <div class="quick-nav-pills">
+                        <button class="quick-nav-pill-btn" onclick="document.querySelector('.rail-item[data-view=\'cloud\']')?.click();">
+                            <span>☁️ Serveurs Cloud</span>
+                        </button>
+                        <button class="quick-nav-pill-btn" onclick="document.querySelector('.rail-item[data-view=\'instances\']')?.click();">
+                            <span>🎮 Profils Locaux</span>
+                        </button>
+                        <button class="quick-nav-pill-btn" onclick="document.querySelector('.rail-item[data-view=\'modrinth\']')?.click();">
+                            <span>📦 Mods & Shaders</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden compatibility containers for JavaScript data population -->
+            <div id="dribbble-widgets" style="display: none;">
+                <button id="btn-widget-cloud"></button>
+                <button id="btn-widget-instances"></button>
+                <div id="dashboard-cloud-list"></div>
+                <div id="dashboard-instances-list"></div>
             </div>
         </section>
 
@@ -355,14 +300,14 @@
                 <div>
                     <h2 class="view-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                        <span>Serveurs Pelican Cloud</span>
+                        <span data-i18n="cloud_title">Serveurs Pelican Cloud</span>
                     </h2>
-                    <p class="view-subtitle">Infrastructure officielle RXCORP • Synchronisation automatique des mods et connexion 1-clic</p>
+                    <p class="view-subtitle" data-i18n="cloud_subtitle">Infrastructure officielle RXCORP • Whitelist synchronisée et connexion 1-clic</p>
                 </div>
                 <div>
                     <button id="btn-refresh-cloud" class="rx-btn rx-btn-secondary">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                        <span>Rafraîchir</span>
+                        <span data-i18n="cloud_refresh">Rafraîchir</span>
                     </button>
                 </div>
             </div>
@@ -375,25 +320,25 @@
                         <span class="sync-badge-status" id="sync-badge-status"></span>
                     </div>
                     <div>
-                        <div class="sync-box-title" id="sync-box-title">Compte Détecté</div>
+                        <div class="sync-box-title" id="sync-box-title" data-i18n="sync_detected">Compte Détecté</div>
                         <div class="sync-box-sub" id="sync-box-sub">Synchronisez automatiquement votre gamertag sur la whitelist de tous vos serveurs Pelican Cloud.</div>
                     </div>
                 </div>
                 <button id="btn-sync-cloud-account" class="rx-btn rx-btn-primary" type="button">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                    <span id="btn-sync-cloud-text">Synchroniser Whitelist</span>
+                    <span id="btn-sync-cloud-text" data-i18n="sync_btn">Synchroniser Whitelist</span>
                 </button>
             </div>
 
             <!-- Auth Required Card (if not linked) -->
             <div id="cloud-auth-card" class="tactical-card" style="display: none; text-align: center; padding: 36px 20px;">
                 <div style="font-size: 36px; margin-bottom: 12px;">☁️</div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">Connexion au Panel Pelican Requise</h3>
+                <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">Connexion au Panel Pelican Optionnelle</h3>
                 <p style="font-size: 12px; color: var(--text-dim); max-width: 440px; margin: 0 auto 18px;">
-                    Liez votre clé API Client Pelican pour afficher vos serveurs en temps réel, surveiller les joueurs et synchroniser vos mods.
+                    Si vous possédez un serveur chez RXCORP, entrez votre clé API Client dans les paramètres pour surveiller vos joueurs et synchroniser vos mods.
                 </p>
                 <button id="btn-login-cloud" class="rx-btn rx-btn-primary">
-                    <span>Configurer ma Clé API</span>
+                    <span>Configurer dans les Paramètres</span>
                 </button>
             </div>
 
@@ -409,14 +354,14 @@
                 <div>
                     <h2 class="view-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                        <span>Mes Profils & Modpacks Locaux</span>
+                        <span data-i18n="instances_title">Mes Profils & Modpacks Locaux</span>
                     </h2>
-                    <p class="view-subtitle">Créez et gérez vos installations autonomes de Minecraft (Fabric, Forge, NeoForge, Vanilla)</p>
+                    <p class="view-subtitle" data-i18n="instances_subtitle">Créez et gérez vos installations autonomes de Minecraft (Fabric, Forge, NeoForge, Vanilla)</p>
                 </div>
                 <div>
                     <button id="btn-new-instance" class="rx-btn rx-btn-primary">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Nouveau Profil</span>
+                        <span data-i18n="new_instance_btn">Nouveau Profil</span>
                     </button>
                 </div>
             </div>
@@ -433,17 +378,17 @@
                 <div>
                     <h2 class="view-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                        <span>Catalogue Mods & Shaders</span>
+                        <span data-i18n="mods_title">Catalogue Mods & Shaders</span>
                     </h2>
-                    <p class="view-subtitle">Téléchargez et installez vos mods en 1-clic depuis Modrinth et CurseForge</p>
+                    <p class="view-subtitle" data-i18n="mods_subtitle">Téléchargez et installez vos mods en 1-clic depuis Modrinth et CurseForge</p>
                 </div>
             </div>
 
             <!-- Search Bar & Filters -->
             <div class="mod-search-bar">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input id="input-mod-search" type="text" placeholder="Rechercher un mod, shader, resource pack (ex: Sodium, Iris, JEI, Create...)">
-                <button id="btn-search-mods" class="rx-btn rx-btn-primary" style="padding: 5px 12px; font-size: 11px;">Rechercher</button>
+                <input id="input-mod-search" type="text" data-i18n-placeholder="mods_search_placeholder" placeholder="Rechercher un mod, shader, resource pack (ex: Sodium, Iris, JEI, Create...)">
+                <button id="btn-search-mods" class="rx-btn rx-btn-primary" style="padding: 5px 12px; font-size: 11px;" data-i18n="mods_search_btn">Rechercher</button>
             </div>
 
             <!-- Source & Target Instance Selector Row -->
@@ -471,13 +416,13 @@
                 <div>
                     <h2 class="view-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                        <span>Configuration du Système</span>
+                        <span data-i18n="settings_title">Configuration du Système</span>
                     </h2>
-                    <p class="view-subtitle">Comptes, synchronisation Pelican, whitelist et allocation de mémoire RAM</p>
+                    <p class="view-subtitle" data-i18n="settings_subtitle">Comptes, synchronisation Pelican, whitelist et allocation de mémoire RAM</p>
                 </div>
                 <div>
                     <button id="btn-save-settings" class="rx-btn rx-btn-primary">
-                        <span>Sauvegarder les Paramètres</span>
+                        <span data-i18n="save_settings_btn">Sauvegarder les Paramètres</span>
                     </button>
                 </div>
             </div>
@@ -489,14 +434,14 @@
                     <!-- Compte Minecraft -->
                     <div class="settings-card">
                         <div class="settings-card-header">
-                            <span class="settings-card-title">Compte Minecraft & Authentification</span>
+                            <span class="settings-card-title" data-i18n="account_section">Compte Minecraft & Authentification</span>
                         </div>
 
                         <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
                             <!-- Microsoft Solid White Button -->
                             <button id="btn-add-microsoft" class="rx-btn rx-btn-white" style="flex: 1; padding: 10px 14px;">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
-                                <span>Connexion Microsoft</span>
+                                <span>Connexion Microsoft (Navigateur)</span>
                             </button>
 
                             <!-- Dark Offline Button -->
@@ -512,7 +457,7 @@
                     <!-- Pelican Sync & Whitelist Settings Card -->
                     <div class="settings-card" id="settings-card-pelican">
                         <div class="settings-card-header">
-                            <span class="settings-card-title">Synchronisation Panel Pelican & Whitelist</span>
+                            <span class="settings-card-title" data-i18n="pelican_section">Synchronisation Panel Pelican & Whitelist</span>
                         </div>
 
                         <div class="form-group">
@@ -548,7 +493,7 @@
                     <!-- Performance & RAM -->
                     <div class="settings-card">
                         <div class="settings-card-header">
-                            <span class="settings-card-title">Allocation Mémoire RAM</span>
+                            <span class="settings-card-title" data-i18n="ram_section">Allocation Mémoire RAM</span>
                         </div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -570,7 +515,7 @@
                     <!-- Java & APIs -->
                     <div class="settings-card">
                         <div class="settings-card-header">
-                            <span class="settings-card-title">Java & Clé CurseForge</span>
+                            <span class="settings-card-title" data-i18n="java_section">Java & Clé CurseForge</span>
                         </div>
 
                         <div class="form-group">
@@ -596,7 +541,7 @@
                             <span id="settings-skin-name" class="skin-player-name">Joueur</span>
                             <div class="skin-status-tag">
                                 <span class="status-dot online"></span>
-                                <span id="settings-skin-status">Prêt pour Minecraft 1.21.4</span>
+                                <span id="settings-skin-status" data-i18n="skin_ready">Prêt pour Minecraft 1.21.4</span>
                             </div>
                         </div>
 
@@ -629,111 +574,51 @@
         <button class="update-banner-close" onclick="document.getElementById('floating-update-pill').style.display='none';">✕</button>
     </div>
 
-    <!-- INITIAL CONFIGURATION WIZARD MODAL (SETUP MODAL) -->
+    <!-- FIRST-LAUNCH SIMPLE LOGIN MODAL (BEHANCE SLICE 1: NO FRICTION, ZERO COMPLEX FORMS) -->
     <div id="page-onboarding" class="onboarding-overlay" style="display: none;">
-        <div class="onboarding-card">
-            <!-- Header -->
-            <div class="onboarding-header">
-                <div class="onboarding-brand">
-                    <img class="onboarding-brand-logo" src="assets/images/icon/icon.png" alt="RX">
-                    <div>
-                        <h2 class="onboarding-title">Configuration Initiale du Launcher</h2>
-                        <p class="onboarding-subtitle">Personnalisez vos préférences et votre profil en quelques étapes simples</p>
-                    </div>
-                </div>
-                <!-- Lang Selector -->
-                <div class="lang-toggle-bar">
-                    <button type="button" class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
-                    <button type="button" class="lang-btn" data-lang="en">🇬🇧 EN</button>
+        <div class="first-launch-card">
+            <div class="first-launch-header">
+                <img class="first-launch-logo" src="assets/images/icon/icon.png" alt="RXCORP">
+                <div class="first-launch-lang-row">
+                    <button type="button" class="lang-btn-switch active" data-lang="fr">🇫🇷 FR</button>
+                    <button type="button" class="lang-btn-switch" data-lang="en">🇬🇧 EN</button>
+                    <button type="button" id="btn-close-onboard" class="modal-close-btn" style="display: none; margin-left: 8px;" title="Fermer">✕</button>
                 </div>
             </div>
 
-            <!-- Étape 1: Compte Minecraft -->
-            <div class="onboarding-step-box">
-                <div class="onboarding-step-header">
-                    <span class="onboarding-step-num">1</span>
-                    <span class="onboarding-step-title">Compte de Jeu Minecraft</span>
-                    <span class="onboarding-step-desc">Online Microsoft ou Pseudo Hors-ligne</span>
-                </div>
+            <h2 class="first-launch-title" data-i18n="welcome_title">Bienvenue sur RXCORP Launcher</h2>
+            <p class="first-launch-subtitle" data-i18n="welcome_sub">
+                Choisissez votre mode de connexion pour commencer votre aventure :
+            </p>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-                    <button id="btn-onboard-microsoft" type="button" class="rx-btn rx-btn-white" style="flex: 1; padding: 10px 16px;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
-                        <span>Connexion Compte Microsoft</span>
-                    </button>
-                    <button id="btn-onboard-toggle-offline" type="button" class="rx-btn rx-btn-secondary" style="flex: 1; padding: 10px 16px;">
-                        <span>+ Pseudo Libre (Hors-ligne)</span>
-                    </button>
-                </div>
-
-                <!-- Inline offline input if chosen -->
-                <div id="onboard-offline-input-wrap" style="display: none; margin-bottom: 10px;">
-                    <div style="display: flex; gap: 8px;">
-                        <input id="input-onboard-username" type="text" class="form-input" placeholder="Entrez votre pseudo (ex: Salem, Steve...)" style="flex: 1;">
-                        <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap;">Valider le Pseudo</button>
+            <!-- Option 1: Microsoft 1-Click Web Auth -->
+            <div class="first-launch-option">
+                <button id="btn-onboard-microsoft" type="button" class="first-launch-ms-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
+                    <div style="display: flex; flex-direction: column; text-align: left;">
+                        <span style="font-size: 14px; font-weight: 700; color: #0f172a;" data-i18n="login_microsoft_btn">Connexion Compte Microsoft</span>
+                        <span style="font-size: 11px; color: #64748b; font-weight: 500;" data-i18n="login_microsoft_sub">Ouvre votre navigateur pour une connexion officielle sécurisée</span>
                     </div>
-                </div>
-
-                <!-- Selected Account Preview -->
-                <div id="onboard-account-preview" class="onboarding-account-preview">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <img id="onboard-preview-avatar" src="assets/images/icon/icon.png" style="width: 36px; height: 36px; border-radius: 8px;" alt="Avatar">
-                        <div>
-                            <div id="onboard-preview-name" style="font-size: 13px; font-weight: 700; color: #fff;">Aucun compte sélectionné</div>
-                            <div id="onboard-preview-type" style="font-size: 11px; color: var(--text-dim);">Veuillez vous connecter ou entrer un pseudo ci-dessus</div>
-                        </div>
-                    </div>
-                    <span id="onboard-preview-badge" style="font-size: 10px; font-weight: 700; color: var(--amber); background: rgba(245, 158, 11, 0.15); padding: 4px 10px; border-radius: 4px;">En attente de connexion</span>
-                </div>
-            </div>
-
-            <!-- Étape 2: Mode Serveur Cloud vs Mode Joueur (Potes) -->
-            <div class="onboarding-step-box">
-                <div class="onboarding-step-header">
-                    <span class="onboarding-step-num">2</span>
-                    <span class="onboarding-step-title">Mode d'Utilisation : Serveur Cloud ou Joueur Solo</span>
-                    <span class="onboarding-step-desc">Avez-vous un serveur chez RXCORP ?</span>
-                </div>
-
-                <div class="config-modes-grid" style="margin-top: 0;">
-                    <!-- Mode Cloud -->
-                    <div id="onboard-card-cloud" class="config-mode-card active-cloud" data-mode="cloud">
-                        <div class="config-mode-icon">☁️</div>
-                        <div class="config-mode-body">
-                            <h4>J'ai un serveur RXCORP (Pelican Cloud)</h4>
-                            <p>Mode Cloud principal : vos serveurs s'affichent directement avec whitelist synchronisée et connexion 1-clic.</p>
-                        </div>
-                    </div>
-
-                    <!-- Mode Local / Potes -->
-                    <div id="onboard-card-local" class="config-mode-card" data-mode="local">
-                        <div class="config-mode-icon">🎮</div>
-                        <div class="config-mode-body">
-                            <h4>Mode Joueur Indépendant (Pas de serveur)</h4>
-                            <p>Idéal pour jouer solo ou rejoindre des potes. Accès direct à vos profils locaux Fabric, Forge et mods.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pelican credentials (shown if Cloud selected) -->
-                <div id="onboard-pelican-details" style="margin-top: 14px; padding: 14px 16px; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 12px; font-weight: 700; color: #fff;">Liaison avec le Panel Pelican RXCORP</span>
-                        <button id="btn-onboard-sso" type="button" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;">Connexion Web 1-Clic</button>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <input id="input-onboard-panel-url" type="text" class="form-input" value="https://panel.rxcorp.fr" placeholder="URL Panel">
-                        <input id="input-onboard-panel-key" type="password" class="form-input" placeholder="Clé API Client (pacc_...)">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer Action -->
-            <div>
-                <button id="btn-onboard-finish" type="button" class="onboarding-finish-btn">
-                    <span>Valider la Configuration & Accéder au Launcher</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
+            </div>
+
+            <div class="first-launch-divider">
+                <span>OU</span>
+            </div>
+
+            <!-- Option 2: Offline Mode (Free Pseudo) -->
+            <div class="first-launch-offline-box">
+                <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px;" data-i18n="login_offline_title">Mode Hors-ligne (Pseudo Libre)</div>
+                <div style="display: flex; gap: 8px;">
+                    <input id="input-onboard-username" type="text" class="form-input" data-i18n-placeholder="login_offline_placeholder" placeholder="Entrez votre pseudo (ex: Salem, Steve...)" style="flex: 1; padding: 10px 12px;">
+                    <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap; padding: 10px 16px;" data-i18n="login_offline_btn">
+                        Jouer
+                    </button>
+                </div>
+            </div>
+
+            <div class="first-launch-footer" data-i18n="login_terms">
+                Non affilié à Mojang, AB. Tous droits réservés.
             </div>
         </div>
     </div>
@@ -817,7 +702,7 @@
         </div>
     </div>
 
-    <!-- Hidden compatibility elements to ensure 100% JS support -->
+    <!-- Hidden compatibility elements to ensure 100% JS support without errors -->
     <div style="display: none;">
         <button id="btn-back-dashboard"></button>
         <div id="drawer-title"></div>
@@ -830,6 +715,20 @@
         <button id="btn-open-direct-login"></button>
         <button id="btn-toggle-manual-key"></button>
         <div id="manual-key-container"></div>
+        <button id="btn-onboard-toggle-offline"></button>
+        <div id="onboard-offline-input-wrap"></div>
+        <div id="onboard-account-preview"></div>
+        <div id="onboard-preview-name"></div>
+        <div id="onboard-preview-type"></div>
+        <div id="onboard-preview-badge"></div>
+        <img id="onboard-preview-avatar" src="assets/images/icon/icon.png">
+        <div id="onboard-card-cloud"></div>
+        <div id="onboard-card-local"></div>
+        <div id="onboard-pelican-details"></div>
+        <button id="btn-onboard-sso"></button>
+        <input id="input-onboard-panel-url">
+        <input id="input-onboard-panel-key">
+        <button id="btn-onboard-finish"></button>
     </div>
 
     <!-- Script Controller -->
