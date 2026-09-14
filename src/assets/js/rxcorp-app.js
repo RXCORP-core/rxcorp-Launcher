@@ -779,12 +779,71 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // PVP & PERFORMANCE MODS
+    // PVP & COMPETITIVE CLIENT HUB (SOAR / FROST STYLE)
     // ==========================================
     initPvP() {
         const selectPvp = document.getElementById('select-pvp-instance');
         selectPvp?.addEventListener('change', () => {
             this.renderPvPMods();
+        });
+
+        // Quick Launch / Create Buttons for the 2 Titans & Purist
+        document.getElementById('btn-quick-pvp-189')?.addEventListener('click', async () => {
+            const inst = pvpService.getOrCreatePvpProfile('1.8.9');
+            if (inst) {
+                await this.loadInstances();
+                this.selectInstance(inst.id);
+                this.showNotification('Profil 1.8.9 Prêt !', 'Minecraft 1.8.9 (Spam-Click) est sélectionné.');
+                this.launchCurrentInstance();
+            }
+        });
+
+        document.getElementById('btn-quick-pvp-121')?.addEventListener('click', async () => {
+            const inst = pvpService.getOrCreatePvpProfile('1.21');
+            if (inst) {
+                await this.loadInstances();
+                this.selectInstance(inst.id);
+                this.showNotification('Profil 1.21+ Prêt !', 'Minecraft 1.21.1 (Timing & Bouclier) est sélectionné.');
+                this.launchCurrentInstance();
+            }
+        });
+
+        document.getElementById('btn-quick-pvp-1710')?.addEventListener('click', async () => {
+            const inst = pvpService.getOrCreatePvpProfile('1.7.10');
+            if (inst) {
+                await this.loadInstances();
+                this.selectInstance(inst.id);
+                this.showNotification('Profil 1.7.10 HCF Prêt !', 'Profil 1.7.10 créé et sélectionné.');
+            }
+        });
+
+        // Soar / Frost style category tabs
+        this.activePvPCategory = 'all';
+        const tabBtns = document.querySelectorAll('.pvp-tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const cat = btn.dataset.cat;
+                this.activePvPCategory = cat;
+
+                const modsGrid = document.getElementById('pvp-mods-grid');
+                const serversGrid = document.getElementById('pvp-servers-grid');
+
+                if (cat === 'servers') {
+                    if (modsGrid) modsGrid.style.display = 'none';
+                    if (serversGrid) {
+                        serversGrid.style.display = 'grid';
+                        this.renderPvPServers();
+                    }
+                } else {
+                    if (serversGrid) serversGrid.style.display = 'none';
+                    if (modsGrid) {
+                        modsGrid.style.display = 'grid';
+                        this.renderPvPMods();
+                    }
+                }
+            });
         });
     }
 
@@ -795,7 +854,11 @@ class RxcorpApp {
 
         if (!grid || !targetId) return;
 
-        const catalog = pvpService.getCatalog();
+        let catalog = pvpService.getCatalog();
+        if (this.activePvPCategory && this.activePvPCategory !== 'all' && this.activePvPCategory !== 'servers') {
+            catalog = catalog.filter(m => m.category === this.activePvPCategory);
+        }
+
         const installedStatus = pvpService.checkInstalledMods(targetId);
 
         grid.innerHTML = '';
@@ -808,7 +871,10 @@ class RxcorpApp {
                 <div class="pvp-card-left">
                     <div class="pvp-icon-box">${item.icon}</div>
                     <div class="pvp-text">
-                        <h4>${item.name}</h4>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h4>${item.name}</h4>
+                            <span class="perf-chip" style="font-size: 8.5px;">${item.category}</span>
+                        </div>
                         <p>${item.description}</p>
                     </div>
                 </div>
@@ -846,6 +912,62 @@ class RxcorpApp {
 
             grid.appendChild(card);
         }
+    }
+
+    renderPvPServers() {
+        const grid = document.getElementById('pvp-servers-grid');
+        if (!grid) return;
+
+        const profiles = pvpService.getProfiles();
+        grid.innerHTML = '';
+
+        profiles.forEach(prof => {
+            prof.servers.forEach(srv => {
+                const card = document.createElement('div');
+                card.className = 'pvp-server-card';
+                card.innerHTML = `
+                    <div>
+                        <div class="srv-card-top">
+                            <span class="srv-card-title">${srv.name}</span>
+                            <span class="srv-card-ping">● ${srv.ping}</span>
+                        </div>
+                        <div class="srv-card-desc">${srv.desc}</div>
+                        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-white); margin-top: 6px;">${srv.ip}</div>
+                    </div>
+                    <div class="srv-card-actions">
+                        <button class="rx-btn rx-btn-secondary btn-copy-ip" data-ip="${srv.ip}" style="flex: 1; height: 34px; font-size: 11.5px;">
+                            <span>Copier IP</span>
+                        </button>
+                        <button class="rx-btn rx-btn-primary btn-join-srv" data-ip="${srv.ip}" data-version="${prof.versionKey}" style="flex: 1; height: 34px; font-size: 11.5px; font-weight: 700;">
+                            <span>⚡ Rejoindre</span>
+                        </button>
+                    </div>
+                `;
+
+                card.querySelector('.btn-copy-ip').addEventListener('click', (e) => {
+                    const ip = e.currentTarget.dataset.ip;
+                    const { clipboard } = require('electron');
+                    clipboard.writeText(ip);
+                    e.currentTarget.innerHTML = '<span>✓ Copié !</span>';
+                    setTimeout(() => { e.currentTarget.innerHTML = '<span>Copier IP</span>'; }, 2000);
+                });
+
+                card.querySelector('.btn-join-srv').addEventListener('click', async (e) => {
+                    const ip = e.currentTarget.dataset.ip;
+                    const ver = e.currentTarget.dataset.version;
+                    const profileKey = ver.startsWith('1.8') ? '1.8.9' : (ver.startsWith('1.7') ? '1.7.10' : '1.21');
+                    const inst = pvpService.getOrCreatePvpProfile(profileKey);
+                    if (inst) {
+                        inst.serverAddress = ip;
+                        await this.loadInstances();
+                        this.selectInstance(inst.id);
+                        this.launchCurrentInstance();
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+        });
     }
 
     // ==========================================

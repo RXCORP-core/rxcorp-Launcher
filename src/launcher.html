@@ -373,23 +373,98 @@
                         <div id="modrinth-mods-grid" class="servers-grid"></div>
                     </section>
 
-                    <!-- VIEW 4: PVP & FPS BOOST -->
+                    <!-- VIEW 4: PVP & COMPETITIVE CLIENT HUB (Soar / Frost / Cloud Style) -->
                     <section id="view-pvp" class="view-container">
                         <div class="view-header">
                             <div>
                                 <h2 class="view-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                    <span>Optimisation & Mode PvP</span>
+                                    <span>Client PvP Compétitif & Optimisation</span>
                                 </h2>
-                                <p class="view-subtitle">Toggles tactiques de performance, shaders et mods compétitifs</p>
+                                <p class="view-subtitle">Hub d'e-sport Minecraft inspiré de Soar & Frost Client • Standards 1.8.9 et 1.21+ en 1 clic</p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <label class="form-label" style="margin: 0;">Instance cible :</label>
-                                <select id="select-pvp-instance" class="form-select" style="min-width: 170px;"></select>
+                                <label class="form-label" style="margin: 0;">Profil cible :</label>
+                                <select id="select-pvp-instance" class="form-select" style="min-width: 190px;"></select>
                             </div>
                         </div>
 
+                        <!-- 1. THE 2 TITANS OF PVP (1.8.9 vs 1.21+) -->
+                        <div class="pvp-standards-container">
+                            <!-- TITAN 1: 1.8.9 (SPAM-CLICK & SPEED) -->
+                            <div class="pvp-standard-card card-189">
+                                <div class="pvp-card-top">
+                                    <span class="pvp-badge badge-189">⚡ COMPÉTITION HISTORIQUE</span>
+                                    <span class="pvp-version-tag">MC 1.8.9</span>
+                                </div>
+                                <h3 class="pvp-titan-title">PVP 1.8.9 • SPAM-CLICK</h3>
+                                <p class="pvp-titan-desc">
+                                    La base historique de l'e-sport Minecraft. Zéro cooldown d'attaque, combos rod/épée rapides, block-hitting et fluidité 1.8 brute.
+                                </p>
+                                <div class="pvp-modes-tags">
+                                    <span class="pvp-mode-chip">BedWars</span>
+                                    <span class="pvp-mode-chip">SkyWars</span>
+                                    <span class="pvp-mode-chip">PotPvP</span>
+                                    <span class="pvp-mode-chip">UHC</span>
+                                </div>
+                                <div class="pvp-card-actions">
+                                    <button id="btn-quick-pvp-189" class="rx-btn rx-btn-primary" style="width: 100%; height: 42px; font-weight: 800;">
+                                        <span>⚡ Jouer en 1.8.9 (Compétitif)</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- TITAN 2: 1.21+ (TIMING, SHIELD & CRYSTAL) -->
+                            <div class="pvp-standard-card card-121">
+                                <div class="pvp-card-top">
+                                    <span class="pvp-badge badge-121">🛡️ NOUVELLE GÉNÉRATION</span>
+                                    <span class="pvp-version-tag">MC 1.21+</span>
+                                </div>
+                                <h3 class="pvp-titan-title">PVP 1.21+ • BOUCLIER & CRISTAUX</h3>
+                                <p class="pvp-titan-desc">
+                                    Le standard moderne de Minecraft compétitif. Timing d'arme calculé, blocage au bouclier, crystal PvP, totems et moteur Sodium 200+ FPS.
+                                </p>
+                                <div class="pvp-modes-tags">
+                                    <span class="pvp-mode-chip">Lifesteal SMP</span>
+                                    <span class="pvp-mode-chip">BoxPvP</span>
+                                    <span class="pvp-mode-chip">PvP Survival</span>
+                                    <span class="pvp-mode-chip">End Crystal</span>
+                                </div>
+                                <div class="pvp-card-actions">
+                                    <button id="btn-quick-pvp-121" class="rx-btn rx-btn-cyan" style="width: 100%; height: 42px; font-weight: 800;">
+                                        <span>🛡️ Jouer en 1.21+ (Moderne)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. OPTIONAL 1.7.10 PURIST BANNER -->
+                        <div class="pvp-purist-strip">
+                            <div class="strip-left">
+                                <span class="pvp-badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: var(--emerald);">⚔️ 1.7.10 (HCF PURISTE)</span>
+                                <span class="strip-desc">Factions à l'ancienne & Hardcore Factions. Fluidité des hits originaux réservée aux puristes.</span>
+                            </div>
+                            <button id="btn-quick-pvp-1710" class="rx-btn rx-btn-secondary" style="height: 32px; font-size: 11.5px; padding: 0 14px;">
+                                <span>Installer Profil 1.7.10</span>
+                            </button>
+                        </div>
+
+                        <!-- 3. SOAR / FROST STYLE MODS & SERVERS TABS -->
+                        <div class="pvp-section-header">
+                            <div class="pvp-category-tabs">
+                                <button class="pvp-tab-btn active" data-cat="all">Tous les Mods</button>
+                                <button class="pvp-tab-btn" data-cat="Performance">🚀 Performance & FPS</button>
+                                <button class="pvp-tab-btn" data-cat="HUD">🎯 ATH & Combos</button>
+                                <button class="pvp-tab-btn" data-cat="Visuels">✨ Visuels & Confort</button>
+                                <button class="pvp-tab-btn" data-cat="servers">🌐 Serveurs PvP (Quick Join)</button>
+                            </div>
+                        </div>
+
+                        <!-- MODS GRID -->
                         <div id="pvp-mods-grid" class="pvp-grid"></div>
+
+                        <!-- SERVERS QUICK JOIN GRID (Shown when servers tab is active) -->
+                        <div id="pvp-servers-grid" class="pvp-servers-container" style="display: none;"></div>
                     </section>
 
                     <!-- VIEW 5: SETTINGS -->
