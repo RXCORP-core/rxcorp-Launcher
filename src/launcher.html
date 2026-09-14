@@ -165,6 +165,16 @@
                         </div>
                         <button class="tactical-link-btn" id="btn-widget-cloud">EXPLORER ↗</button>
                     </div>
+                    <div id="pelican-sync-banner" class="pelican-sync-banner">
+                        <div class="sync-banner-info">
+                            <span class="sync-banner-dot" id="sync-banner-dot"></span>
+                            <span id="sync-banner-text">Synchronisation Microsoft ⟷ Pelican</span>
+                        </div>
+                        <button id="btn-sync-microsoft-pelican" class="sync-banner-btn" type="button" title="Synchronise votre compte Microsoft officiel sur vos serveurs Pelican">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                            <span id="btn-sync-text">Synchroniser</span>
+                        </button>
+                    </div>
                     <div id="dashboard-cloud-list" class="dashboard-list-body">
                         <!-- Populated dynamically with actual Pelican servers -->
                     </div>
@@ -210,6 +220,26 @@
                                 <button id="btn-refresh-cloud" class="rx-btn rx-btn-secondary">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                                     <span>Rafraîchir</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pelican & Microsoft Sync Box -->
+                        <div id="pelican-sync-box" class="pelican-sync-box">
+                            <div class="sync-box-content">
+                                <div class="sync-box-avatar-wrap">
+                                    <img id="sync-player-avatar" src="assets/images/icon/icon.png" class="sync-box-avatar" alt="Avatar">
+                                    <span class="sync-badge-status" id="sync-badge-status"></span>
+                                </div>
+                                <div class="sync-box-text">
+                                    <div class="sync-box-title" id="sync-box-title">Synchronisation Compte Microsoft ⟷ Pelican</div>
+                                    <div class="sync-box-sub" id="sync-box-sub">Lie automatiquement votre compte officiel Microsoft à la whitelist et aux permissions de vos serveurs Pelican.</div>
+                                </div>
+                            </div>
+                            <div class="sync-box-action">
+                                <button id="btn-sync-cloud-account" class="rx-btn rx-btn-primary" type="button" style="font-size: 13px;">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                    <span id="btn-sync-cloud-text">Synchroniser Whitelist</span>
                                 </button>
                             </div>
                         </div>
@@ -411,8 +441,23 @@
                                     <button id="btn-add-offline" class="rx-btn rx-btn-secondary" style="font-size: 12px; padding: 6px 12px;">+ Hors-ligne</button>
                                     <button id="btn-add-microsoft" class="rx-btn rx-btn-primary" style="font-size: 12px; padding: 6px 12px;">+ Microsoft</button>
                                 </div>
-                            </div>
                             <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+                            <!-- Pelican Sync in Settings -->
+                            <div id="pelican-sync-settings-card" class="pelican-sync-settings-card" style="margin-top: 14px; padding: 12px 14px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="sync-status-indicator" id="sync-settings-indicator"></span>
+                                        <span style="font-size: 13px; font-weight: 700; color: #fff;">Liaison Pelican Cloud ⟷ Compte Microsoft</span>
+                                    </div>
+                                    <button id="btn-sync-settings-action" class="rx-btn rx-btn-primary" type="button" style="font-size: 11px; padding: 4px 12px;">
+                                        Synchroniser
+                                    </button>
+                                </div>
+                                <div id="sync-settings-desc" style="font-size: 12px; color: var(--text-dim);">
+                                    Lie votre compte Microsoft actif à l'infrastructure Pelican Cloud pour autoriser l'accès et la whitelist instantanée sur tous vos serveurs.
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>

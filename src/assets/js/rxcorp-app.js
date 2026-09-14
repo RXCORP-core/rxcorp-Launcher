@@ -130,6 +130,7 @@ class RxcorpApp {
         this.initModals();
         this.initSettings();
         this.initAccounts();
+        this.initPelicanSync();
         this.initModDownloader();
         this.initLaunchDock();
         this.initUpdater();
@@ -537,6 +538,7 @@ class RxcorpApp {
         }
 
         this.renderDashboardLists();
+        this.updatePelicanSyncUI();
     }
 
     createServerCard(server) {
@@ -716,6 +718,13 @@ class RxcorpApp {
     }
 
     async handleJoinServer(server) {
+        // Auto-sync player to server whitelist before joining if credentials available
+        if (account && apiKey) {
+            try {
+                await pelicanService.syncPlayerToServer(server.id, account, apiKey, panelUrl);
+            } catch (_) {}
+        }
+
         // 1. Sync mods first
         await this.handleSyncServerMods(server);
 
@@ -726,6 +735,178 @@ class RxcorpApp {
 
         // 3. Launch game with server auto-connect!
         await this.launchCurrentInstance();
+    }
+
+    // ==========================================
+    // PELICAN ⟷ MICROSOFT SYNC SYSTEM
+    // ==========================================
+    initPelicanSync() {
+        const btnDashboardSync = document.getElementById('btn-sync-microsoft-pelican');
+        const btnCloudSync = document.getElementById('btn-sync-cloud-account');
+        const btnSettingsSync = document.getElementById('btn-sync-settings-action');
+
+        const triggerSync = () => this.handlePelicanSync(false);
+
+        btnDashboardSync?.addEventListener('click', triggerSync);
+        btnCloudSync?.addEventListener('click', triggerSync);
+        btnSettingsSync?.addEventListener('click', triggerSync);
+
+        this.updatePelicanSyncUI();
+    }
+
+    async handlePelicanSync(silent = false) {
+        const account = this.getActiveAccount();
+        if (!account || !account.name) {
+            if (!silent) alert('Veuillez sélectionner un compte Minecraft actif avant de synchroniser.');
+            return;
+        }
+
+        const isMicrosoft = account.meta?.type === 'Xbox' || (account.access_token && account.access_token !== 'null');
+        if (!isMicrosoft && !silent) {
+            const proceed = confirm(`Le compte actif "${account.name}" est un compte hors-ligne. Les serveurs Pelican officiels requièrent un compte Microsoft.\n\nVoulez-vous quand même synchroniser ce pseudo sur vos serveurs Pelican ?`);
+            if (!proceed) return;
+        }
+
+        const apiKey = store.get('apiKey');
+        const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+
+        if (!apiKey) {
+            if (!silent) {
+                alert('Veuillez renseigner votre Clé API Client Pelican dans les Paramètres pour activer la synchronisation.');
+                this.selectDribbbleMode('settings');
+            }
+            return;
+        }
+
+        const syncBtns = [
+            document.getElementById('btn-sync-microsoft-pelican'),
+            document.getElementById('btn-sync-cloud-account'),
+            document.getElementById('btn-sync-settings-action')
+        ];
+
+        syncBtns.forEach(btn => {
+            if (btn) {
+                btn.disabled = true;
+                btn.dataset.prevHtml = btn.innerHTML;
+                btn.innerHTML = '<span>Synchronisation...</span>';
+            }
+        });
+
+        try {
+            this.updateDockStatus(`Synchronisation de ${account.name} avec Pelican...`);
+            const res = await pelicanService.syncMicrosoftAccountToAllServers(account, apiKey, panelUrl, (prog) => {
+                this.updateDockStatus(prog.message || 'Synchronisation Pelican...');
+            });
+
+            if (res.success) {
+                store.set('pelicanMicrosoftSync', {
+                    playerName: account.name,
+                    playerUuid: account.uuid,
+                    syncedAt: Date.now(),
+                    syncedServers: res.syncedCount
+                });
+                this.showNotification('Synchronisation Réussie', `Compte ${account.name} synchronisé sur ${res.syncedCount} serveur(s) Pelican !`);
+            } else {
+                if (!silent) alert(`Erreur synchronisation Pelican: ${res.error || 'Aucun serveur synchronisé'}`);
+            }
+        } catch (err) {
+            console.error('[Pelican Sync Error]:', err);
+            if (!silent) alert('Erreur lors de la synchronisation: ' + err.message);
+        } finally {
+            syncBtns.forEach(btn => {
+                if (btn) {
+                    btn.disabled = false;
+                    if (btn.dataset.prevHtml) btn.innerHTML = btn.dataset.prevHtml;
+                }
+            });
+            this.updateDockStatus('Prêt à jouer', 0);
+            this.updatePelicanSyncUI();
+        }
+    }
+
+    updatePelicanSyncUI() {
+        const account = this.getActiveAccount();
+        const syncData = store.get('pelicanMicrosoftSync');
+
+        const isSynced = syncData && account && syncData.playerName && syncData.playerName.toLowerCase() === account.name.toLowerCase();
+
+        // 1. Dashboard Banner Card 1
+        const bannerText = document.getElementById('sync-banner-text');
+        const bannerDot = document.getElementById('sync-banner-dot');
+        const btnBannerText = document.getElementById('btn-sync-text');
+
+        if (bannerText && bannerDot) {
+            if (isSynced) {
+                bannerDot.style.background = 'var(--emerald)';
+                bannerDot.style.boxShadow = '0 0 8px var(--emerald)';
+                const dateStr = syncData.syncedAt ? new Date(syncData.syncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                bannerText.innerHTML = `Compte <strong>${account.name}</strong> synchronisé (${syncData.syncedServers || 0} serveurs • ${dateStr})`;
+                if (btnBannerText) btnBannerText.innerText = 'Re-sync';
+            } else if (account) {
+                bannerDot.style.background = 'var(--amber)';
+                bannerDot.style.boxShadow = '0 0 8px var(--amber)';
+                bannerText.innerHTML = `Compte <strong>${account.name}</strong> non synchronisé sur Pelican`;
+                if (btnBannerText) btnBannerText.innerText = 'Synchroniser';
+            } else {
+                bannerDot.style.background = 'var(--text-dim)';
+                bannerDot.style.boxShadow = 'none';
+                bannerText.innerText = 'Connectez un compte pour synchroniser avec Pelican';
+                if (btnBannerText) btnBannerText.innerText = 'Connexion';
+            }
+        }
+
+        // 2. View Cloud Box
+        const avatarElem = document.getElementById('sync-player-avatar');
+        const titleElem = document.getElementById('sync-box-title');
+        const subElem = document.getElementById('sync-box-sub');
+        const statusBadge = document.getElementById('sync-badge-status');
+        const btnCloudText = document.getElementById('btn-sync-cloud-text');
+
+        if (avatarElem && account) {
+            avatarElem.src = `https://mc-heads.net/avatar/${account.name}/36`;
+            avatarElem.onerror = () => { avatarElem.src = 'assets/images/icon/icon.png'; };
+        }
+
+        if (titleElem && subElem) {
+            if (isSynced) {
+                titleElem.innerHTML = `Compte Microsoft <span style="color: var(--emerald);">Synchronisé</span> : ${account.name}`;
+                subElem.innerText = `Votre joueur est autorisé sur la whitelist de vos serveurs Pelican Cloud (${syncData.syncedServers || 0} serveurs).`;
+                if (statusBadge) statusBadge.style.background = 'var(--emerald)';
+                if (btnCloudText) btnCloudText.innerText = 'Re-synchroniser Whitelist';
+            } else if (account) {
+                titleElem.innerHTML = `Compte Microsoft Détecté : ${account.name}`;
+                subElem.innerText = `Cliquez pour propager automatiquement la whitelist de ${account.name} sur tous vos serveurs Pelican.`;
+                if (statusBadge) statusBadge.style.background = 'var(--amber)';
+                if (btnCloudText) btnCloudText.innerText = 'Synchroniser Whitelist';
+            } else {
+                titleElem.innerText = 'Aucun compte Minecraft actif';
+                subElem.innerText = 'Connectez votre compte Microsoft pour synchroniser automatiquement vos serveurs.';
+                if (statusBadge) statusBadge.style.background = 'var(--text-dim)';
+            }
+        }
+
+        // 3. Settings Card
+        const settingsIndicator = document.getElementById('sync-settings-indicator');
+        const settingsDesc = document.getElementById('sync-settings-desc');
+        const btnSettings = document.getElementById('btn-sync-settings-action');
+
+        if (settingsIndicator && settingsDesc) {
+            if (isSynced) {
+                settingsIndicator.style.background = 'var(--emerald)';
+                settingsIndicator.style.boxShadow = '0 0 6px var(--emerald)';
+                settingsDesc.innerHTML = `Compte <strong>${account.name}</strong> synchronisé avec succès sur Pelican Cloud.`;
+                if (btnSettings) btnSettings.innerText = 'Re-sync';
+            } else if (account) {
+                settingsIndicator.style.background = 'var(--amber)';
+                settingsIndicator.style.boxShadow = '0 0 6px var(--amber)';
+                settingsDesc.innerHTML = `Compte <strong>${account.name}</strong> prêt à être synchronisé sur vos serveurs Pelican.`;
+                if (btnSettings) btnSettings.innerText = 'Synchroniser';
+            } else {
+                settingsIndicator.style.background = 'var(--text-dim)';
+                settingsIndicator.style.boxShadow = 'none';
+                settingsDesc.innerText = 'Connectez un compte Microsoft pour activer la liaison automatique Pelican.';
+            }
+        }
     }
 
     // ==========================================
@@ -1421,7 +1602,13 @@ class RxcorpApp {
                     store.set('accounts', accounts);
                     store.set('activeAccountName', auth.name);
                     this.renderAccountsList();
+                    this.updatePelicanSyncUI();
                     this.showNotification('Compte connecté', `Bienvenue ${auth.name} !`);
+
+                    // Automatically propagate Microsoft account to Pelican server whitelist
+                    if (store.get('apiKey')) {
+                        this.handlePelicanSync(true);
+                    }
                 }
             } catch (err) {
                 alert('Erreur Microsoft: ' + err.message);
@@ -1491,6 +1678,7 @@ class RxcorpApp {
             btn.addEventListener('click', () => {
                 store.set('activeAccountName', btn.dataset.name);
                 this.renderAccountsList();
+                this.updatePelicanSyncUI();
             });
         });
     }

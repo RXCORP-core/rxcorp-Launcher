@@ -371,6 +371,211 @@ class PelicanService {
             downloadedCount
         };
     }
+
+    /**
+     * Send console command to a Pelican server
+     */
+    async sendCommand(identifier, command, apiKey, panelUrl = this.defaultPanelUrl) {
+        try {
+            const url = `${panelUrl.replace(/\/+$/, '')}/api/client/servers/${identifier}/command`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: this._getHeaders(apiKey),
+                body: JSON.stringify({ command: command.trim() })
+            });
+
+            if (res.status === 204 || res.status === 200) {
+                return { success: true };
+            }
+            const text = await res.text();
+            return { success: false, status: res.status, error: text || 'Erreur exécution commande' };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
+     * Read raw file contents from server
+     */
+    async getFileContents(identifier, filePath, apiKey, panelUrl = this.defaultPanelUrl) {
+        try {
+            const encodedPath = encodeURIComponent(filePath);
+            const url = `${panelUrl.replace(/\/+$/, '')}/api/client/servers/${identifier}/files/contents?file=${encodedPath}`;
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: this._getHeaders(apiKey)
+            });
+
+            if (!res.ok) {
+                return { success: false, status: res.status };
+            }
+            const content = await res.text();
+            return { success: true, content };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
+     * Write raw file contents to server
+     */
+    async writeFileContents(identifier, filePath, content, apiKey, panelUrl = this.defaultPanelUrl) {
+        try {
+            const encodedPath = encodeURIComponent(filePath);
+            const url = `${panelUrl.replace(/\/+$/, '')}/api/client/servers/${identifier}/files/write?file=${encodedPath}`;
+            const headers = this._getHeaders(apiKey);
+            headers['Content-Type'] = 'text/plain';
+
+            const payload = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: payload
+            });
+
+            if (res.status === 204 || res.status === 200) {
+                return { success: true };
+            }
+            return { success: false, status: res.status };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
+     * Format a 32-char UUID into standard 8-4-4-4-12 Minecraft format
+     */
+    _formatUuid(uuid) {
+        if (!uuid) return '';
+        const cleaned = uuid.replace(/-/g, '');
+        if (cleaned.length === 32) {
+            return cleaned.replace(/^(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})$/, '$1-$2-$3-$4-$5');
+        }
+        return uuid;
+    }
+
+    /**
+     * Synchronize a player's Microsoft account to a specific Pelican Minecraft server
+     * 1. Sends console command `whitelist add <name>` & `whitelist reload`
+     * 2. Also updates `whitelist.json` file directly on disk to guarantee permanent access even if server is offline
+     */
+    async syncPlayerToServer(identifier, account, apiKey, panelUrl = this.defaultPanelUrl) {
+        const playerName = account.name;
+        const playerUuid = this._formatUuid(account.uuid || '');
+        const results = {
+            commandSent: false,
+            fileUpdated: false,
+            server: identifier
+        };
+
+        // 1. Try sending console command (if server is running)
+        try {
+            const cmdRes = await this.sendCommand(identifier, `whitelist add ${playerName}`, apiKey, panelUrl);
+            if (cmdRes.success) {
+                results.commandSent = true;
+                await this.sendCommand(identifier, 'whitelist reload', apiKey, panelUrl);
+            }
+        } catch (e) {
+            console.warn(`[Pelican Sync] Commande console ignorée pour ${identifier}:`, e);
+        }
+
+        // 2. Direct file synchronization of whitelist.json (works online & offline)
+        try {
+            const fileRes = await this.getFileContents(identifier, 'whitelist.json', apiKey, panelUrl);
+            let whitelist = [];
+            if (fileRes.success && fileRes.content) {
+                try {
+                    whitelist = JSON.parse(fileRes.content);
+                } catch (_) {
+                    whitelist = [];
+                }
+            }
+
+            if (!Array.isArray(whitelist)) whitelist = [];
+
+            const exists = whitelist.some(entry => 
+                (entry.name && entry.name.toLowerCase() === playerName.toLowerCase()) ||
+                (playerUuid && entry.uuid && entry.uuid === playerUuid)
+            );
+
+            if (!exists) {
+                whitelist.push({
+                    uuid: playerUuid,
+                    name: playerName
+                });
+                const writeRes = await this.writeFileContents(identifier, 'whitelist.json', whitelist, apiKey, panelUrl);
+                if (writeRes.success) {
+                    results.fileUpdated = true;
+                }
+            } else {
+                results.fileUpdated = true;
+            }
+        } catch (e) {
+            console.warn(`[Pelican Sync] Écriture de whitelist.json ignorée pour ${identifier}:`, e);
+        }
+
+        return {
+            success: results.commandSent || results.fileUpdated,
+            results
+        };
+    }
+
+    /**
+     * Synchronize Microsoft account across all user's Pelican Minecraft servers
+     */
+    async syncMicrosoftAccountToAllServers(account, apiKey, panelUrl = this.defaultPanelUrl, onProgress = () => {}) {
+        if (!account || !account.name) {
+            return { success: false, error: 'Compte Microsoft invalide ou non connecté' };
+        }
+
+        onProgress({ status: 'fetching', message: 'Recherche des serveurs Pelican Cloud...' });
+        const serversRes = await this.getServers(apiKey, panelUrl);
+        if (!serversRes.success || !serversRes.servers.length) {
+            return { success: false, error: serversRes.error || 'Aucun serveur Pelican détecté sur votre compte' };
+        }
+
+        const mcServers = serversRes.servers.filter(s => s.isMinecraft !== false);
+        if (!mcServers.length) {
+            return { success: false, error: 'Aucun serveur Minecraft détecté sur votre compte Pelican' };
+        }
+
+        let syncedCount = 0;
+        const details = [];
+
+        for (const srv of mcServers) {
+            onProgress({ 
+                status: 'syncing', 
+                serverName: srv.name, 
+                message: `Synchronisation de ${account.name} sur ${srv.name}...` 
+            });
+
+            const syncRes = await this.syncPlayerToServer(srv.id, account, apiKey, panelUrl);
+            if (syncRes.success) {
+                syncedCount++;
+            }
+            details.push({
+                serverName: srv.name,
+                serverId: srv.id,
+                success: syncRes.success
+            });
+        }
+
+        onProgress({
+            status: 'done',
+            syncedCount,
+            total: mcServers.length,
+            message: `Compte synchronisé sur ${syncedCount}/${mcServers.length} serveur(s) Pelican !`
+        });
+
+        return {
+            success: syncedCount > 0,
+            syncedCount,
+            totalServers: mcServers.length,
+            details,
+            playerName: account.name,
+            playerUuid: account.uuid
+        };
+    }
 }
 
 module.exports = new PelicanService();
