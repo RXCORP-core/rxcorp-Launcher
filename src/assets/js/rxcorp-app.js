@@ -88,8 +88,8 @@ class RxcorpApp {
         // Auto-provision a default local instance if none exists
         if (d === 'local') {
             const localInst = instanceService.createInstance({
-                name: 'Mon Profil Local 26.2',
-                version: '26.2',
+                name: 'Mon Profil Local 1.21.4',
+                version: '1.21.4',
                 loader: 'fabric',
                 domain: 'local'
             });
@@ -199,9 +199,11 @@ class RxcorpApp {
             this.openDrawer('instances', 'MES PROFILS & MODPACKS');
         });
 
-        // Default mode from store or cloud
-        const savedMode = store.get('activeDribbbleMode') || 'cloud';
-        this.selectDribbbleMode(savedMode === 'pvp' ? 'cloud' : savedMode);
+        // Default mode from store or cloud (or instances for players without server)
+        const hasPelican = store.get('hasPelicanServer') ?? (store.get('apiKey') ? true : false);
+        this.updateRailOrder(hasPelican);
+        const savedMode = store.get('activeDribbbleMode') || (hasPelican ? 'cloud' : 'instances');
+        this.selectDribbbleMode(savedMode === 'pvp' ? (hasPelican ? 'cloud' : 'instances') : savedMode);
     }
 
     selectDribbbleMode(mode) {
@@ -230,7 +232,7 @@ class RxcorpApp {
             if (tagText) tagText.innerText = 'OFFICIEL RXCORP • SERVEUR CLOUD';
             if (heroDot) heroDot.style.background = 'var(--primary)';
             if (heroTitle) heroTitle.innerText = 'RXCORP CLOUD';
-            if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique Forge 26.2 et connexion instantanée.';
+            if (heroDesc) heroDesc.innerText = 'Infrastructure Cloud Pelican officielle avec synchronisation automatique et connexion instantanée.';
             if (playLabel) playLabel.innerText = 'JOUER (SERVEUR)';
             if (secText) secText.innerText = '⚡ Synchroniser les Mods';
             this.closeDrawer();
@@ -259,10 +261,16 @@ class RxcorpApp {
         const cloudList = document.getElementById('dashboard-cloud-list');
         if (cloudList) {
             if (!this.cloudServers || this.cloudServers.length === 0) {
-                cloudList.innerHTML = `
+                const hasPelican = store.get('hasPelicanServer') ?? (store.get('apiKey') ? true : false);
+                cloudList.innerHTML = hasPelican ? `
                     <div style="font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 10px;">
-                        Aucun serveur Pelican détecté.<br>
+                        Aucun serveur Pelican détecté sur votre compte.<br>
                         <a href="#" id="link-connect-cloud-dash" style="color: var(--primary); text-decoration: underline; font-weight: 600;">Se connecter au Panel Pelican ↗</a>
+                    </div>
+                ` : `
+                    <div style="font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 10px;">
+                        Mode Joueur Local actif.<br>
+                        <span style="font-size: 11px; opacity: 0.85;">Le mode Cloud est en arrière-plan. Gérez vos profils locaux et mods librement.</span>
                     </div>
                 `;
                 document.getElementById('link-connect-cloud-dash')?.addEventListener('click', (e) => {
@@ -331,7 +339,7 @@ class RxcorpApp {
                                 <div style="font-size: 15px;">📦</div>
                                 <div class="dash-item-info">
                                     <span class="dash-item-name">${inst.name}</span>
-                                    <span class="dash-item-sub">MC ${inst.version || '26.2'} • ${loader} • ${inst.modCount || 0} mod(s)</span>
+                                    <span class="dash-item-sub">MC ${inst.version || '1.21.4'} • ${loader} • ${inst.modCount || 0} mod(s)</span>
                                 </div>
                             </div>
                             <div class="dash-item-actions">
@@ -963,7 +971,7 @@ class RxcorpApp {
                         <div class="server-card-top">
                             <div class="server-name-box">
                                 <h3>${inst.name}</h3>
-                                <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version || '26.2'} • ${loaderStr}</span>
+                                <span style="font-size: 12px; color: var(--text-dim);">Minecraft ${inst.version || '1.21.4'} • ${loaderStr}</span>
                             </div>
                             <div class="server-badge online" style="background: rgba(0, 240, 255, 0.12); color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);">
                                 <span>${inst.modCount || 0} Mod(s)</span>
@@ -973,7 +981,7 @@ class RxcorpApp {
                         <div class="server-stats-row">
                             <div class="stat-item">
                                 <span class="stat-label">Version</span>
-                                <span class="stat-value" style="color: var(--cyan);">${inst.version || '26.2'}</span>
+                                <span class="stat-value" style="color: var(--cyan);">${inst.version || '1.21.4'}</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Modloader</span>
@@ -1043,9 +1051,9 @@ class RxcorpApp {
         if (inst) {
             nameElem.innerText = inst.name;
             if (inst.domain === 'cloud') {
-                subElem.innerText = `Serveur Cloud RXCORP • Forge 26.2`;
+                subElem.innerText = `Serveur Cloud RXCORP • ${inst.loader ? inst.loader.toUpperCase() : 'FORGE'}`;
             } else {
-                subElem.innerText = `Profil Local • MC ${inst.version || '26.2'} • ${(inst.loader || 'fabric').toUpperCase()}`;
+                subElem.innerText = `Profil Local • MC ${inst.version || '1.21.4'} • ${(inst.loader || 'fabric').toUpperCase()}`;
             }
         } else {
             if (curDomain === 'cloud') {
@@ -1404,6 +1412,12 @@ class RxcorpApp {
         if (inputKey) inputKey.value = store.get('apiKey') || '';
         if (inputCurseForge) inputCurseForge.value = store.get('curseforgeApiKey') || '';
 
+        // Mode Selection Handler (Cloud Server vs Local Player / Friends)
+        this.initModeSelector();
+
+        // Language Switcher Handler
+        this.initLanguageSelector();
+
         btnSave?.addEventListener('click', () => {
             store.set('ramMax', parseInt(rangeRam.value, 10));
             store.set('javaPath', inputJava.value.trim());
@@ -1452,6 +1466,76 @@ class RxcorpApp {
             this.loadCloudServers();
             alert('Déconnecté du Panel.');
         });
+    }
+
+    initModeSelector() {
+        const cardCloud = document.getElementById('card-mode-cloud');
+        const cardLocal = document.getElementById('card-mode-local');
+        const pelicanSettingsCard = document.getElementById('settings-card-pelican');
+
+        const currentHasServer = store.get('hasPelicanServer') ?? (store.get('apiKey') ? true : false);
+
+        const applyModeUI = (hasServer) => {
+            if (cardCloud && cardLocal) {
+                cardCloud.classList.toggle('active-cloud', hasServer);
+                cardLocal.classList.toggle('active-local', !hasServer);
+            }
+            if (pelicanSettingsCard) {
+                pelicanSettingsCard.style.opacity = hasServer ? '1' : '0.8';
+            }
+            this.updateRailOrder(hasServer);
+        };
+
+        applyModeUI(currentHasServer);
+
+        cardCloud?.addEventListener('click', () => {
+            store.set('hasPelicanServer', true);
+            applyModeUI(true);
+            this.showNotification('Mode Serveur RXCORP Cloud', 'Infrastructure Cloud et synchronisation Pelican activées au premier plan.');
+        });
+
+        cardLocal?.addEventListener('click', () => {
+            store.set('hasPelicanServer', false);
+            applyModeUI(false);
+            if (this.activeDribbbleMode === 'cloud') {
+                this.selectDribbbleMode('instances');
+            }
+            this.showNotification('Mode Joueur Indépendant', 'Mode local et catalogue de mods activés au premier plan. Mode Cloud discret.');
+        });
+    }
+
+    initLanguageSelector() {
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const currentLang = store.get('lang') || 'fr';
+
+        langBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            btn.addEventListener('click', () => {
+                const chosenLang = btn.dataset.lang;
+                store.set('lang', chosenLang);
+                langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === chosenLang));
+                this.showNotification('Langue mise à jour', chosenLang === 'fr' ? 'Langue définie sur Français 🇫🇷' : 'Language set to English 🇬🇧');
+            });
+        });
+    }
+
+    updateRailOrder(hasPelicanServer) {
+        const railTop = document.querySelector('.dribbble-rail .rail-top');
+        if (!railTop) return;
+        const cloudBtn = railTop.querySelector('[data-view="cloud"]');
+        const instBtn = railTop.querySelector('[data-view="instances"]');
+        const modBtn = railTop.querySelector('[data-view="modrinth"]');
+        if (!cloudBtn || !instBtn || !modBtn) return;
+
+        if (hasPelicanServer) {
+            cloudBtn.setAttribute('title', 'RX Cloud (Serveurs Officiels Pelican)');
+            railTop.insertBefore(cloudBtn, instBtn);
+            railTop.appendChild(modBtn);
+        } else {
+            cloudBtn.setAttribute('title', 'RX Cloud (Secondaire - Pas de serveur lié)');
+            railTop.insertBefore(instBtn, cloudBtn);
+            railTop.insertBefore(modBtn, cloudBtn);
+        }
     }
 
     // ==========================================
@@ -1653,22 +1737,33 @@ class RxcorpApp {
         if (!list) return;
         const accounts = store.get('accounts') || [];
 
+        if (accounts.length === 0) {
+            list.innerHTML = `
+                <div style="font-size: 12px; color: var(--text-dim); text-align: center; padding: 18px 10px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px dashed var(--border-subtle);">
+                    Aucun compte enregistré. Cliquez sur <strong>+ Compte Microsoft</strong> ou <strong>+ Pseudo libre</strong> pour ajouter votre joueur.
+                </div>
+            `;
+            return;
+        }
+
         list.innerHTML = accounts.map(acc => {
             const isActive = acc.name === activeAccount?.name;
+            const isMicrosoft = acc.meta?.type === 'Xbox' || acc.access_token;
             return `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); border: 1px solid ${isActive ? 'var(--primary)' : 'var(--border-color)'};">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://mc-heads.net/avatar/${acc.name}/24" style="width: 24px; height: 24px; border-radius: 4px;" onerror="this.src='assets/images/icon/icon.png'">
+                <div class="clean-account-row ${isActive ? 'active' : ''}">
+                    <div class="clean-account-left">
+                        <img class="clean-account-avatar" src="https://mc-heads.net/avatar/${acc.name}/32" onerror="this.src='assets/images/icon/icon.png'">
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: white;">${acc.name}</div>
-                            <div style="font-size: 11px; color: var(--text-dim);">${acc.meta?.type === 'Xbox' ? 'Compte Microsoft Officiel' : 'Compte Hors-Ligne'}</div>
+                            <div class="clean-account-name">${acc.name}</div>
+                            <div class="clean-account-type">${isMicrosoft ? 'Compte Microsoft Officiel' : 'Compte Hors-Ligne'}</div>
                         </div>
                     </div>
-                    <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         ${isActive 
-                            ? '<span style="color: var(--primary); font-size: 12px; font-weight: 700;">Actif</span>'
+                            ? '<span style="color: var(--emerald); font-size: 12px; font-weight: 700; padding: 4px 10px; background: rgba(16, 185, 129, 0.12); border-radius: 6px;">✓ Actif</span>'
                             : `<button class="rx-btn rx-btn-secondary btn-switch-account" data-name="${acc.name}" style="padding: 4px 10px; font-size: 11px;">Activer</button>`
                         }
+                        <button class="rx-btn rx-btn-danger btn-delete-account" data-name="${acc.name}" title="Supprimer ce compte" style="padding: 4px 8px; font-size: 11px; min-width: unset;">✕</button>
                     </div>
                 </div>
             `;
@@ -1677,6 +1772,20 @@ class RxcorpApp {
         list.querySelectorAll('.btn-switch-account').forEach(btn => {
             btn.addEventListener('click', () => {
                 store.set('activeAccountName', btn.dataset.name);
+                this.renderAccountsList();
+                this.updatePelicanSyncUI();
+            });
+        });
+
+        list.querySelectorAll('.btn-delete-account').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const name = btn.dataset.name;
+                let accs = store.get('accounts') || [];
+                accs = accs.filter(a => a.name !== name);
+                store.set('accounts', accs);
+                if (store.get('activeAccountName') === name) {
+                    store.set('activeAccountName', accs[0] ? accs[0].name : '');
+                }
                 this.renderAccountsList();
                 this.updatePelicanSyncUI();
             });

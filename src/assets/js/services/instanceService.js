@@ -73,9 +73,13 @@ class InstanceService {
                             needSave = true;
                         }
 
-                        // Automatically migrate outdated cloud server instances from 1.21.1 to 26.2
-                        if (data.domain === 'cloud' && (data.version === '1.21.1' || !data.version)) {
-                            data.version = '26.2';
+                        // Automatically migrate outdated cloud server instances or fake 26.2 to 1.21.4
+                        if (data.version === '26.2' || !data.version) {
+                            data.version = '1.21.4';
+                            needSave = true;
+                        }
+                        if (data.domain === 'cloud' && data.version === '1.21.1') {
+                            data.version = '1.21.4';
                             if (data.loader === 'vanilla') data.loader = 'forge';
                             needSave = true;
                         }
@@ -183,7 +187,7 @@ class InstanceService {
         const instanceData = {
             id,
             name: name || 'Nouvelle Instance',
-            version: version || '26.2',
+            version: version || '1.21.4',
             loader: loader || 'forge', // forge, fabric, neoforge, vanilla
             loaderVersion: loaderVersion || null,
             serverAddress: serverAddress || null,
@@ -221,9 +225,9 @@ class InstanceService {
                 found.loader = 'forge';
                 modified = true;
             }
-            // Auto-upgrade version to 26.2
-            if (found.version === '1.21.1' || !found.version) {
-                found.version = '26.2';
+            // Auto-upgrade version to 1.21.4
+            if (found.version === '1.21.1' || found.version === '26.2' || !found.version) {
+                found.version = '1.21.4';
                 modified = true;
             }
 
@@ -259,7 +263,7 @@ class InstanceService {
         }
 
         // Auto-detect version & loader based on docker image or name (default to forge for Pelican servers)
-        let version = '26.2';
+        let version = '1.21.4';
         let loader = 'forge';
         const img = (server.dockerImage || '').toLowerCase();
         const name = (server.name || '').toLowerCase();

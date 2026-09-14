@@ -105,7 +105,7 @@
                 <div class="hero-content">
                     <div id="hero-tag" class="hero-tag-pill">
                         <span class="hero-dot"></span>
-                        <span id="hero-tag-text">OFFICIEL RXCORP • FORGE 26.2</span>
+                        <span id="hero-tag-text">OFFICIEL RXCORP • SERVEUR CLOUD</span>
                     </div>
 
                     <h1 id="hero-title" class="hero-title">RXCORP CLOUD</h1>
@@ -129,7 +129,7 @@
                                 </svg>
                             </div>
                             <div class="capsule-meta">
-                                <span id="dock-instance-name" class="capsule-title">Minecraft 26.2</span>
+                                <span id="dock-instance-name" class="capsule-title">Minecraft 1.21.4</span>
                                 <span id="dock-instance-sub" class="capsule-sub">Serveur Cloud Pelican</span>
                             </div>
                             <span class="capsule-caret">▾</span>
@@ -214,7 +214,7 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
                                     <span>Serveurs Pelican Cloud</span>
                                 </h2>
-                                <p class="view-subtitle">Infrastructure officielle RXCORP • Synchronisation automatique des mods Forge 26.2 et connexion 1-clic</p>
+                                <p class="view-subtitle">Infrastructure officielle RXCORP • Synchronisation automatique des mods et connexion 1-clic</p>
                             </div>
                             <div>
                                 <button id="btn-refresh-cloud" class="rx-btn rx-btn-secondary">
@@ -363,24 +363,95 @@
                         <div id="modrinth-mods-grid" class="mods-grid"></div>
                     </section>
 
-                    <!-- VIEW 4: SETTINGS -->
+                    <!-- VIEW 4: SETTINGS & CONFIGURATION -->
                     <section id="view-settings" class="view-container">
-                        <div class="view-header">
+                        <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
                             <div>
                                 <h2 class="view-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                                    <span>Configuration & Paramètres</span>
+                                    <span>Configuration du Launcher</span>
                                 </h2>
-                                <p class="view-subtitle">Allocation mémoire RAM, exécutable Java, identifiants Pelican et clés API</p>
+                                <p class="view-subtitle">Choisissez votre mode d'utilisation (serveur RXCORP Cloud ou joueur indépendant), gérez vos comptes et ajustez vos réglages.</p>
+                            </div>
+
+                            <!-- Language Selector -->
+                            <div class="lang-toggle-bar">
+                                <button type="button" class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
+                                <button type="button" class="lang-btn" data-lang="en">🇬🇧 EN</button>
                             </div>
                         </div>
 
+                        <!-- 1. MODE SELECTION CARD: Have server vs Local / Friends -->
+                        <div class="rx-card" style="margin-bottom: 20px;">
+                            <div class="config-welcome-title">Mode d'Utilisation & Type de Joueur</div>
+                            <div class="config-welcome-sub">Possédez-vous un serveur hébergé sur le panel RXCORP (Pelican) ou utilisez-vous le launcher en solo / entre amis ?</div>
+
+                            <div class="config-modes-grid">
+                                <!-- Mode A: Serveur Cloud -->
+                                <div id="card-mode-cloud" class="config-mode-card active-cloud" data-mode="cloud">
+                                    <div class="config-radio-pill"></div>
+                                    <div class="config-mode-icon">☁️</div>
+                                    <div class="config-mode-body">
+                                        <h4>J'ai un serveur RXCORP (Pelican Cloud)</h4>
+                                        <p>Mode Cloud au premier plan : synchronisation automatique de votre compte Microsoft avec la whitelist de vos serveurs, console en direct et accès 1-clic.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Mode B: Joueur / Amis (Local) -->
+                                <div id="card-mode-local" class="config-mode-card" data-mode="local">
+                                    <div class="config-radio-pill"></div>
+                                    <div class="config-mode-icon">🎮</div>
+                                    <div class="config-mode-body">
+                                        <h4>Mode Joueur Indépendant (Pas de serveur)</h4>
+                                        <p>Idéal pour les joueurs et vos amis. Le mode Cloud devient secondaire et discret. Le launcher démarre directement sur vos profils locaux et le catalogue de mods sans alertes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. MINECRAFT ACCOUNTS & PELICAN SYNC -->
+                        <div class="rx-card" style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                                <div>
+                                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-white); display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="width: 18px; height: 18px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                        <span>Comptes Minecraft (Online / Hors-ligne)</span>
+                                    </h3>
+                                    <p style="font-size: 12px; color: var(--text-dim); margin: 0;">Connectez votre compte officiel Microsoft ou un pseudo libre pour jouer en multijoueur et solo.</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button id="btn-add-offline" class="rx-btn rx-btn-secondary" style="font-size: 12px; padding: 6px 14px;">+ Pseudo libre</button>
+                                    <button id="btn-add-microsoft" class="rx-btn rx-btn-primary" style="font-size: 12px; padding: 6px 14px;">+ Compte Microsoft</button>
+                                </div>
+                            </div>
+
+                            <!-- Clean Accounts List Container -->
+                            <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+                            <!-- Pelican Sync in Settings -->
+                            <div id="pelican-sync-settings-card" class="pelican-sync-settings-card" style="margin-top: 16px; padding: 14px 16px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="sync-status-indicator" id="sync-settings-indicator"></span>
+                                        <span style="font-size: 13px; font-weight: 700; color: #fff;">Liaison Pelican Cloud ⟷ Compte Microsoft</span>
+                                    </div>
+                                    <button id="btn-sync-settings-action" class="rx-btn rx-btn-primary" type="button" style="font-size: 11px; padding: 4px 12px;">
+                                        Synchroniser
+                                    </button>
+                                </div>
+                                <div id="sync-settings-desc" style="font-size: 12px; color: var(--text-dim);">
+                                    Lie votre compte Microsoft actif à l'infrastructure Pelican Cloud pour autoriser l'accès et la whitelist instantanée sur tous vos serveurs.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. GAMING & CLOUD SETTINGS GRID -->
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
                             <!-- Gaming Settings -->
                             <div class="rx-card">
                                 <h3 style="font-size: 15px; font-weight: 700; color: var(--text-white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="width: 18px; height: 18px;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                                    <span>Paramètres de Jeu</span>
+                                    <span>Performances de Jeu & Java</span>
                                 </h3>
 
                                 <div class="form-group">
@@ -402,7 +473,7 @@
                             </div>
 
                             <!-- Cloud & API Settings -->
-                            <div class="rx-card">
+                            <div id="settings-card-pelican" class="rx-card">
                                 <h3 style="font-size: 15px; font-weight: 700; color: var(--text-white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" style="width: 18px; height: 18px;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                                     <span>Identifiants Pelican Cloud & API</span>
@@ -419,7 +490,7 @@
                                 </div>
 
                                 <div class="form-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
-                                    <label class="form-label">Clé API CurseForge (Personnalisée)</label>
+                                    <label class="form-label">Clé API CurseForge</label>
                                     <input id="input-curseforge-key" type="password" class="form-input" placeholder="Clé officielle RXCORP intégrée par défaut">
                                     <div style="font-size: 11px; color: var(--emerald); margin-top: 4px;">
                                         ✓ Clé officielle CurseForge RXCORP intégrée (recherche et installation 1-clic prêtes).
@@ -429,33 +500,6 @@
                                 <div style="display: flex; gap: 8px; margin-top: 12px;">
                                     <button id="btn-test-panel" class="rx-btn rx-btn-secondary" style="flex: 1;">Tester Pelican</button>
                                     <button id="btn-disconnect-panel" class="rx-btn rx-btn-danger">Déconnecter</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Accounts Management -->
-                        <div class="rx-card" style="margin-top: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-white);">Comptes Minecraft</h3>
-                                <div style="display: flex; gap: 8px;">
-                                    <button id="btn-add-offline" class="rx-btn rx-btn-secondary" style="font-size: 12px; padding: 6px 12px;">+ Hors-ligne</button>
-                                    <button id="btn-add-microsoft" class="rx-btn rx-btn-primary" style="font-size: 12px; padding: 6px 12px;">+ Microsoft</button>
-                                </div>
-                            <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-
-                            <!-- Pelican Sync in Settings -->
-                            <div id="pelican-sync-settings-card" class="pelican-sync-settings-card" style="margin-top: 14px; padding: 12px 14px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="sync-status-indicator" id="sync-settings-indicator"></span>
-                                        <span style="font-size: 13px; font-weight: 700; color: #fff;">Liaison Pelican Cloud ⟷ Compte Microsoft</span>
-                                    </div>
-                                    <button id="btn-sync-settings-action" class="rx-btn rx-btn-primary" type="button" style="font-size: 11px; padding: 4px 12px;">
-                                        Synchroniser
-                                    </button>
-                                </div>
-                                <div id="sync-settings-desc" style="font-size: 12px; color: var(--text-dim);">
-                                    Lie votre compte Microsoft actif à l'infrastructure Pelican Cloud pour autoriser l'accès et la whitelist instantanée sur tous vos serveurs.
                                 </div>
                             </div>
                         </div>
@@ -475,19 +519,20 @@
             
             <div class="form-group">
                 <label class="form-label">Nom du Profil</label>
-                <input id="input-new-name" type="text" class="form-input" placeholder="ex: Mon Pack Survie 26.2">
+                <input id="input-new-name" type="text" class="form-input" placeholder="ex: Mon Pack Survie 1.21.4">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Version de Minecraft</label>
                 <select id="select-new-version" class="form-select">
-                    <option value="26.2" selected>26.2 (Dernière version officielle)</option>
-                    <option value="1.21.4">1.21.4</option>
+                    <option value="1.21.4" selected>1.21.4 (Dernière version officielle - Actuelle)</option>
                     <option value="1.21.1">1.21.1</option>
                     <option value="1.20.4">1.20.4</option>
                     <option value="1.20.1">1.20.1</option>
                     <option value="1.19.4">1.19.4</option>
                     <option value="1.16.5">1.16.5</option>
+                    <option value="1.12.2">1.12.2</option>
+                    <option value="1.8.9">1.8.9 (Classique & PvP)</option>
                 </select>
             </div>
 

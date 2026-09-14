@@ -82,12 +82,12 @@ class GameLauncher {
             const launchOptions = {
                 authenticator: authenticator,
                 path: instance.path,
-                version: instance.version || '26.2',
+                version: instance.version || '1.21.4',
                 detached: true,
                 downloadFileMultiple: 6,
                 loader: {
                     type: loaderType,
-                    version: instance.version || '26.2',
+                    version: instance.version || '1.21.4',
                     build: instance.loaderVersion || 'latest',
                     enable: loaderType !== 'none'
                 },

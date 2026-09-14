@@ -62,6 +62,26 @@
     -webkit-user-drag: none;
 }
 
+/* Universal Dark Scrollbars */
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
 body {
     background-color: var(--bg-base);
     color: var(--text-main);
@@ -819,6 +839,23 @@ input:checked + .slider:before {
     font-size: 13px;
     outline: none;
     transition: var(--trans-fast);
+}
+
+select.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 36px;
+    background-color: #0c0e15;
+    cursor: pointer;
+}
+
+select.form-select option {
+    background-color: #121622;
+    color: #f1f5f9;
+    padding: 8px 12px;
 }
 
 .form-input:focus, .form-select:focus {
@@ -2006,5 +2043,217 @@ input:checked + .slider:before {
     border-radius: 50%;
     background: var(--emerald);
     box-shadow: 0 0 6px var(--emerald);
+}
+
+/* ==========================================================================
+   CONFIGURATION & ONBOARDING SYSTEM
+   ========================================================================== */
+.config-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.config-welcome-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.12), rgba(14, 165, 233, 0.08));
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    gap: 16px;
+}
+
+.config-welcome-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.config-welcome-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.config-modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.config-mode-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    background: rgba(14, 17, 26, 0.85);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--trans-normal);
+    position: relative;
+}
+
+.config-mode-card:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(20, 24, 38, 0.95);
+    transform: translateY(-2px);
+}
+
+.config-mode-card.active-cloud {
+    border-color: var(--primary);
+    background: rgba(244, 63, 94, 0.08);
+    box-shadow: 0 0 24px rgba(244, 63, 94, 0.2);
+}
+
+.config-mode-card.active-local {
+    border-color: var(--cyan);
+    background: rgba(0, 240, 255, 0.08);
+    box-shadow: 0 0 24px rgba(0, 240, 255, 0.2);
+}
+
+.config-mode-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.config-mode-card.active-cloud .config-mode-icon {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.config-mode-card.active-local .config-mode-icon {
+    background: var(--cyan);
+    color: #000;
+    border-color: var(--cyan);
+}
+
+.config-mode-body h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.config-mode-body p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+.config-radio-pill {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.config-mode-card.active-cloud .config-radio-pill {
+    border-color: var(--primary);
+    background: var(--primary);
+}
+
+.config-mode-card.active-local .config-radio-pill {
+    border-color: var(--cyan);
+    background: var(--cyan);
+}
+
+.config-radio-pill::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+}
+
+.config-mode-card.active-cloud .config-radio-pill::after,
+.config-mode-card.active-local .config-radio-pill::after {
+    display: block;
+}
+
+.lang-toggle-bar {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-subtle);
+    gap: 4px;
+}
+
+.lang-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--trans-fast);
+}
+
+.lang-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.clean-account-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--border-subtle);
+    transition: var(--trans-fast);
+}
+
+.clean-account-row.active {
+    border-color: var(--emerald);
+    background: rgba(16, 185, 129, 0.06);
+}
+
+.clean-account-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.clean-account-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.clean-account-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.clean-account-type {
+    font-size: 11px;
+    color: var(--text-dim);
 }
 
