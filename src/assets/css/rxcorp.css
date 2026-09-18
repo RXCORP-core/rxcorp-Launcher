@@ -1455,6 +1455,213 @@ body {
     margin-top: 2px;
 }
 
+/* Pelican User Header Bar (When Connected) */
+.cloud-user-header {
+    background: rgba(16, 20, 31, 0.85);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.cloud-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cloud-user-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.cloud-user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.cloud-user-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #ffffff;
+}
+
+.cloud-user-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    letter-spacing: 0.4px;
+}
+
+.cloud-user-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.cloud-user-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Pelican Auth Hero Card (When Disconnected) */
+.pelican-auth-hero-card {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, rgba(16, 20, 31, 0.95) 100%);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    border-radius: var(--radius-md);
+    padding: 32px 28px;
+    margin-bottom: 24px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 30px rgba(244, 63, 94, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.pelican-hero-icon-box {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.35);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
+}
+
+.pelican-hero-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+}
+
+.pelican-hero-desc {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    max-width: 520px;
+    margin: 0 auto 24px auto;
+    line-height: 1.55;
+}
+
+.pelican-hero-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+.pelican-btn-sso,
+.pelican-btn-direct {
+    flex: 1;
+    min-width: 230px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-double-label {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.25;
+}
+
+.btn-main-label {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.btn-sub-label {
+    font-size: 10px;
+    opacity: 0.8;
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+.pelican-hero-manual-toggle {
+    margin-top: 20px;
+}
+
+/* Official Public Servers Section */
+.cloud-public-section {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.cloud-public-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.cloud-public-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+}
+
+.cloud-public-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+}
+
+.cloud-public-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-dim);
+    border: 1px solid var(--border-subtle);
+    text-transform: uppercase;
+}
+
+.public-server-card {
+    background: linear-gradient(180deg, rgba(20, 24, 38, 0.8) 0%, rgba(13, 16, 24, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.public-server-card:hover {
+    border-color: rgba(244, 63, 94, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(244, 63, 94, 0.1);
+}
+
 /* Mod Search Bar */
 .mod-search-bar {
     display: flex;

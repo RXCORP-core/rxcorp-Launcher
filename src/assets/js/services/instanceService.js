@@ -220,13 +220,19 @@ class InstanceService {
             if (!found.modsPath) found.modsPath = path.join(found.path, 'mods');
 
             let modified = false;
-            // Ensure forge loader for servers
-            if (found.loader === 'vanilla') {
+            // Respect server loader and version
+            if (server.loader && server.loader !== 'vanilla' && found.loader !== server.loader) {
+                found.loader = server.loader;
+                modified = true;
+            } else if (found.loader === 'vanilla' && !server.loader) {
                 found.loader = 'forge';
                 modified = true;
             }
-            // Auto-upgrade version to 1.21.4
-            if (found.version === '1.21.1' || found.version === '26.2' || !found.version) {
+
+            if (server.version && found.version !== server.version) {
+                found.version = server.version;
+                modified = true;
+            } else if (!found.version) {
                 found.version = '1.21.4';
                 modified = true;
             }
@@ -262,18 +268,20 @@ class InstanceService {
             return found;
         }
 
-        // Auto-detect version & loader based on docker image or name (default to forge for Pelican servers)
-        let version = '1.21.4';
-        let loader = 'forge';
+        // Auto-detect version & loader based on server properties or docker image / name
+        let version = server.version || '1.21.4';
+        let loader = server.loader || 'forge';
         const img = (server.dockerImage || '').toLowerCase();
         const name = (server.name || '').toLowerCase();
 
-        if (img.includes('fabric') || name.includes('fabric')) {
-            loader = 'fabric';
-        } else if (img.includes('neoforge') || name.includes('neoforge')) {
-            loader = 'neoforge';
-        } else if (img.includes('forge') || name.includes('forge')) {
-            loader = 'forge';
+        if (loader === 'vanilla' || !server.loader) {
+            if (img.includes('fabric') || name.includes('fabric')) {
+                loader = 'fabric';
+            } else if (img.includes('neoforge') || name.includes('neoforge')) {
+                loader = 'neoforge';
+            } else if (img.includes('forge') || name.includes('forge')) {
+                loader = 'forge';
+            }
         }
 
         return this.createInstance({

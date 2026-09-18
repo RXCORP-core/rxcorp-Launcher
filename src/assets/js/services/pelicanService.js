@@ -49,7 +49,8 @@ class PelicanService {
                     id: data.attributes.id,
                     username: data.attributes.username,
                     email: data.attributes.email,
-                    language: data.attributes.language
+                    language: data.attributes.language,
+                    admin: data.attributes.admin || data.attributes.root_admin || false
                 }
             };
         } catch (err) {
@@ -62,8 +63,9 @@ class PelicanService {
      */
     async getServers(apiKey, panelUrl = this.defaultPanelUrl) {
         try {
-            const url = `${panelUrl.replace(/\/+$/, '')}/api/client`;
-            const res = await fetch(url, {
+            const baseUrl = panelUrl.replace(/\/+$/, '');
+            let url = `${baseUrl}/api/client`;
+            let res = await fetch(url, {
                 method: 'GET',
                 headers: this._getHeaders(apiKey)
             });
@@ -72,10 +74,28 @@ class PelicanService {
                 throw new Error(`Erreur API (${res.status}): ${await res.text()}`);
             }
 
-            const json = await res.json();
+            let json = await res.json();
+            let dataList = json.data || [];
+
+            // If empty, try admin-all in case authenticated user is an administrator
+            if (dataList.length === 0) {
+                try {
+                    const adminRes = await fetch(`${baseUrl}/api/client?type=admin-all`, {
+                        method: 'GET',
+                        headers: this._getHeaders(apiKey)
+                    });
+                    if (adminRes.ok) {
+                        const adminJson = await adminRes.json();
+                        if (adminJson.data && adminJson.data.length > 0) {
+                            dataList = adminJson.data;
+                        }
+                    }
+                } catch (_) {}
+            }
+
             const servers = [];
 
-            for (const item of (json.data || [])) {
+            for (const item of dataList) {
                 const attr = item.attributes;
                 const allocations = attr.relationships?.allocations?.data || [];
                 const defaultAlloc = allocations.find(a => a.attributes?.is_default) || allocations[0];
@@ -84,17 +104,46 @@ class PelicanService {
                 let port = 25565;
 
                 if (defaultAlloc && defaultAlloc.attributes) {
-                    ip = defaultAlloc.attributes.ip_alias || defaultAlloc.attributes.ip || ip;
+                    const allocIp = defaultAlloc.attributes.ip_alias || defaultAlloc.attributes.ip;
+                    if (allocIp && allocIp !== '0.0.0.0' && allocIp !== '127.0.0.1') {
+                        ip = allocIp;
+                    } else {
+                        ip = 'node.rxcorp.fr';
+                    }
                     port = defaultAlloc.attributes.port || port;
+                }
+
+                // Detect MC Version and Loader from Egg Variables
+                let mcVersion = '1.21.4';
+                let detectedLoader = 'vanilla';
+                const variables = attr.relationships?.variables?.data || [];
+                for (const v of variables) {
+                    const env = v.attributes?.env_variable;
+                    const val = v.attributes?.server_value || v.attributes?.default_value;
+                    if (env === 'MC_VERSION' && val && val !== 'latest') {
+                        mcVersion = val;
+                    }
+                    if (env === 'NEOFORGE_VERSION' && val) {
+                        detectedLoader = 'neoforge';
+                    }
+                    if (env === 'FABRIC_VERSION' && val) {
+                        detectedLoader = 'fabric';
+                    }
+                    if (env === 'FORGE_VERSION' && val) {
+                        detectedLoader = 'forge';
+                    }
                 }
 
                 // Detect if it is a Minecraft server
                 const invocation = (attr.invocation || '').toLowerCase();
                 const dockerImage = (attr.docker_image || '').toLowerCase();
+                const hasMcVars = variables.some(v => v.attributes?.env_variable?.includes('MC_VERSION'));
                 const isMinecraft = invocation.includes('server.jar') || 
                                     invocation.includes('unix_args.txt') || 
+                                    invocation.includes('run.sh') ||
                                     dockerImage.includes('yolks') || 
                                     dockerImage.includes('java') ||
+                                    hasMcVars ||
                                     (attr.egg_features && attr.egg_features.includes('eula'));
 
                 servers.push({
@@ -107,6 +156,8 @@ class PelicanService {
                     isOwner: attr.server_owner,
                     ip: ip,
                     port: port,
+                    version: mcVersion,
+                    loader: detectedLoader,
                     limits: {
                         memory: attr.limits?.memory || 0,
                         cpu: attr.limits?.cpu || 0,

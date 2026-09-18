@@ -669,14 +669,17 @@ class RxcorpApp {
     async loadCloudServers() {
         const apiKey = store.get('apiKey');
         const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+        const pelicanUser = store.get('pelicanUser');
 
         const authCard = document.getElementById('cloud-auth-card');
+        const userHeader = document.getElementById('cloud-user-header');
         const grid = document.getElementById('cloud-servers-grid');
         const pillText = document.getElementById('cloud-pill-text');
         const pillDot = document.querySelector('#cloud-pill .status-dot');
 
         if (!apiKey) {
             if (authCard) authCard.style.display = 'block';
+            if (userHeader) userHeader.style.display = 'none';
             if (grid) grid.innerHTML = '';
             if (pillText) pillText.innerText = 'Non connecté';
             if (pillDot) pillDot.className = 'status-dot offline';
@@ -685,6 +688,29 @@ class RxcorpApp {
         }
 
         if (authCard) authCard.style.display = 'none';
+        if (userHeader) userHeader.style.display = 'flex';
+
+        // Update Pelican user display in header
+        if (pelicanUser?.username) {
+            const userNameEl = document.getElementById('cloud-user-name');
+            const userEmailEl = document.getElementById('cloud-user-email');
+            if (userNameEl) userNameEl.innerText = pelicanUser.username;
+            if (userEmailEl) userEmailEl.innerText = pelicanUser.email || '';
+        } else {
+            pelicanService.testConnection(apiKey, panelUrl).then(testRes => {
+                if (testRes.success && testRes.user) {
+                    store.set('pelicanUser', {
+                        username: testRes.user.username,
+                        email: testRes.user.email
+                    });
+                    const userNameEl = document.getElementById('cloud-user-name');
+                    const userEmailEl = document.getElementById('cloud-user-email');
+                    if (userNameEl) userNameEl.innerText = testRes.user.username;
+                    if (userEmailEl) userEmailEl.innerText = testRes.user.email || '';
+                }
+            }).catch(() => {});
+        }
+
         if (pillText) pillText.innerText = 'Connexion...';
         if (pillDot) pillDot.className = 'status-dot';
 
@@ -699,11 +725,12 @@ class RxcorpApp {
         const res = await pelicanService.getServers(apiKey, panelUrl);
         if (!res.success) {
             if (authCard) authCard.style.display = 'block';
+            if (userHeader) userHeader.style.display = 'none';
             if (grid) {
                 grid.innerHTML = `
                     <div class="rx-card" style="grid-column: 1/-1; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); margin-bottom: 20px; text-align: center; padding: 20px;">
-                        <p style="color: var(--danger); font-weight: 700; margin-bottom: 6px;">Session expirée ou non autorisée</p>
-                        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 0;">Cliquez sur <strong>« Connexion en 1 Clic »</strong> ci-dessus pour associer votre compte automatiquement.</p>
+                        <p style="color: var(--danger); font-weight: 700; margin-bottom: 6px;">Session expirée ou clé invalide</p>
+                        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 0;">Veuillez vous reconnecter au Panel Pelican ci-dessus.</p>
                     </div>
                 `;
             }
@@ -720,11 +747,13 @@ class RxcorpApp {
         if (grid) {
             if (this.cloudServers.length === 0) {
                 grid.innerHTML = `
-                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
-                        <p style="color: var(--text-muted); margin-bottom: 12px;">Aucun serveur Minecraft actif trouvé sur votre compte.</p>
-                        <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
-                            Commander un serveur Minecraft
-                        </button>
+                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 32px 20px; background: rgba(16, 20, 31, 0.6); border: 1px solid var(--border-card);">
+                        <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">Aucun serveur Minecraft privé trouvé sur votre panel Pelican.</p>
+                        <div style="display: flex; justify-content: center; gap: 10px;">
+                            <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
+                                Commander un serveur Minecraft
+                            </button>
+                        </div>
                     </div>
                 `;
             } else {
@@ -922,6 +951,10 @@ class RxcorpApp {
     }
 
     async handleJoinServer(server) {
+        const account = this.getActiveAccount();
+        const apiKey = store.get('apiKey');
+        const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+
         // Auto-sync player to server whitelist before joining if credentials available
         if (account && apiKey) {
             try {
@@ -1774,25 +1807,50 @@ class RxcorpApp {
             this.loadCloudServers();
         });
 
+        const btnDisconnectPanel = document.getElementById('btn-disconnect-panel');
+        if (btnDisconnectPanel) {
+            btnDisconnectPanel.style.display = store.get('apiKey') ? 'inline-flex' : 'none';
+        }
+
         // Test panel connection button
         document.getElementById('btn-test-panel')?.addEventListener('click', async () => {
             const key = inputKey.value.trim();
             const url = inputUrl.value.trim();
             const res = await pelicanService.testConnection(key, url);
             if (res.success) {
+                store.set('pelicanUser', {
+                    username: res.user.username,
+                    email: res.user.email
+                });
+                if (btnDisconnectPanel) btnDisconnectPanel.style.display = 'inline-flex';
                 this.showNotification('Connexion réussie !', `Connecté : ${res.user.username} (${res.user.email})`);
+                this.loadCloudServers();
+                this.updatePelicanSyncUI();
             } else {
                 this.showNotification('Échec de connexion', res.error);
             }
         });
 
         // Disconnect panel button
-        document.getElementById('btn-disconnect-panel')?.addEventListener('click', () => {
-            store.set('apiKey', '');
-            if (inputKey) inputKey.value = '';
-            this.loadCloudServers();
-            this.showNotification('Déconnecté', 'Vous avez été déconnecté du Panel Pelican.');
+        btnDisconnectPanel?.addEventListener('click', () => {
+            this.disconnectPelican();
         });
+    }
+
+    disconnectPelican() {
+        store.set('apiKey', '');
+        store.delete('pelicanUser');
+        store.delete('pelicanMicrosoftSync');
+        const inputKey = document.getElementById('settings-panel-key');
+        if (inputKey) inputKey.value = '';
+        const inputKeyManual = document.getElementById('input-manual-key-cloud');
+        if (inputKeyManual) inputKeyManual.value = '';
+        const btnDisconnect = document.getElementById('btn-disconnect-panel');
+        if (btnDisconnect) btnDisconnect.style.display = 'none';
+
+        this.showNotification('Déconnecté', 'Vous avez été déconnecté du Panel Pelican.');
+        this.loadCloudServers();
+        this.updatePelicanSyncUI();
     }
 
     initModeSelector() {
@@ -2254,43 +2312,110 @@ class RxcorpApp {
     // RXCORP CLOUD WEB SSO & DIRECT AUTH
     // ==========================================
     initWebAuth() {
+        // Handle successful loopback Web SSO from main process
         ipcRenderer.on('web-auth-success', (event, data) => {
             console.log('[RXCORP] Web Auth success received:', data);
             if (data.token) {
                 store.set('apiKey', data.token);
+                store.set('hasPelicanServer', true);
                 if (data.username) {
-                    store.set('activeAccountName', data.username);
-                    const accounts = store.get('accounts') || [];
-                    if (!accounts.some(a => a.name === data.username)) {
-                        accounts.push({
-                            name: data.username,
-                            uuid: 'offline-' + data.username,
-                            meta: { type: 'RXCORP', online: false, email: data.email || '' }
-                        });
-                        store.set('accounts', accounts);
+                    store.set('pelicanUser', {
+                        username: data.username,
+                        email: data.email || ''
+                    });
+
+                    // Only set active Minecraft account if NO account is currently selected
+                    const activeAcc = this.getActiveAccount();
+                    if (!activeAcc || !activeAcc.name) {
+                        store.set('activeAccountName', data.username);
+                        const accounts = store.get('accounts') || [];
+                        if (!accounts.some(a => a.name === data.username)) {
+                            accounts.push({
+                                name: data.username,
+                                uuid: 'offline-' + data.username,
+                                meta: { type: 'RXCORP', online: false, email: data.email || '' }
+                            });
+                            store.set('accounts', accounts);
+                        }
                     }
                 }
                 store.set('configured', true);
                 const firstLaunchModal = document.getElementById('modal-first-launch');
                 if (firstLaunchModal) firstLaunchModal.style.display = 'none';
-                this.showNotification('Connexion Cloud Réussie', `Bienvenue ${data.username || ''} ! Vos serveurs sont prêts.`);
+                this.showNotification('Connexion Pelican Réussie', `Connecté au Panel : ${data.username || ''}. Vos serveurs sont prêts.`);
                 this.renderAccountsList();
                 this.loadCloudServers();
+                this.updatePelicanSyncUI();
+                this.handlePelicanSync(true);
             }
         });
 
-        // 1-Click Web SSO Button
-        document.getElementById('btn-start-web-auth')?.addEventListener('click', () => {
-            this.showNotification('Connexion Web', 'Ouverture de votre navigateur pour validation...');
+        // 1-Click Web SSO Handlers
+        const startWebAuth = () => {
+            this.showNotification('Connexion Web SSO', 'Ouverture de votre navigateur pour validation...');
+            this.closeModal('modal-direct-login');
             ipcRenderer.send('start-web-auth');
-        });
+        };
 
-        // Open Direct Login Modal
-        document.getElementById('btn-open-direct-login')?.addEventListener('click', () => {
+        document.getElementById('btn-start-web-auth')?.addEventListener('click', startWebAuth);
+        document.getElementById('btn-cloud-web-sso')?.addEventListener('click', startWebAuth);
+        document.getElementById('btn-modal-open-sso')?.addEventListener('click', startWebAuth);
+
+        // Open Direct Login Modal Handlers
+        const openDirectLogin = () => {
+            const errBox = document.getElementById('direct-login-error');
+            if (errBox) errBox.style.display = 'none';
             this.openModal('modal-direct-login');
+            setTimeout(() => document.getElementById('input-direct-login')?.focus(), 50);
+        };
+
+        document.getElementById('btn-open-direct-login')?.addEventListener('click', openDirectLogin);
+        document.getElementById('btn-cloud-direct-login')?.addEventListener('click', openDirectLogin);
+
+        // Toggle Manual Key Input in Cloud View
+        document.getElementById('btn-toggle-manual-key-cloud')?.addEventListener('click', () => {
+            const box = document.getElementById('manual-key-cloud-box');
+            if (box) {
+                box.style.display = box.style.display === 'none' ? 'block' : 'none';
+            }
         });
 
-        // Toggle Manual API Key Container
+        // Submit Manual Key in Cloud View
+        document.getElementById('btn-submit-manual-key-cloud')?.addEventListener('click', async () => {
+            const input = document.getElementById('input-manual-key-cloud');
+            const key = input ? input.value.trim() : '';
+            if (!key) {
+                this.showNotification('Clé requise', 'Veuillez saisir votre token API Client (pacc_...).');
+                return;
+            }
+            store.set('apiKey', key);
+            store.set('hasPelicanServer', true);
+            const testRes = await pelicanService.testConnection(key);
+            if (testRes.success && testRes.user) {
+                store.set('pelicanUser', {
+                    username: testRes.user.username,
+                    email: testRes.user.email
+                });
+                this.showNotification('Connexion réussie', `Connecté en tant que ${testRes.user.username}`);
+            } else {
+                this.showNotification('Panel Connecté', 'Clé API enregistrée.');
+            }
+            this.loadCloudServers();
+            this.updatePelicanSyncUI();
+            this.handlePelicanSync(true);
+        });
+
+        // Cloud User Header Actions
+        document.getElementById('btn-open-pelican-web')?.addEventListener('click', () => {
+            const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
+            shell.openExternal(panelUrl);
+        });
+
+        document.getElementById('btn-disconnect-cloud')?.addEventListener('click', () => {
+            this.disconnectPelican();
+        });
+
+        // Toggle Legacy Manual API Key Container
         document.getElementById('btn-toggle-manual-key')?.addEventListener('click', () => {
             const container = document.getElementById('manual-key-container');
             if (container) {
@@ -2299,7 +2424,7 @@ class RxcorpApp {
         });
 
         // Submit Direct Login Modal
-        document.getElementById('btn-submit-direct-login')?.addEventListener('click', async () => {
+        const submitDirectLogin = async () => {
             const login = document.getElementById('input-direct-login')?.value.trim();
             const password = document.getElementById('input-direct-password')?.value;
             const errBox = document.getElementById('direct-login-error');
@@ -2327,22 +2452,33 @@ class RxcorpApp {
 
                 if (resData.success && resData.token) {
                     store.set('apiKey', resData.token);
+                    store.set('hasPelicanServer', true);
                     if (resData.user?.username) {
-                        store.set('activeAccountName', resData.user.username);
-                        const accounts = store.get('accounts') || [];
-                        if (!accounts.some(a => a.name === resData.user.username)) {
-                            accounts.push({
-                                name: resData.user.username,
-                                uuid: 'offline-' + resData.user.username,
-                                meta: { type: 'RXCORP', online: false, email: resData.user.email || '' }
-                            });
-                            store.set('accounts', accounts);
+                        store.set('pelicanUser', {
+                            username: resData.user.username,
+                            email: resData.user.email || ''
+                        });
+                        // Preserve active Minecraft account if already present
+                        const activeAcc = this.getActiveAccount();
+                        if (!activeAcc || !activeAcc.name) {
+                            store.set('activeAccountName', resData.user.username);
+                            const accounts = store.get('accounts') || [];
+                            if (!accounts.some(a => a.name === resData.user.username)) {
+                                accounts.push({
+                                    name: resData.user.username,
+                                    uuid: 'offline-' + resData.user.username,
+                                    meta: { type: 'RXCORP', online: false, email: resData.user.email || '' }
+                                });
+                                store.set('accounts', accounts);
+                            }
                         }
                     }
                     this.closeModal('modal-direct-login');
                     this.showNotification('Connexion réussie', `Bienvenue ${resData.user?.username || ''} !`);
                     this.renderAccountsList();
                     this.loadCloudServers();
+                    this.updatePelicanSyncUI();
+                    this.handlePelicanSync(true);
                 } else {
                     if (errBox) {
                         errBox.textContent = resData.error || 'Identifiants invalides.';
@@ -2358,6 +2494,44 @@ class RxcorpApp {
                 btn.disabled = false;
                 btn.innerHTML = '<span>Se connecter</span>';
             }
+        };
+
+        document.getElementById('btn-submit-direct-login')?.addEventListener('click', submitDirectLogin);
+        document.getElementById('input-direct-password')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitDirectLogin();
+        });
+        document.getElementById('input-direct-login')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitDirectLogin();
+        });
+
+        // Public Servers 1-Click Join Handlers
+        document.querySelectorAll('.btn-join-public-srv').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const srvType = e.currentTarget.dataset.srv;
+                if (srvType === 'survie') {
+                    const inst = instanceService.getOrCreateServerInstance({
+                        name: 'RX Survie 1.21.4',
+                        ip: 'play.rxcorp.fr',
+                        port: 25565,
+                        version: '1.21.4',
+                        loader: 'vanilla',
+                        isMinecraft: true
+                    });
+                    this.setActiveInstanceForDomain('cloud', inst.id);
+                    await this.launchCurrentInstance();
+                } else if (srvType === 'modded') {
+                    const inst = instanceService.getOrCreateServerInstance({
+                        name: 'RX Modded NeoForge',
+                        ip: 'modded.rxcorp.fr',
+                        port: 25565,
+                        version: '1.21.1',
+                        loader: 'neoforge',
+                        isMinecraft: true
+                    });
+                    this.setActiveInstanceForDomain('cloud', inst.id);
+                    await this.launchCurrentInstance();
+                }
+            });
         });
     }
 

@@ -303,10 +303,36 @@
                     </h2>
                     <p class="view-subtitle" data-i18n="cloud_subtitle">Infrastructure officielle RXCORP • Whitelist synchronisée et connexion 1-clic</p>
                 </div>
-                <div>
+                <div style="display: flex; gap: 8px;">
                     <button id="btn-refresh-cloud" class="rx-btn rx-btn-secondary">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                         <span data-i18n="cloud_refresh">Rafraîchir</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Connected Pelican User Badge Bar (displayed when connected to Pelican) -->
+            <div id="cloud-user-header" class="cloud-user-header" style="display: none;">
+                <div class="cloud-user-info">
+                    <div class="cloud-user-icon-wrap">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    </div>
+                    <div class="cloud-user-details">
+                        <div class="cloud-user-title">
+                            <span>Panel Pelican :</span>
+                            <strong id="cloud-user-name">chatdoo</strong>
+                            <span class="cloud-user-badge">Connecté</span>
+                        </div>
+                        <div class="cloud-user-sub" id="cloud-user-email">salemassadi097@gmail.com</div>
+                    </div>
+                </div>
+                <div class="cloud-user-actions">
+                    <button id="btn-open-pelican-web" class="rx-btn rx-btn-secondary" style="padding: 6px 12px; font-size: 11px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        <span>Ouvrir le Panel</span>
+                    </button>
+                    <button id="btn-disconnect-cloud" class="rx-btn rx-btn-danger" style="padding: 6px 12px; font-size: 11px;">
+                        <span>Déconnexion</span>
                     </button>
                 </div>
             </div>
@@ -329,22 +355,133 @@
                 </button>
             </div>
 
-            <!-- Auth Required Card (if not linked) -->
-            <div id="cloud-auth-card" class="tactical-card" style="display: none; text-align: center; padding: 36px 20px;">
-                <div style="margin-bottom: 12px; opacity: 0.7; display: flex; justify-content: center;">
-                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            <!-- Auth Required Hero Card (if not linked to Pelican) -->
+            <div id="cloud-auth-card" class="pelican-auth-hero-card" style="display: none;">
+                <div class="pelican-hero-icon-box">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
                 </div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">Connexion au Panel Pelican Optionnelle</h3>
-                <p style="font-size: 12px; color: var(--text-dim); max-width: 440px; margin: 0 auto 18px;">
-                    Si vous possédez un serveur chez RXCORP, entrez votre clé API Client dans les paramètres pour surveiller vos joueurs et synchroniser vos mods.
-                </p>
-                <button id="btn-login-cloud" class="rx-btn rx-btn-primary">
-                    <span>Configurer dans les Paramètres</span>
-                </button>
+                <div class="pelican-hero-texts">
+                    <h3 class="pelican-hero-title">Connexion Pelican Cloud RXCORP</h3>
+                    <p class="pelican-hero-desc">
+                        Associez votre compte Panel pour piloter vos serveurs de jeu en temps réel, synchroniser automatiquement vos mods et propager la whitelist de votre compte Microsoft.
+                    </p>
+                </div>
+                <div class="pelican-hero-actions">
+                    <button id="btn-cloud-web-sso" class="rx-btn rx-btn-primary pelican-btn-sso">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        <div class="btn-double-label">
+                            <span class="btn-main-label">Connexion 1-Clic Web SSO</span>
+                            <span class="btn-sub-label">Validation instantanée via le navigateur</span>
+                        </div>
+                    </button>
+                    <button id="btn-cloud-direct-login" class="rx-btn rx-btn-secondary pelican-btn-direct">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <div class="btn-double-label">
+                            <span class="btn-main-label">Connexion Identifiants</span>
+                            <span class="btn-sub-label">Email/Pseudo et mot de passe Pelican</span>
+                        </div>
+                    </button>
+                </div>
+                <div class="pelican-hero-manual-toggle">
+                    <button id="btn-toggle-manual-key-cloud" type="button" class="btn-text-link">
+                        <span>Ou renseigner manuellement une clé API (pacc_...)</span>
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="manual-key-cloud-box" style="display: none; margin-top: 10px;">
+                        <div style="display: flex; gap: 8px; max-width: 440px; margin: 0 auto;">
+                            <input id="input-manual-key-cloud" type="password" class="form-input" placeholder="pacc_xxxxxxxxxxxxxxxxxxxxxxxx" style="font-size: 12px; flex: 1;">
+                            <button id="btn-submit-manual-key-cloud" class="rx-btn rx-btn-primary" style="white-space: nowrap; padding: 0 16px;">Enregistrer</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Servers Grid -->
+            <!-- User Pelican Servers Grid -->
             <div id="cloud-servers-grid" class="servers-grid"></div>
+
+            <!-- Public Official Servers Section -->
+            <div id="cloud-public-servers" class="cloud-public-section">
+                <div class="cloud-public-header">
+                    <div class="cloud-public-header-left">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <h3 class="cloud-public-title">Serveurs Publics Officiels RXCORP</h3>
+                    </div>
+                    <span class="cloud-public-tag">Accès libre sans whitelist</span>
+                </div>
+                <div class="servers-grid" id="cloud-public-servers-grid">
+                    <!-- Survie Card -->
+                    <div class="server-card public-server-card" id="public-card-survie">
+                        <div class="server-card-top">
+                            <div class="server-name-box">
+                                <h3 class="server-name">RX Survie 1.21.4</h3>
+                                <div class="server-address" title="Cliquer pour copier l'adresse" data-copy="play.rxcorp.fr:25565">
+                                    <span>play.rxcorp.fr:25565</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px; height:11px; opacity:0.7;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
+                            </div>
+                            <div class="server-badge online">
+                                <span class="badge-text">● En Ligne</span>
+                            </div>
+                        </div>
+                        <div class="server-stats-row">
+                            <div class="stat-item">
+                                <span class="stat-label">VERSION</span>
+                                <span class="stat-value">1.21.4 (Vanilla)</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">MODS</span>
+                                <span class="stat-value">Aucun mod requis</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">TYPE</span>
+                                <span class="stat-value">Survie Paper</span>
+                            </div>
+                        </div>
+                        <div class="server-actions" style="margin-top: 10px;">
+                            <button class="rx-btn rx-btn-primary btn-join-public-srv" data-srv="survie" style="flex: 1; font-weight: 700;">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                                <span>Rejoindre Survie</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modded NeoForge Card -->
+                    <div class="server-card public-server-card" id="public-card-modded">
+                        <div class="server-card-top">
+                            <div class="server-name-box">
+                                <h3 class="server-name">RX Modded NeoForge</h3>
+                                <div class="server-address" title="Cliquer pour copier l'adresse" data-copy="modded.rxcorp.fr:25565">
+                                    <span>modded.rxcorp.fr:25565</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px; height:11px; opacity:0.7;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
+                            </div>
+                            <div class="server-badge online">
+                                <span class="badge-text">● En Ligne</span>
+                            </div>
+                        </div>
+                        <div class="server-stats-row">
+                            <div class="stat-item">
+                                <span class="stat-label">VERSION</span>
+                                <span class="stat-value">1.21.1 (NeoForge)</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">MODS</span>
+                                <span class="stat-value">Modpack RXCORP</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">TYPE</span>
+                                <span class="stat-value">Create & Tech</span>
+                            </div>
+                        </div>
+                        <div class="server-actions" style="margin-top: 10px;">
+                            <button class="rx-btn rx-btn-primary btn-join-public-srv" data-srv="modded" style="flex: 1; font-weight: 700;">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                                <span>Rejoindre Modded</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- =========================================================================
@@ -882,23 +1019,38 @@
 
     <!-- DIRECT PELICAN LOGIN MODAL -->
     <div id="modal-direct-login" class="rx-modal-overlay">
-        <div class="rx-modal-card">
+        <div class="rx-modal-card ms-auth-modal-card" style="max-width: 440px;">
             <div class="modal-header">
-                <h3 class="modal-title">Connexion Panel Pelican</h3>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); display: flex; align-items: center; justify-content: center; color: #f43f5e;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title">Connexion Panel Pelican</h3>
+                        <p style="font-size: 11px; color: var(--text-dim); margin: 0;">panel.rxcorp.fr</p>
+                    </div>
+                </div>
                 <button class="modal-close-btn" data-close="modal-direct-login">✕</button>
             </div>
             <div id="direct-login-error" style="display: none; margin-bottom: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: var(--danger); padding: 8px 12px; border-radius: 6px; font-size: 12px;"></div>
             <div class="form-group">
-                <label class="form-label">Identifiant ou Email</label>
-                <input id="input-direct-login" type="text" class="form-input" placeholder="contact@..." autocomplete="username">
+                <label class="form-label">Identifiant ou Email Pelican</label>
+                <input id="input-direct-login" type="text" class="form-input" placeholder="ex: chatdoo ou salem@..." autocomplete="username">
             </div>
             <div class="form-group">
                 <label class="form-label">Mot de passe</label>
                 <input id="input-direct-password" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password">
             </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
-                <button class="rx-btn rx-btn-secondary" data-close="modal-direct-login">Annuler</button>
-                <button id="btn-submit-direct-login" class="rx-btn rx-btn-primary">Se connecter</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+                <button type="button" id="btn-modal-open-sso" class="btn-text-link" style="font-size: 11.5px; color: var(--text-muted); padding: 0;">
+                    Ou validation Web 1-Clic ↗
+                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="rx-btn rx-btn-secondary" data-close="modal-direct-login">Annuler</button>
+                    <button id="btn-submit-direct-login" class="rx-btn rx-btn-primary">
+                        <span>Se connecter</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
