@@ -550,7 +550,7 @@
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <span class="settings-card-title">Mises à Jour du Launcher</span>
-                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.5.5</span>
+                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.6.0</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
                             Le launcher vérifie et applique automatiquement les nouvelles versions en arrière-plan. Vous pouvez forcer une vérification immédiate du cloud.
@@ -592,7 +592,7 @@
 
                     <!-- Info Box -->
                     <div class="settings-card" style="font-size: 11px; color: var(--text-dim); line-height: 1.6;">
-                        <strong style="color: #fff;">RXCORP Launcher v2.5.5</strong><br>
+                        <strong style="color: #fff;">RXCORP Launcher v2.6.0</strong><br>
                         Développé avec soin pour la communauté RXCORP.<br>
                         Infrastructure Cloud Pelican • Modpacks • CurseForge & Modrinth.
                     </div>
@@ -887,6 +887,66 @@
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
                 <button class="rx-btn rx-btn-secondary" data-close="modal-direct-login">Annuler</button>
                 <button id="btn-submit-direct-login" class="rx-btn rx-btn-primary">Se connecter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODERN MICROSOFT DEVICE CODE & QR AUTH MODAL (PROPOSITIONS 2 & 3) -->
+    <div id="modal-microsoft-auth" class="rx-modal-overlay">
+        <div class="rx-modal-card ms-auth-modal-card">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
+                    <h3 class="modal-title">Connexion Compte Microsoft</h3>
+                </div>
+                <button id="btn-close-ms-auth" class="modal-close-btn" data-close="modal-microsoft-auth">✕</button>
+            </div>
+
+            <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 14px 0; line-height: 1.45;">
+                Validez la connexion en 1 clic avec votre téléphone ou votre navigateur PC sans ressaisir vos identifiants.
+            </p>
+
+            <div class="ms-auth-grid">
+                <!-- Column 1: QR Code for Mobile (Proposition 3) -->
+                <div class="ms-auth-col">
+                    <div class="ms-auth-qr-box">
+                        <img id="ms-qr-image" src="" alt="QR Code Microsoft" class="ms-qr-img">
+                        <div id="ms-qr-spinner" style="font-size: 11px; color: #111; font-weight: 600; display: none;">Génération QR...</div>
+                    </div>
+                    <span class="ms-auth-step-label">1. Scannez avec votre téléphone</span>
+                    <span class="ms-auth-step-desc">Appareil photo de votre smartphone ou Microsoft Authenticator</span>
+                </div>
+
+                <div class="ms-auth-divider">
+                    <span>OU</span>
+                </div>
+
+                <!-- Column 2: PC Default Browser 1-Click (Proposition 2) -->
+                <div class="ms-auth-col">
+                    <div class="ms-auth-browser-box">
+                        <span class="ms-auth-step-label">2. Ouvrez sur votre PC</span>
+                        <span class="ms-auth-step-desc">Votre compte Microsoft est déjà connecté dans votre navigateur habituel.</span>
+                        
+                        <div class="ms-code-badge-box">
+                            <span style="font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Code de validation</span>
+                            <div class="ms-code-display" id="ms-user-code-display">••••••••</div>
+                            <button type="button" id="btn-ms-copy-code" class="ms-code-copy-btn">Copier le code</button>
+                        </div>
+
+                        <button id="btn-ms-open-browser" type="button" class="rx-btn rx-btn-primary" style="width: 100%; padding: 11px 16px; font-weight: 700; margin-top: 10px;">
+                            Ouvrir dans le Navigateur ↗
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Status Bar -->
+            <div class="ms-auth-status-bar">
+                <div class="ms-status-indicator">
+                    <span class="ms-pulse-dot"></span>
+                    <span id="ms-auth-status-text">En attente de votre validation sur mobile ou navigateur...</span>
+                </div>
+                <button type="button" class="rx-btn rx-btn-secondary" id="btn-cancel-ms-auth" data-close="modal-microsoft-auth" style="padding: 6px 14px; font-size: 11px;">Annuler</button>
             </div>
         </div>
     </div>

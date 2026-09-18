@@ -4,7 +4,7 @@
  * Version 2.4.0
  */
 
-const { ipcRenderer, shell } = require('electron');
+const { ipcRenderer, shell, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -22,6 +22,7 @@ const instanceService = require(path.join(servicesDir, 'instanceService.js'));
 const modrinthService = require(path.join(servicesDir, 'modrinthService.js'));
 const curseforgeService = require(path.join(servicesDir, 'curseforgeService.js'));
 const gameLauncher = require(path.join(servicesDir, 'gameLauncher.js'));
+const microsoftAuthService = require(path.join(servicesDir, 'microsoftAuthService.js'));
 
 const utilsDir = fs.existsSync(path.join(__dirname, 'utils'))
     ? path.join(__dirname, 'utils')
@@ -2011,77 +2012,23 @@ class RxcorpApp {
             ipcRenderer.send('start-web-auth');
         });
 
-        // Microsoft 1-Click login (with Cloud Database Linking)
-        btnMicrosoft?.addEventListener('click', async () => {
-            try {
-                this.updateDockStatus(i18n.t('launching') || 'Connexion Microsoft en cours...');
-                const client_id = "00000000402b5328";
-                const auth = await ipcRenderer.invoke('Microsoft-window', client_id);
-                if (auth && auth.name) {
-                    let accList = store.get('accounts') || [];
-                    accList = accList.filter(a => a.name !== 'Player');
-                    const existingIdx = accList.findIndex(a => a.name.toLowerCase() === auth.name.toLowerCase());
-                    if (existingIdx >= 0) {
-                        accList[existingIdx] = auth;
-                    } else {
-                        accList.push(auth);
+        // Modern Microsoft Login (Device Code Flow + QR Code + Browser 1-Click)
+        btnMicrosoft?.addEventListener('click', () => {
+            this.openMicrosoftDeviceAuthModal((auth, cloudConfig) => {
+                selectedAccount = auth.name;
+                displayConfirmedAccount(auth.name);
+                if (cloudConfig) {
+                    if (cloudConfig.allocated_ram_gb) {
+                        updateRamUI(cloudConfig.allocated_ram_gb);
                     }
-                    store.set('accounts', accList);
-                    store.set('activeAccountName', auth.name);
-                    if (auth.uuid) store.set('ms_uuid', auth.uuid);
-                    store.set('ms_gamertag', auth.name);
-
-                    selectedAccount = auth.name;
-                    displayConfirmedAccount(auth.name);
-                    this.renderAccountsList();
-                    this.updatePelicanSyncUI();
-
-                    // Sync Microsoft account with MariaDB Cloud Database
-                    let clientUuid = store.get('client_uuid');
-                    if (!clientUuid) {
-                        clientUuid = 'c-' + Math.random().toString(36).substring(2, 10) + '-' + Date.now().toString(36);
-                        store.set('client_uuid', clientUuid);
+                    if (cloudConfig.lang && cloudConfig.lang !== selectedLang) {
+                        selectedLang = cloudConfig.lang;
+                        store.set('language', selectedLang);
+                        i18n.setLanguage(selectedLang);
                     }
-
-                    fetch('https://rxcorp.fr/launcher/api/index.php?action=sync_ms', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            client_uuid: clientUuid,
-                            ms_uuid: auth.uuid || null,
-                            ms_gamertag: auth.name,
-                            allocated_ram_gb: selectedRam,
-                            preferred_loader: selectedProfile.loader,
-                            lang: selectedLang
-                        })
-                    }).then(r => r.json()).then(cloudResp => {
-                        if (cloudResp && cloudResp.success && cloudResp.cloud_config) {
-                            console.log('[RXCORP] Cloud config restored from Microsoft account:', cloudResp.cloud_config);
-                            if (cloudResp.cloud_config.allocated_ram_gb) {
-                                updateRamUI(cloudResp.cloud_config.allocated_ram_gb);
-                            }
-                            if (cloudResp.cloud_config.lang && cloudResp.cloud_config.lang !== selectedLang) {
-                                selectedLang = cloudResp.cloud_config.lang;
-                                store.set('language', selectedLang);
-                                i18n.setLanguage(selectedLang);
-                            }
-                        }
-                    }).catch(err => console.warn('[RXCORP] Cloud sync error:', err.message));
-
-                    this.showNotification('Compte Microsoft Connecté', `Bienvenue ${auth.name} ! Profil Cloud synchronisé.`);
-
-                    if (store.get('apiKey')) {
-                        this.handlePelicanSync(true);
-                    }
-
-                    // Auto advance to Step 3
-                    goToStep(3);
                 }
-            } catch (err) {
-                this.showNotification('Erreur Microsoft', err.message);
-            } finally {
-                this.updateDockStatus(i18n.t('ready_to_play'), 0);
-            }
+                goToStep(3);
+            });
         });
 
         // Step 4 Profile selection cards
@@ -2190,7 +2137,7 @@ class RxcorpApp {
 
                 const telemetryPayload = {
                     client_uuid: clientUuid,
-                    launcher_version: '2.5.5',
+                    launcher_version: '2.6.0',
                     os: `${os.type()} ${os.release()} (${os.arch()})`,
                     selected_loader: selectedProfile.loader,
                     allocated_ram_gb: selectedRam,
@@ -2438,30 +2385,8 @@ class RxcorpApp {
             this.renderAccountsList();
         });
 
-        document.getElementById('btn-add-microsoft')?.addEventListener('click', async () => {
-            try {
-                this.updateDockStatus('Connexion Microsoft en cours...');
-                const client_id = "00000000402b5328"; // Standard Minecraft Client ID
-                const auth = await ipcRenderer.invoke('Microsoft-window', client_id);
-                if (auth && auth.name) {
-                    const accounts = store.get('accounts') || [];
-                    accounts.push(auth);
-                    store.set('accounts', accounts);
-                    store.set('activeAccountName', auth.name);
-                    this.renderAccountsList();
-                    this.updatePelicanSyncUI();
-                    this.showNotification('Compte connecté', `Bienvenue ${auth.name} !`);
-
-                    // Automatically propagate Microsoft account to Pelican server whitelist
-                    if (store.get('apiKey')) {
-                        this.handlePelicanSync(true);
-                    }
-                }
-            } catch (err) {
-                this.showNotification('Erreur Microsoft', err.message);
-            } finally {
-                this.updateDockStatus('Prêt à jouer', 0);
-            }
+        document.getElementById('btn-add-microsoft')?.addEventListener('click', () => {
+            this.openMicrosoftDeviceAuthModal();
         });
     }
 
@@ -2613,12 +2538,152 @@ class RxcorpApp {
         });
     }
 
+    /**
+     * Modern Microsoft OAuth 2.0 Device Code Flow Modal (QR Code & Browser 1-Click)
+     * @param {Function} onSuccess Optional callback receiving (auth, cloudConfig)
+     */
+    async openMicrosoftDeviceAuthModal(onSuccess = null) {
+        const modal = document.getElementById('modal-microsoft-auth');
+        if (!modal) return;
+
+        const qrImg = document.getElementById('ms-qr-image');
+        const qrSpinner = document.getElementById('ms-qr-spinner');
+        const userCodeDisplay = document.getElementById('ms-user-code-display');
+        const btnCopy = document.getElementById('btn-ms-copy-code');
+        const btnOpenBrowser = document.getElementById('btn-ms-open-browser');
+        const statusText = document.getElementById('ms-auth-status-text');
+
+        // Reset UI state
+        if (qrImg) {
+            qrImg.style.display = 'none';
+            qrImg.src = '';
+        }
+        if (qrSpinner) qrSpinner.style.display = 'block';
+        if (userCodeDisplay) userCodeDisplay.innerText = '••••••••';
+        if (btnCopy) btnCopy.innerText = 'Copier le code';
+        if (statusText) statusText.innerText = 'Génération du code de connexion...';
+
+        this.openModal('modal-microsoft-auth');
+
+        try {
+            const flow = await microsoftAuthService.startDeviceFlow();
+
+            if (qrSpinner) qrSpinner.style.display = 'none';
+            if (qrImg) {
+                qrImg.src = flow.qrDataUrl;
+                qrImg.style.display = 'block';
+            }
+            if (userCodeDisplay) userCodeDisplay.innerText = flow.userCode;
+            if (statusText) statusText.innerText = 'En attente de votre validation sur mobile ou navigateur...';
+
+            if (btnCopy) {
+                btnCopy.onclick = () => {
+                    try {
+                        clipboard.writeText(flow.userCode);
+                        btnCopy.innerText = 'Copié !';
+                        setTimeout(() => { btnCopy.innerText = 'Copier le code'; }, 2000);
+                    } catch (e) {}
+                };
+            }
+
+            if (btnOpenBrowser) {
+                btnOpenBrowser.onclick = () => {
+                    if (statusText) statusText.innerText = 'Lien ouvert. Validez sur votre navigateur...';
+                    shell.openExternal(flow.verificationUrlWithCode);
+                };
+            }
+
+            // Start polling until user signs in or cancels
+            const auth = await microsoftAuthService.pollForApproval(flow.deviceCode, flow.interval, (status) => {
+                if (status === 'pending' && statusText) {
+                    statusText.innerText = 'En attente de validation sur le compte Microsoft...';
+                } else if (status === 'slow_down' && statusText) {
+                    statusText.innerText = 'Synchronisation Microsoft en cours...';
+                }
+            });
+
+            if (auth && auth.name) {
+                if (statusText) statusText.innerText = `Connexion réussie : ${auth.name} !`;
+
+                // Update accounts store
+                let accList = store.get('accounts') || [];
+                accList = accList.filter(a => a.name !== 'Player');
+                const existingIdx = accList.findIndex(a => a.name.toLowerCase() === auth.name.toLowerCase());
+                if (existingIdx >= 0) {
+                    accList[existingIdx] = auth;
+                } else {
+                    accList.push(auth);
+                }
+                store.set('accounts', accList);
+                store.set('activeAccountName', auth.name);
+                if (auth.uuid) store.set('ms_uuid', auth.uuid);
+                store.set('ms_gamertag', auth.name);
+
+                this.renderAccountsList();
+                this.updatePelicanSyncUI();
+
+                // Cloud database sync
+                let clientUuid = store.get('client_uuid');
+                if (!clientUuid) {
+                    clientUuid = 'c-' + Math.random().toString(36).substring(2, 10) + '-' + Date.now().toString(36);
+                    store.set('client_uuid', clientUuid);
+                }
+
+                let cloudConfig = null;
+                try {
+                    const syncRes = await fetch('https://rxcorp.fr/launcher/api/index.php?action=sync_ms', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            client_uuid: clientUuid,
+                            ms_uuid: auth.uuid || null,
+                            ms_gamertag: auth.name,
+                            allocated_ram_gb: store.get('ramMax') || 6,
+                            preferred_loader: store.get('preferred_loader') || 'fabric',
+                            lang: store.get('language') || 'fr'
+                        })
+                    });
+                    const resJson = await syncRes.json();
+                    if (resJson && resJson.success && resJson.cloud_config) {
+                        cloudConfig = resJson.cloud_config;
+                        console.log('[RXCORP] Cloud config synchronisée:', cloudConfig);
+                    }
+                } catch (e) {
+                    console.warn('[RXCORP] Cloud sync non bloquante:', e.message);
+                }
+
+                this.showNotification('Compte Microsoft Connecté', `Bienvenue ${auth.name} ! Profil Cloud synchronisé.`);
+
+                if (store.get('apiKey')) {
+                    this.handlePelicanSync(true);
+                }
+
+                setTimeout(() => {
+                    this.closeModal('modal-microsoft-auth');
+                }, 800);
+
+                if (typeof onSuccess === 'function') {
+                    onSuccess(auth, cloudConfig);
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError' && microsoftAuthService.activePolling !== false) {
+                console.error('[RXCORP] Microsoft Auth Flow Error:', err);
+                if (statusText) statusText.innerText = err.message || 'Erreur de connexion Microsoft.';
+                this.showNotification('Erreur Microsoft', err.message);
+            }
+        }
+    }
+
     openModal(id) {
         document.getElementById(id)?.classList.add('active');
     }
 
     closeModal(id) {
         document.getElementById(id)?.classList.remove('active');
+        if (id === 'modal-microsoft-auth') {
+            microsoftAuthService.cancelFlow();
+        }
     }
 
     showNotification(title, body) {
