@@ -63,6 +63,7 @@ class RxcorpApp {
         this.activeInstance = null;
         this.cloudServers = [];
         this.isSyncing = false;
+        this.syncLogsBuffer = [];
         this.activeModSource = 'modrinth'; // 'modrinth' | 'curseforge'
         this.activeModCategory = '';
     }
@@ -1016,6 +1017,73 @@ class RxcorpApp {
         }
     }
 
+    _escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    logToSyncTerminal(tag, message) {
+        const terminalEl = document.getElementById('sync-terminal-output');
+        if (!this.syncLogsBuffer) {
+            this.syncLogsBuffer = [];
+        }
+
+        const now = new Date();
+        const timeStr = `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}]`;
+        const cleanTag = (tag || 'INFO').toUpperCase();
+        const logEntry = `${timeStr} [${cleanTag}] ${message}`;
+        this.syncLogsBuffer.push(logEntry);
+
+        if (terminalEl) {
+            const line = document.createElement('div');
+            line.className = 'term-line';
+
+            let tagClass = 'term-tag-info';
+            if (cleanTag === 'SCAN') tagClass = 'term-tag-scan';
+            else if (cleanTag === 'LINK') tagClass = 'term-tag-link';
+            else if (cleanTag === 'DOWNLOAD') tagClass = 'term-tag-dl';
+            else if (cleanTag === 'VERIFY') tagClass = 'term-tag-verify';
+            else if (cleanTag === 'CLEAN') tagClass = 'term-tag-warn';
+            else if (cleanTag === 'WARN') tagClass = 'term-tag-warn';
+            else if (cleanTag === 'ERROR') tagClass = 'term-tag-error';
+            else if (cleanTag === 'SUCCESS') tagClass = 'term-tag-success';
+
+            line.innerHTML = `<span class="term-time">${timeStr}</span> <span class="${tagClass}">[${cleanTag}]</span> ${this._escapeHtml(message)}`;
+            terminalEl.appendChild(line);
+            terminalEl.scrollTop = terminalEl.scrollHeight;
+        }
+    }
+
+    clearSyncTerminal() {
+        this.syncLogsBuffer = [];
+        const terminalEl = document.getElementById('sync-terminal-output');
+        if (terminalEl) {
+            terminalEl.innerHTML = '';
+        }
+    }
+
+    copySyncLogs() {
+        if (!this.syncLogsBuffer || this.syncLogsBuffer.length === 0) {
+            this.showNotification('Logs Terminal', 'Aucun log a copier.');
+            return;
+        }
+        const text = this.syncLogsBuffer.join('\n');
+        try {
+            clipboard.writeText(text);
+            this.showNotification('Logs Copies', 'Tous les logs de synchronisation ont ete copies dans le presse-papier.');
+        } catch (_) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+                this.showNotification('Logs Copies', 'Tous les logs de synchronisation ont ete copies dans le presse-papier.');
+            }
+        }
+    }
+
     async handleSyncServerMods(server, autoLaunch = false) {
         if (this.isSyncing) return;
         this.isSyncing = true;
@@ -1032,6 +1100,7 @@ class RxcorpApp {
         const statTotal = document.getElementById('sync-stat-total');
         const statPool = document.getElementById('sync-stat-pool');
         const statDownload = document.getElementById('sync-stat-download');
+        const statSaved = document.getElementById('sync-stat-saved');
         const progressLabel = document.getElementById('sync-progress-label');
         const progressPercent = document.getElementById('sync-progress-percent');
         const progressBar = document.getElementById('sync-progress-bar');
@@ -1039,11 +1108,16 @@ class RxcorpApp {
         const countStepEl = document.getElementById('sync-count-step');
         const btnPlay = document.getElementById('btn-sync-and-play');
 
+        // Reset UI & prepare terminal
+        this.clearSyncTerminal();
+        this.logToSyncTerminal('init', `Initialisation Link-Sync pour "${server.name}" (${server.ip}:${server.port})`);
+
         if (titleEl) titleEl.innerText = `${server.name} (${server.ip}:${server.port})`;
         if (statTotal) statTotal.innerText = '-';
         if (statPool) statPool.innerText = '-';
         if (statDownload) statDownload.innerText = '-';
-        if (progressLabel) progressLabel.innerText = 'Connexion à Pelican...';
+        if (statSaved) statSaved.innerText = '0 Mo';
+        if (progressLabel) progressLabel.innerText = 'Connexion a Pelican...';
         if (progressPercent) progressPercent.innerText = '0%';
         if (progressBar) progressBar.style.width = '0%';
         if (currentModEl) currentModEl.innerText = 'Analyse des mods du serveur...';
@@ -1073,6 +1147,10 @@ class RxcorpApp {
                         if (progressBar) progressBar.style.width = `${progress.percent}%`;
                     }
 
+                    if (progress.savedSpaceMo && statSaved) {
+                        statSaved.innerText = `${progress.savedSpaceMo} Mo`;
+                    }
+
                     if (progress.status === 'scan') {
                         if (progressLabel) progressLabel.innerText = 'Analyse des mods distants...';
                         if (currentModEl) currentModEl.innerText = progress.message;
@@ -1084,29 +1162,33 @@ class RxcorpApp {
                     } else if (progress.status === 'linking') {
                         if (currentModEl) currentModEl.innerText = progress.message;
                     } else if (progress.status === 'downloading') {
-                        if (progressLabel) progressLabel.innerText = `Téléchargement (${progress.current}/${progress.total})`;
+                        if (progressLabel) progressLabel.innerText = `Telechargement (${progress.current}/${progress.total})`;
                         if (currentModEl) currentModEl.innerText = progress.modName || '';
                         if (countStepEl) countStepEl.innerText = `${progress.filePercent || 0}%`;
                     } else if (progress.status === 'completed') {
-                        if (progressLabel) progressLabel.innerText = 'Synchronisation terminée !';
-                        if (currentModEl) currentModEl.innerText = `${result?.downloadedCount || 0} nouveau(x) mod(s) téléchargé(s), ${result?.linkedFromPool || 0} lié(s) en Link-Sync.`;
-                        if (countStepEl) countStepEl.innerText = 'Prêt';
+                        if (progressLabel) progressLabel.innerText = 'Synchronisation terminee !';
+                        if (currentModEl) currentModEl.innerText = `${result?.downloadedCount || 0} nouveau(x) mod(s) telecharge(s), ${result?.linkedFromPool || 0} lie(s) en Link-Sync.`;
+                        if (countStepEl) countStepEl.innerText = 'Pret';
                     }
+                },
+                (tag, message) => {
+                    this.logToSyncTerminal(tag, message);
                 }
             );
 
             if (statTotal) statTotal.innerText = result.totalServerMods || 0;
             if (statPool) statPool.innerText = `${result.linkedFromPool || 0}`;
             if (statDownload) statDownload.innerText = `${result.downloadedCount || 0}`;
+            if (statSaved && result.savedSpaceMo) statSaved.innerText = `${result.savedSpaceMo} Mo`;
             if (progressPercent) progressPercent.innerText = '100%';
             if (progressBar) progressBar.style.width = '100%';
-            if (progressLabel) progressLabel.innerText = 'Instance prête !';
-            if (currentModEl) currentModEl.innerText = `${result.downloadedCount} téléchargé(s), ${result.linkedFromPool} lié(s) depuis le cache.`;
+            if (progressLabel) progressLabel.innerText = 'Instance prete !';
+            if (currentModEl) currentModEl.innerText = `${result.downloadedCount} telecharge(s), ${result.linkedFromPool} lie(s) depuis le cache (0 Mo).`;
             if (btnPlay) btnPlay.style.display = 'inline-flex';
 
             this.showNotification(
-                'Link-Sync Terminé',
-                `${result.downloadedCount} mod(s) téléchargé(s), ${result.linkedFromPool} lié(s) sans duplication d'espace.`
+                'Link-Sync Termine',
+                `${result.downloadedCount} mod(s) telecharge(s), ${result.linkedFromPool} lie(s) sans duplication d'espace.`
             );
             this.setActiveInstanceForDomain('cloud', instance.id);
             this.loadInstances();
@@ -1116,16 +1198,17 @@ class RxcorpApp {
                     this.closeModal('modal-mods-sync');
                     this.selectDribbbleMode('cloud');
                     await this.launchCurrentInstance();
-                }, 800);
+                }, 1200);
             }
         } catch (err) {
             console.error('[Sync error]:', err);
+            this.logToSyncTerminal('error', `Erreur fatale de synchronisation : ${err.message}`);
             if (progressLabel) progressLabel.innerText = 'Erreur de synchronisation';
             if (currentModEl) currentModEl.innerText = err.message;
             this.showNotification('Erreur de synchronisation', err.message);
         } finally {
             this.isSyncing = false;
-            setTimeout(() => this.updateDockStatus('Prêt à jouer', 0), 3000);
+            setTimeout(() => this.updateDockStatus('Pret a jouer', 0), 3000);
         }
     }
 
@@ -2885,6 +2968,14 @@ class RxcorpApp {
                 const modalId = btn.dataset.close;
                 this.closeModal(modalId);
             });
+        });
+
+        document.getElementById('btn-copy-sync-logs')?.addEventListener('click', () => {
+            this.copySyncLogs();
+        });
+
+        document.getElementById('btn-clear-sync-logs')?.addEventListener('click', () => {
+            this.clearSyncTerminal();
         });
 
         document.getElementById('btn-new-instance')?.addEventListener('click', () => {

@@ -1136,46 +1136,50 @@
         </div>
     </div>
 
-    <!-- Link-Sync Mods Modal -->
+    <!-- Link-Sync Mods Modal with Live Terminal -->
     <div id="modal-mods-sync" class="rx-modal-overlay">
-        <div class="rx-modal-card" style="max-width: 520px;">
+        <div class="rx-modal-card sync-modal-card">
             <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); display: flex; align-items: center; justify-content: center;">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4ade80" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 9px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#34d399" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
                     </div>
                     <div>
-                        <h3 class="modal-title" style="margin: 0; font-size: 15px;">Synchronisation Link-Sync</h3>
+                        <h3 class="modal-title" style="margin: 0; font-size: 15px; letter-spacing: 0.3px;">Link-Sync Terminal Engine</h3>
                         <span id="sync-server-title" style="font-size: 11.5px; color: var(--text-muted);">Serveur Pelican</span>
                     </div>
                 </div>
                 <button class="modal-close-btn" data-close="modal-mods-sync">✕</button>
             </div>
             <div class="modal-body" style="padding: 18px 20px;">
-                <!-- Link-Sync Stat Cards Grid -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
-                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; text-align: center;">
-                        <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase;">Total Mods</span>
-                        <span id="sync-stat-total" style="font-size: 18px; font-weight: 700; color: var(--text);">-</span>
+                <!-- Link-Sync Stat Cards Grid (4 columns) -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;">
+                    <div class="sync-stat-box">
+                        <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase; font-weight: 600;">Total Serveur</span>
+                        <span id="sync-stat-total" style="font-size: 17px; font-weight: 800; color: var(--text);">-</span>
                     </div>
-                    <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; padding: 10px; text-align: center;">
-                        <span style="font-size: 10px; color: #4ade80; display: block; text-transform: uppercase;">Link-Sync (0 Mo)</span>
-                        <span id="sync-stat-pool" style="font-size: 18px; font-weight: 700; color: #4ade80;">-</span>
+                    <div class="sync-stat-box highlight-pool">
+                        <span style="font-size: 10px; color: #4ade80; display: block; text-transform: uppercase; font-weight: 600;">Link-Sync (0 Mo)</span>
+                        <span id="sync-stat-pool" style="font-size: 17px; font-weight: 800; color: #4ade80;">-</span>
                     </div>
-                    <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 10px; text-align: center;">
-                        <span style="font-size: 10px; color: #60a5fa; display: block; text-transform: uppercase;">À Télécharger</span>
-                        <span id="sync-stat-download" style="font-size: 18px; font-weight: 700; color: #60a5fa;">-</span>
+                    <div class="sync-stat-box highlight-dl">
+                        <span style="font-size: 10px; color: #60a5fa; display: block; text-transform: uppercase; font-weight: 600;">À Télécharger</span>
+                        <span id="sync-stat-download" style="font-size: 17px; font-weight: 800; color: #60a5fa;">-</span>
+                    </div>
+                    <div class="sync-stat-box">
+                        <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase; font-weight: 600;">Économie SSD</span>
+                        <span id="sync-stat-saved" style="font-size: 17px; font-weight: 800; color: #a78bfa;">0 Mo</span>
                     </div>
                 </div>
 
                 <!-- Live Status Banner -->
-                <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <span id="sync-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text);">Initialisation...</span>
-                        <span id="sync-progress-percent" style="font-size: 12px; font-weight: 700; color: var(--primary);">0%</span>
+                        <span id="sync-progress-percent" style="font-size: 13px; font-weight: 800; color: var(--primary);">0%</span>
                     </div>
-                    <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden;">
-                        <div id="sync-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); transition: width 0.2s ease;"></div>
+                    <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.07); border-radius: 3px; overflow: hidden;">
+                        <div id="sync-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #06b6d4, #3b82f6); transition: width 0.2s ease;"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-dim);">
                         <span id="sync-current-mod" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">En attente...</span>
@@ -1183,14 +1187,33 @@
                     </div>
                 </div>
 
-                <!-- Info callout -->
-                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 12px;">
-                    Grâce au Link-Sync RXCORP, les mods déjà en cache sont liés instantanément par hardlink sans occuper d'espace disque additionnel ni saturer votre connexion.
+                <!-- Live Terminal Log Console -->
+                <div class="sync-terminal-card">
+                    <div class="sync-terminal-header">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="terminal-traffic-dots">
+                                <span class="terminal-dot red"></span>
+                                <span class="terminal-dot yellow"></span>
+                                <span class="terminal-dot green"></span>
+                            </div>
+                            <span class="terminal-title">LIVE CONSOLE // PELICAN LINK-SYNC</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="rx-btn rx-btn-secondary" id="btn-copy-sync-logs" style="font-size: 10px; padding: 2px 8px; height: 22px;">Copier les logs</button>
+                            <button type="button" class="rx-btn rx-btn-secondary" id="btn-clear-sync-logs" style="font-size: 10px; padding: 2px 8px; height: 22px;">Effacer</button>
+                        </div>
+                    </div>
+                    <div id="sync-terminal-output" class="sync-terminal-body">
+                        <div class="term-line"><span class="term-time">[00:00:00]</span> <span class="term-tag-info">[INIT]</span> Initialisation du moteur Link-Sync RXCORP...</div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="rx-btn rx-btn-secondary" id="btn-close-sync-modal" data-close="modal-mods-sync">Fermer</button>
-                <button type="button" class="rx-btn rx-btn-primary" id="btn-sync-and-play" style="display: none; font-weight: 700;">Lancer le Jeu</button>
+            <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: var(--text-dim);">Copiez les logs en cas d'erreur pour obtenir de l'aide</span>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="rx-btn rx-btn-secondary" id="btn-close-sync-modal" data-close="modal-mods-sync">Fermer</button>
+                    <button type="button" class="rx-btn rx-btn-primary" id="btn-sync-and-play" style="display: none; font-weight: 700;">Lancer le Jeu</button>
+                </div>
             </div>
         </div>
     </div>

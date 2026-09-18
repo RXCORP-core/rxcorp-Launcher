@@ -231,34 +231,117 @@ class PelicanService {
 
     /**
      * List all mods installed in /mods on the server
+     * Supports pagination, recursive subdirectories, case-insensitive extensions, and live logs
      */
-    async listServerMods(identifier, apiKey, panelUrl = this.defaultPanelUrl) {
+    async listServerMods(identifier, apiKey, panelUrl = this.defaultPanelUrl, logCallback = () => {}) {
         try {
-            const url = `${panelUrl.replace(/\/+$/, '')}/api/client/servers/${identifier}/files/list?directory=%2Fmods`;
-            const res = await fetch(url, {
-                method: 'GET',
-                headers: this._getHeaders(apiKey)
-            });
+            const cleanUrl = panelUrl.replace(/\/+$/, '');
+            const headers = this._getHeaders(apiKey);
+            const foundMods = [];
+            const seenNames = new Set();
 
-            if (!res.ok) {
-                // If directory does not exist or empty
+            const fetchDirectoryPage = async (directory, page = 1) => {
+                const encodedDir = encodeURIComponent(directory);
+                const url = `${cleanUrl}/api/client/servers/${identifier}/files/list?directory=${encodedDir}&page=${page}&per_page=100`;
+                const res = await fetch(url, { method: 'GET', headers });
+                if (!res.ok) {
+                    return null;
+                }
+                return await res.json();
+            };
+
+            // Test possible locations for mods folder
+            const candidateDirs = ['/mods', 'mods', '/Mods', 'Mods'];
+            let activeDir = null;
+            let firstPageData = null;
+
+            logCallback('scan', 'Recherche du repertoire /mods sur le serveur...');
+
+            for (const dir of candidateDirs) {
+                try {
+                    const data = await fetchDirectoryPage(dir, 1);
+                    if (data && Array.isArray(data.data)) {
+                        activeDir = dir;
+                        firstPageData = data;
+                        break;
+                    }
+                } catch (_) {}
+            }
+
+            if (!activeDir || !firstPageData) {
+                logCallback('warn', 'Aucun repertoire /mods detecte sur le serveur Pelican.');
                 return { success: true, mods: [] };
             }
 
-            const json = await res.json();
-            const files = (json.data || [])
-                .map(item => item.attributes)
-                .filter(f => f.is_file && f.name.endsWith('.jar'));
+            logCallback('scan', `Repertoire racine detecte : ${activeDir}`);
+
+            const scanDirectory = async (currentDir, page1Data = null, depth = 0) => {
+                if (depth > 2) return;
+
+                let currentPage = 1;
+                let totalPages = 1;
+                let isFirst = true;
+
+                while (currentPage <= totalPages) {
+                    let pageData = null;
+                    if (isFirst && page1Data) {
+                        pageData = page1Data;
+                        isFirst = false;
+                    } else {
+                        pageData = await fetchDirectoryPage(currentDir, currentPage);
+                    }
+
+                    if (!pageData || !Array.isArray(pageData.data)) {
+                        break;
+                    }
+
+                    if (pageData.meta?.pagination?.total_pages) {
+                        totalPages = pageData.meta.pagination.total_pages;
+                    }
+
+                    logCallback('scan', `Scan ${currentDir} [Page ${currentPage}/${totalPages}] : ${pageData.data.length} element(s) recu(s).`);
+
+                    for (const item of pageData.data) {
+                        const attr = item.attributes || {};
+                        const name = attr.name || '';
+                        if (!name || name.startsWith('.')) continue;
+
+                        if (attr.is_file) {
+                            if (name.toLowerCase().endsWith('.jar')) {
+                                if (!seenNames.has(name)) {
+                                    seenNames.add(name);
+                                    const serverPath = `${currentDir.replace(/\/+$/, '')}/${name}`;
+                                    foundMods.push({
+                                        name: name,
+                                        serverPath: serverPath,
+                                        size: attr.size || 0,
+                                        modifiedAt: attr.modified_at
+                                    });
+                                }
+                            }
+                        } else if (attr.is_file === false && depth < 2) {
+                            const lower = name.toLowerCase();
+                            if (!lower.includes('disabled') && !lower.includes('backup') && !lower.includes('old')) {
+                                const subDir = `${currentDir.replace(/\/+$/, '')}/${name}`;
+                                await scanDirectory(subDir, null, depth + 1);
+                            }
+                        }
+                    }
+
+                    currentPage++;
+                }
+            };
+
+            await scanDirectory(activeDir, firstPageData, 0);
+
+            logCallback('scan', `Inventaire serveur complete : ${foundMods.length} mod(s) JAR indexe(s).`);
 
             return {
                 success: true,
-                mods: files.map(f => ({
-                    name: f.name,
-                    size: f.size,
-                    modifiedAt: f.modified_at
-                }))
+                mods: foundMods
             };
         } catch (err) {
+            logCallback('error', `Erreur inventaire mods : ${err.message}`);
             return { success: false, error: err.message, mods: [] };
         }
     }
@@ -346,18 +429,35 @@ class PelicanService {
      * 3. Downloads missing mods with integrity validation
      * 4. Cleans obsolete mods from instance
      */
-    async syncModsToInstance(serverIdentifier, localModsDir, apiKey, panelUrl = this.defaultPanelUrl, progressCallback = () => {}) {
+    async syncModsToInstance(
+        serverIdentifier, 
+        localModsDir, 
+        apiKey, 
+        panelUrl = this.defaultPanelUrl, 
+        progressCallback = () => {},
+        logCallback = () => {}
+    ) {
         if (!localModsDir) {
-            throw new Error('Dossier de destination des mods introuvable pour cette instance.');
+            const msg = 'Dossier de destination des mods introuvable pour cette instance.';
+            logCallback('error', msg);
+            throw new Error(msg);
         }
 
         if (!fs.existsSync(localModsDir)) {
             fs.mkdirSync(localModsDir, { recursive: true });
         }
 
+        logCallback('init', 'Demarrage du processus Pelican Link-Sync...');
+        logCallback('init', `Serveur Cible : ${serverIdentifier}`);
+        logCallback('init', `Repertoire Local : ${localModsDir}`);
+
+        const poolDir = modPoolService.getPoolDir();
+        logCallback('init', `Pool Central Partage : ${poolDir}`);
+
         progressCallback({ status: 'scan', percent: 5, message: 'Analyse des mods du serveur Pelican...' });
-        const serverModsRes = await this.listServerMods(serverIdentifier, apiKey, panelUrl);
+        const serverModsRes = await this.listServerMods(serverIdentifier, apiKey, panelUrl, logCallback);
         if (!serverModsRes.success) {
+            logCallback('error', `Echec de l'inventaire distant : ${serverModsRes.error}`);
             throw new Error(serverModsRes.error || 'Impossible de lister les mods du serveur');
         }
 
@@ -365,13 +465,21 @@ class PelicanService {
         const serverModNamesSet = new Set(serverMods.map(m => m.name));
 
         // Clean obsolete mods from instance (preserved in pool)
+        logCallback('clean', 'Verification des mods locaux obsoletes...');
         const removedMods = modPoolService.cleanInstanceMods(serverModNamesSet, localModsDir);
+        if (removedMods.length > 0) {
+            logCallback('clean', `${removedMods.length} mod(s) obsolete(s) nettoye(s) de l'instance (${removedMods.slice(0, 3).join(', ')}${removedMods.length > 3 ? '...' : ''}).`);
+        } else {
+            logCallback('clean', 'Aucun mod obsolete a supprimer.');
+        }
 
         let alreadyLinkedCount = 0;
         let poolLinkedCount = 0;
         const toDownload = [];
+        let totalLinkedBytes = 0;
 
         // Determine what is already up to date, what can be linked from pool, and what must be downloaded
+        logCallback('scan', 'Analyse differentielle et resolution des hardlinks NTFS...');
         for (const mod of serverMods) {
             const localFilePath = path.join(localModsDir, mod.name);
 
@@ -379,6 +487,8 @@ class PelicanService {
                 const statLocal = fs.statSync(localFilePath);
                 if (Math.abs(statLocal.size - mod.size) <= 100) {
                     alreadyLinkedCount++;
+                    totalLinkedBytes += mod.size;
+                    logCallback('verify', `[Deja a jour] ${mod.name} (${(mod.size / (1024 * 1024)).toFixed(2)} Mo)`);
                     continue;
                 }
             }
@@ -388,17 +498,23 @@ class PelicanService {
                 try {
                     modPoolService.linkModToInstance(mod.name, localModsDir);
                     poolLinkedCount++;
+                    totalLinkedBytes += mod.size;
+                    logCallback('link', `[Link-Sync 0 Mo] ${mod.name} lie instantanement depuis le pool`);
                     progressCallback({
                         status: 'linking',
                         modName: mod.name,
-                        message: `Liaison instantanée de ${mod.name} (Link-Sync)`
+                        message: `Liaison instantanee de ${mod.name} (Link-Sync)`
                     });
                     continue;
-                } catch (_) {}
+                } catch (linkErr) {
+                    logCallback('warn', `Echec hardlink pour ${mod.name}, mise en file de telechargement: ${linkErr.message}`);
+                }
             }
 
             toDownload.push(mod);
         }
+
+        const savedMo = (totalLinkedBytes / (1024 * 1024)).toFixed(1);
 
         progressCallback({
             status: 'plan',
@@ -408,10 +524,17 @@ class PelicanService {
             linkedFromPool: poolLinkedCount,
             toDownloadCount: toDownload.length,
             removedCount: removedMods.length,
+            savedSpaceMo: savedMo,
             message: toDownload.length === 0 
-                ? `${serverMods.length} mod(s) prêts (${poolLinkedCount} lié(s) instantanément).`
-                : `${toDownload.length} mod(s) à télécharger (${poolLinkedCount} lié(s) depuis le cache).`
+                ? `${serverMods.length} mod(s) prets (${poolLinkedCount} lie(s) instantanement, ${savedMo} Mo economises).`
+                : `${toDownload.length} mod(s) a telecharger (${poolLinkedCount} lie(s) depuis le cache).`
         });
+
+        logCallback('plan', `Bilan : ${serverMods.length} mods au total | ${poolLinkedCount} lies (0 Mo) | ${alreadyLinkedCount} verifies | ${toDownload.length} a telecharger | ${savedMo} Mo SSD preserves`);
+
+        if (toDownload.length === 0) {
+            logCallback('success', 'Tous les mods sont en cache ou deja synchronises. Aucun telechargement reseau necessaire !');
+        }
 
         let downloadedCount = 0;
         const tempDownloadDir = path.join(modPoolService.getPoolDir(), '.temp');
@@ -430,20 +553,26 @@ class PelicanService {
                 current: currentStep,
                 total: toDownload.length,
                 percent: stepPercent,
-                message: `Téléchargement de ${mod.name}...`
+                message: `Telechargement de ${mod.name}...`
             });
 
-            const dlRes = await this.getDownloadUrl(serverIdentifier, `/mods/${mod.name}`, apiKey, panelUrl);
+            logCallback('download', `[${currentStep}/${toDownload.length}] Requete URL signee pour ${mod.name}...`);
+
+            const remotePath = mod.serverPath || `/mods/${mod.name}`;
+            const dlRes = await this.getDownloadUrl(serverIdentifier, remotePath, apiKey, panelUrl);
             if (!dlRes.success || !dlRes.url) {
+                logCallback('error', `Echec d'obtention de l'URL pour ${mod.name}: ${dlRes.error || 'Erreur inconnue'}`);
                 console.error(`Impossible d'obtenir le lien pour ${mod.name}:`, dlRes.error);
                 continue;
             }
 
+            logCallback('download', `[${currentStep}/${toDownload.length}] Telechargement : ${mod.name} (${(mod.size / (1024 * 1024)).toFixed(2)} Mo)...`);
+
             const tempDestPath = path.join(tempDownloadDir, `temp_${Date.now()}_${mod.name}`);
             try {
                 await this.downloadFile(dlRes.url, tempDestPath, (loaded, total) => {
-                    const filePct = Math.round((loaded / total) * 100);
-                    const overallPct = Math.round(25 + ((i + (loaded / total)) / toDownload.length) * 70);
+                    const filePct = total > 0 ? Math.round((loaded / total) * 100) : 0;
+                    const overallPct = Math.round(25 + ((i + (total > 0 ? (loaded / total) : 0)) / toDownload.length) * 70);
                     progressCallback({
                         status: 'downloading',
                         modName: mod.name,
@@ -451,13 +580,14 @@ class PelicanService {
                         total: toDownload.length,
                         percent: Math.min(overallPct, 95),
                         filePercent: filePct,
-                        message: `Téléchargement de ${mod.name} (${filePct}%)`
+                        message: `Telechargement de ${mod.name} (${filePct}%)`
                     });
                 });
 
                 // Anti-conflict verification: check JAR integrity before storing in pool
+                logCallback('verify', `Verification de l'integrite ZIP/JAR de ${mod.name}...`);
                 if (!modPoolService.isJarValid(tempDestPath)) {
-                    console.error(`[Link-Sync] Fichier corrompu ou invalide reçu pour ${mod.name}`);
+                    logCallback('error', `Integrite invalide ou archive corrompue pour ${mod.name} ! Fichier rejete.`);
                     try { fs.unlinkSync(tempDestPath); } catch (_) {}
                     continue;
                 }
@@ -468,8 +598,10 @@ class PelicanService {
                 // Link to instance
                 modPoolService.linkModToInstance(mod.name, localModsDir);
                 downloadedCount++;
+                logCallback('verify', `[Valide & Lie] ${mod.name} mis en cache central et injecte dans l'instance.`);
             } catch (dlErr) {
-                console.error(`[Link-Sync] Erreur lors du téléchargement de ${mod.name}:`, dlErr);
+                logCallback('error', `Erreur lors du telechargement de ${mod.name}: ${dlErr.message}`);
+                console.error(`[Link-Sync] Erreur lors du telechargement de ${mod.name}:`, dlErr);
                 try { if (fs.existsSync(tempDestPath)) fs.unlinkSync(tempDestPath); } catch (_) {}
             }
         }
@@ -482,8 +614,11 @@ class PelicanService {
             linkedFromPool: poolLinkedCount,
             downloadedCount: downloadedCount,
             removedCount: removedMods.length,
-            message: 'Synchronisation Link-Sync terminée avec succès !'
+            savedSpaceMo: savedMo,
+            message: 'Synchronisation Link-Sync terminee avec succes !'
         });
+
+        logCallback('success', `Synchronisation Link-Sync terminee : ${serverMods.length} mods au total (${poolLinkedCount} lies en 0 Mo, ${downloadedCount} telecharges, ${removedMods.length} nettoyes).`);
 
         return {
             success: true,
@@ -491,7 +626,8 @@ class PelicanService {
             alreadyUpToDate: alreadyLinkedCount,
             linkedFromPool: poolLinkedCount,
             downloadedCount: downloadedCount,
-            removedCount: removedMods.length
+            removedCount: removedMods.length,
+            savedSpaceMo: savedMo
         };
     }
 

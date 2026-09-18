@@ -2688,4 +2688,132 @@ body {
     border-radius: 6px;
 }
 
+/* ==========================================
+   LINK-SYNC TERMINAL & MODAL STYLING
+   ========================================== */
+.sync-modal-card {
+    max-width: 660px !important;
+    background: rgba(11, 15, 25, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 30px rgba(16, 185, 129, 0.08) !important;
+    backdrop-filter: blur(24px) !important;
+}
+
+.sync-stat-box {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.sync-stat-box:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.sync-stat-box.highlight-pool {
+    background: rgba(34, 197, 94, 0.07);
+    border-color: rgba(34, 197, 94, 0.25);
+}
+
+.sync-stat-box.highlight-dl {
+    background: rgba(59, 130, 246, 0.07);
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.sync-terminal-card {
+    background: #06090e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 12px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+}
+
+.sync-terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.terminal-traffic-dots {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.terminal-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.terminal-dot.red { background: #ef4444; }
+.terminal-dot.yellow { background: #f59e0b; }
+.terminal-dot.green { background: #10b981; }
+
+.terminal-title {
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+.sync-terminal-body {
+    height: 190px;
+    overflow-y: auto;
+    padding: 10px 14px;
+    font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.65;
+    background: #05070c;
+    color: #cbd5e1;
+    word-break: break-all;
+    white-space: pre-wrap;
+    user-select: text;
+}
+
+.sync-terminal-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sync-terminal-body::-webkit-scrollbar-track {
+    background: #05070c;
+}
+
+.sync-terminal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+
+.sync-terminal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 197, 94, 0.4);
+}
+
+.term-line {
+    margin-bottom: 2px;
+}
+
+.term-time {
+    color: #475569;
+    margin-right: 6px;
+}
+
+.term-tag-info { color: #38bdf8; font-weight: 700; }
+.term-tag-scan { color: #c084fc; font-weight: 700; }
+.term-tag-link { color: #4ade80; font-weight: 700; }
+.term-tag-dl { color: #60a5fa; font-weight: 700; }
+.term-tag-verify { color: #fbbf24; font-weight: 700; }
+.term-tag-warn { color: #f59e0b; font-weight: 700; }
+.term-tag-error { color: #f87171; font-weight: 800; }
+.term-tag-success { color: #34d399; font-weight: 800; }
+
+
 
