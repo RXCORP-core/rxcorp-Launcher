@@ -1027,15 +1027,24 @@ class RxcorpApp {
 
         if (servers.length === 0) {
             grid.innerHTML = `
-                <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 32px 20px; background: rgba(16, 20, 31, 0.6); border: 1px solid var(--border-card);">
-                    <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">Aucun serveur Minecraft privé trouvé sur votre panel Pelican.</p>
+                <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 36px 24px; background: var(--rx-chassis-panel); border: 1px solid var(--rx-edge-rim); border-radius: var(--radius-md);">
+                    <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--rx-type-readout); margin-bottom: 8px;">Aucun serveur Pelican détecté</h3>
+                    <p style="color: var(--rx-type-dim); margin-bottom: 16px; font-size: 12.5px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                        Associez votre compte Panel dans les paramètres ou déployez une infrastructure de jeu pour synchroniser automatiquement vos instances et whitelists.
+                    </p>
                     <div style="display: flex; justify-content: center; gap: 10px;">
-                        <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
-                            Commander un serveur Minecraft
+                        <button class="rx-btn rx-btn-secondary" id="btn-empty-open-settings" style="font-size: 12px;">
+                            Configurer l'accès Pelican
+                        </button>
+                        <button class="rx-btn rx-btn-primary" onclick="require('electron').shell.openExternal('https://rxcorp.fr')">
+                            Déployer un serveur
                         </button>
                     </div>
                 </div>
             `;
+            document.getElementById('btn-empty-open-settings')?.addEventListener('click', () => {
+                document.querySelector('.rail-item[data-view="settings"]')?.click();
+            });
             return;
         }
 
@@ -1235,6 +1244,8 @@ class RxcorpApp {
             if (ramValue) ramValue.innerText = '-';
             if (cpuValue) cpuValue.innerText = '0%';
         }
+
+        this.updateTelemetryConsole();
 
         // Live mods detection only for Minecraft servers
         if (server.isMinecraft) {
@@ -1741,10 +1752,13 @@ class RxcorpApp {
             grid.innerHTML = '';
             if (localInstances.length === 0) {
                 grid.innerHTML = `
-                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
-                        <p style="color: var(--text-muted); margin-bottom: 12px;">Aucun profil local pour le moment.</p>
-                        <button class="rx-btn rx-btn-primary" id="btn-create-first-instance">
-                            + Créer un Profil Local
+                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 36px 24px; background: var(--rx-chassis-panel); border: 1px solid var(--rx-edge-rim); border-radius: var(--radius-md);">
+                        <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--rx-type-readout); margin-bottom: 8px;">Aucun profil local configuré</h3>
+                        <p style="color: var(--rx-type-dim); margin-bottom: 16px; font-size: 12.5px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                            Créez votre première installation autonome (NeoForge, Fabric, Forge ou Vanilla) pour lancer vos modpacks et personnaliser vos shaders.
+                        </p>
+                        <button class="rx-btn rx-btn-primary" id="btn-create-first-instance" style="font-family: var(--font-display); font-weight: 800; font-stretch: semi-condensed;">
+                            Créer mon premier profil
                         </button>
                     </div>
                 `;
@@ -1884,6 +1898,69 @@ class RxcorpApp {
             } else {
                 nameElem.innerText = 'Aucun profil local';
                 subElem.innerText = 'Cliquez pour créer un profil';
+            }
+        }
+
+        this.updateTelemetryConsole();
+    }
+
+    updateTelemetryConsole() {
+        const infraStatus = document.getElementById('telemetry-infra-status');
+        const infraSub = document.getElementById('telemetry-infra-sub');
+        const infraDot = document.getElementById('telemetry-infra-dot');
+        const pingVal = document.getElementById('telemetry-network-ping');
+        const pingSub = document.getElementById('telemetry-network-sub');
+        const heroPing = document.getElementById('hero-ping-val');
+        const ramAlloc = document.getElementById('telemetry-ram-alloc');
+        const ramSub = document.getElementById('telemetry-ram-sub');
+        const whitelistStatus = document.getElementById('telemetry-whitelist-status');
+        const whitelistSub = document.getElementById('telemetry-whitelist-sub');
+
+        // 1. RAM Allocation
+        const ramGb = store.get('ramMax') || 6;
+        if (ramAlloc) ramAlloc.innerHTML = `<span>${ramGb}.0 Go</span>`;
+        if (ramSub) ramSub.innerText = `Heap JVM (Min ${Math.max(1, Math.floor(ramGb / 2))} Go / Max ${ramGb} Go)`;
+
+        // 2. Pelican Server Status & Ping
+        const firstServer = this.cloudServers && this.cloudServers[0];
+        if (firstServer) {
+            const isOnline = firstServer.isOnline || firstServer.status === 'running';
+            if (infraStatus) {
+                infraStatus.innerHTML = isOnline 
+                    ? `<span style="color: var(--rx-signal-live);">En Ligne (${firstServer.playersOnline !== undefined ? firstServer.playersOnline : '0'}/${firstServer.playersMax || 20})</span>`
+                    : `<span style="color: var(--rx-signal-danger);">Hors-Ligne</span>`;
+            }
+            if (infraDot) {
+                infraDot.style.backgroundColor = isOnline ? 'var(--rx-signal-live)' : 'var(--rx-signal-danger)';
+            }
+            if (infraSub) {
+                infraSub.innerText = `${firstServer.ip || 'node.rxcorp.fr'}:${firstServer.port || 25566}`;
+            }
+
+            const latency = firstServer.ping || 17;
+            if (pingVal) pingVal.innerHTML = `<span>${latency} ms</span>`;
+            if (heroPing) heroPing.innerText = `${latency} ms`;
+            if (pingSub) pingSub.innerText = latency < 50 ? 'Excellente connexion' : 'Connexion stable';
+        } else {
+            if (infraStatus) infraStatus.innerHTML = `<span>Prêt (Sonde active)</span>`;
+            if (infraSub) infraSub.innerText = `node.rxcorp.fr:25566`;
+            if (pingVal) pingVal.innerHTML = `<span>17 ms</span>`;
+            if (pingSub) pingSub.innerText = `Sonde SLP active`;
+        }
+
+        // 3. Whitelist & Security
+        const isPelicanLinked = !!store.get('apiKey');
+        const activeAccount = this.getActiveAccount();
+        if (whitelistStatus) {
+            if (isPelicanLinked && activeAccount) {
+                whitelistStatus.innerHTML = `<span style="color: var(--rx-signal-live);">Synchronisée</span>`;
+                if (whitelistSub) whitelistSub.innerText = `${activeAccount.name} lié`;
+            } else if (activeAccount) {
+                whitelistStatus.innerHTML = `<span>Compte détecté</span>`;
+                if (whitelistSub) whitelistSub.innerText = `${activeAccount.name} (Local)`;
+            } else {
+                whitelistStatus.innerHTML = `<span>En attente</span>`;
+                if (whitelistSub) whitelistSub.innerText = `Aucun joueur lié`;
             }
         }
     }

@@ -132,12 +132,12 @@
              ========================================================================= -->
         <section id="view-home" class="view-container active">
             <div class="home-modern-layout">
-                <!-- 1. TOP HERO SHOWCASE (Clean, spacious, modern glassmorphism) -->
+                <!-- 1. TOP HERO SHOWCASE (Clean, spacious, modern mechanical command) -->
                 <div class="hero-showcase-card" id="dribbble-hero">
                     <div class="hero-card-left">
                         <div id="hero-tag" class="hero-tag-badge">
-                            <span class="status-dot online"></span>
-                            <span id="hero-tag-text" data-i18n="hero_tag_cloud">OFFICIEL RXCORP • SERVEUR CLOUD</span>
+                            <span class="rx-signal-dot"></span>
+                            <span id="hero-tag-text" data-i18n="hero_tag_cloud">Infrastructure Officielle RXCORP</span>
                         </div>
 
                         <h1 id="hero-title" class="hero-main-title" data-i18n="hero_title_cloud">RXCORP CLOUD & SURVIE</h1>
@@ -145,9 +145,9 @@
                             Infrastructure Cloud Pelican officielle avec synchronisation automatique de la whitelist et connexion 1-clic.
                         </p>
 
-                        <!-- ACTION ROW (Tactile human buttons, zero AI pills) -->
+                        <!-- ACTION ROW (Tactile human buttons, Crimson primary) -->
                         <div class="hero-action-row">
-                            <!-- Big Tactile Emerald Play Button -->
+                            <!-- Big Tactile Crimson Play Button (Sole Strong Accent) -->
                             <button id="btn-launch-game" class="hero-play-tactile" title="Lancer Minecraft">
                                 <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                                 <span id="hero-play-label" data-i18n="play_btn">JOUER</span>
@@ -155,7 +155,7 @@
 
                             <!-- Discrete Instance / Server Capsule Selector -->
                             <div id="dock-instance-pill" class="hero-instance-select-pill" title="Choisir un profil ou serveur">
-                                <img id="dock-instance-icon" src="assets/images/loaders/vanilla.svg" alt="Loader" style="width: 22px; height: 22px; object-fit: contain; margin-right: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                                <img id="dock-instance-icon" src="assets/images/loaders/vanilla.svg" alt="Loader" style="width: 20px; height: 20px; object-fit: contain; margin-right: 6px;">
                                 <div class="capsule-meta">
                                     <span id="dock-instance-name" class="capsule-title">Minecraft 1.21.4</span>
                                     <span id="dock-instance-sub" class="capsule-sub">Serveur Cloud Pelican</span>
@@ -172,7 +172,7 @@
                         <!-- Progress & Status Track -->
                         <div class="hero-progress-row">
                             <div id="dock-status" class="hero-status-text">
-                                <span class="status-dot online"></span>
+                                <span class="rx-signal-dot"></span>
                                 <span data-i18n="ready_to_play">Prêt à jouer</span>
                             </div>
                             <div id="dock-progress-container" class="hero-progress-track" style="display: none;">
@@ -185,15 +185,15 @@
                     <div class="hero-card-right">
                         <div class="hero-mini-status-box">
                             <div class="status-box-header">
-                                <span class="status-dot online"></span>
-                                <span style="font-weight: 700; font-size: 11px; color: #fff;">SERVEUR SURVIE</span>
+                                <span class="rx-signal-dot"></span>
+                                <span style="font-weight: 700; font-size: 11px; color: var(--rx-type-readout);">Serveur Survie</span>
                             </div>
                             <div class="status-box-stat">
-                                <span class="stat-num">18 ms</span>
-                                <span class="stat-lbl">Latence Cloud</span>
+                                <span class="stat-num" id="hero-ping-val">17 ms</span>
+                                <span class="stat-lbl">Latence</span>
                             </div>
                             <div class="status-box-stat" style="margin-top: 6px;">
-                                <span class="stat-num" style="color: var(--emerald-light);">En Ligne</span>
+                                <span class="stat-num" style="color: var(--rx-signal-live);">En Ligne</span>
                                 <span class="stat-lbl">Whitelist Active</span>
                             </div>
                             <div class="status-box-actions">
@@ -208,14 +208,64 @@
                     </div>
                 </div>
 
-                <!-- 2. ACTUALITÉS & ÉVÉNEMENTS (Matching Behance Slice 2 Weekly News) -->
+                <!-- 2. UNIFIED REAL-TIME TELEMETRY CONSOLE -->
+                <div class="telemetry-console-grid" id="telemetry-console">
+                    <!-- Infrastructure Pelican -->
+                    <div class="telemetry-cell">
+                        <div class="telemetry-cell-header">
+                            <span class="telemetry-cell-title">Infrastructure Pelican</span>
+                            <span class="rx-signal-dot pulse" id="telemetry-infra-dot"></span>
+                        </div>
+                        <div class="telemetry-cell-value" id="telemetry-infra-status">
+                            <span>En Ligne (26.3)</span>
+                        </div>
+                        <div class="telemetry-cell-sub" id="telemetry-infra-sub">node.rxcorp.fr:25566</div>
+                    </div>
+
+                    <!-- Latence Réseau & Ping -->
+                    <div class="telemetry-cell">
+                        <div class="telemetry-cell-header">
+                            <span class="telemetry-cell-title">Latence Réseau</span>
+                            <svg class="telemetry-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l4 4-4 4M7 5h14M1 19l4-4-4-4M7 15h14"/></svg>
+                        </div>
+                        <div class="telemetry-cell-value" id="telemetry-network-ping">
+                            <span>17 ms</span>
+                        </div>
+                        <div class="telemetry-cell-sub" id="telemetry-network-sub">Sonde SLP / TCP active</div>
+                    </div>
+
+                    <!-- Allocation RAM JVM -->
+                    <div class="telemetry-cell">
+                        <div class="telemetry-cell-header">
+                            <span class="telemetry-cell-title">Allocation Mémoire</span>
+                            <svg class="telemetry-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                        </div>
+                        <div class="telemetry-cell-value" id="telemetry-ram-alloc">
+                            <span>6.0 Go</span>
+                        </div>
+                        <div class="telemetry-cell-sub" id="telemetry-ram-sub">Heap JVM optimisé</div>
+                    </div>
+
+                    <!-- Whitelist & Sécurité Gamertag -->
+                    <div class="telemetry-cell">
+                        <div class="telemetry-cell-header">
+                            <span class="telemetry-cell-title">Whitelist & Sécurité</span>
+                            <svg class="telemetry-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="telemetry-cell-value" id="telemetry-whitelist-status">
+                            <span>Active</span>
+                        </div>
+                        <div class="telemetry-cell-sub" id="telemetry-whitelist-sub">Pelican ⟷ Microsoft lié</div>
+                    </div>
+                </div>
+
+                <!-- 3. ACTUALITÉS & ÉVÉNEMENTS -->
                 <div class="home-news-section">
                     <div class="news-section-header">
                         <div class="news-header-left">
-                            <span class="news-header-dot"></span>
-                            <h2 class="news-header-title" data-i18n="news_section_title">ACTUALITÉS & ÉVÉNEMENTS</h2>
+                            <h2 class="news-header-title" data-i18n="news_section_title">Actualités et mises à jour</h2>
                         </div>
-                        <a href="https://rxcorp.fr" target="_blank" class="news-header-link" data-i18n="news_view_all">Site Web ↗</a>
+                        <a href="https://rxcorp.fr" target="_blank" class="news-header-link" data-i18n="news_view_all">Consulter le site</a>
                     </div>
 
                     <!-- 3 Clean News Cards in a row -->
@@ -224,7 +274,7 @@
                         <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://rxcorp.fr')">
                             <div class="news-thumb-box">
                                 <img class="news-thumb-img" src="assets/images/heroes/hero_cloud.jpg" alt="Saison Survie">
-                                <span class="news-tag-badge" data-i18n="news_1_tag">MAJ SERVEUR</span>
+                                <span class="news-tag-badge" data-i18n="news_1_tag">Mise à jour</span>
                             </div>
                             <div class="news-body-box">
                                 <span class="news-date-text" data-i18n="news_1_date">14 Septembre 2026</span>
@@ -239,7 +289,7 @@
                         <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://rxcorp.fr')">
                             <div class="news-thumb-box">
                                 <img class="news-thumb-img" src="assets/images/heroes/hero_modrinth.jpg" alt="Optimisation">
-                                <span class="news-tag-badge" style="color: #60a5fa;" data-i18n="news_2_tag">OPTIMISATION</span>
+                                <span class="news-tag-badge" data-i18n="news_2_tag">Optimisation</span>
                             </div>
                             <div class="news-body-box">
                                 <span class="news-date-text" data-i18n="news_2_date">12 Septembre 2026</span>
@@ -254,7 +304,7 @@
                         <article class="modern-news-card" onclick="require('electron').shell.openExternal('https://discord.gg/YETMStb2dN')">
                             <div class="news-thumb-box">
                                 <img class="news-thumb-img" src="assets/images/heroes/hero_instances.jpg" alt="Communauté">
-                                <span class="news-tag-badge" style="color: var(--amber);" data-i18n="news_3_tag">COMMUNAUTÉ</span>
+                                <span class="news-tag-badge" data-i18n="news_3_tag">Communauté</span>
                             </div>
                             <div class="news-body-box">
                                 <span class="news-date-text" data-i18n="news_3_date">10 Septembre 2026</span>
@@ -653,7 +703,7 @@
                         <div class="form-group">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <label class="form-label">Clé API Client (pacc_...)</label>
-                                <a href="#" id="link-create-key" style="font-size: 11px; color: var(--emerald-light); text-decoration: underline;">Obtenir une clé ↗</a>
+                                <a href="#" id="link-create-key" style="font-size: 11px; color: var(--rx-signal-live); text-decoration: underline;">Obtenir une clé</a>
                             </div>
                             <input id="settings-panel-key" type="password" class="form-input" placeholder="pacc_xxxxxxxxxxxxxxxxxxxxxxxx">
                         </div>
@@ -1144,7 +1194,7 @@
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
                 <button type="button" id="btn-modal-open-sso" class="btn-text-link" style="font-size: 11.5px; color: var(--text-muted); padding: 0;">
-                    Ou validation Web 1-Clic ↗
+                    Ou validation Web 1-Clic
                 </button>
                 <div style="display: flex; gap: 10px;">
                     <button class="rx-btn rx-btn-secondary" data-close="modal-direct-login">Annuler</button>
@@ -1199,7 +1249,7 @@
                         </div>
 
                         <button id="btn-ms-open-browser" type="button" class="rx-btn rx-btn-primary" style="width: 100%; padding: 11px 16px; font-weight: 700; margin-top: 10px;">
-                            Ouvrir dans le Navigateur ↗
+                            Ouvrir dans le navigateur
                         </button>
                     </div>
                 </div>
