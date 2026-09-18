@@ -767,6 +767,35 @@
                         </div>
                     </div>
 
+                    <!-- Link-Sync Cache Management Card -->
+                    <div class="settings-card" id="settings-card-pool">
+                        <div class="settings-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="settings-card-title">Cache & Pool Central Link-Sync</span>
+                            <span id="label-pool-status" style="font-size: 10px; color: #34d399; font-weight: 700; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">Actif (NTFS)</span>
+                        </div>
+                        <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                            Reservoir partage de mods permettant des liaisons hardlinks instantanees a 0 Mo entre instances.
+                        </p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                            <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;">
+                                <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase;">Mods en Cache</span>
+                                <span id="pool-stat-count" style="font-size: 16px; font-weight: 800; color: #34d399;">-</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;">
+                                <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase;">Volume Disque</span>
+                                <span id="pool-stat-size" style="font-size: 16px; font-weight: 800; color: #60a5fa;">- Mo</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" id="btn-open-pool-folder" class="rx-btn rx-btn-secondary" style="flex: 1; font-size: 11px; justify-content: center;">
+                                Ouvrir le Dossier
+                            </button>
+                            <button type="button" id="btn-purge-pool" class="rx-btn rx-btn-danger" style="flex: 1; font-size: 11px; justify-content: center;">
+                                Vider le Cache Link-Sync
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Developer Console & Logs Card -->
                     <div class="settings-card">
                         <div class="settings-card-header" style="display: flex; justify-content: space-between; align-items: center;">

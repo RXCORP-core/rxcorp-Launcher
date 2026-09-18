@@ -195,6 +195,32 @@ class ModPoolService {
             return { poolCount: 0, poolBytes: 0, savedBytes: 0 };
         }
     }
+
+    /**
+     * Purge all cached mods from the central pool
+     */
+    purgePool() {
+        const pool = this.getPoolDir();
+        if (!fs.existsSync(pool)) return { deletedCount: 0, freedBytes: 0 };
+
+        const files = fs.readdirSync(pool);
+        let deletedCount = 0;
+        let freedBytes = 0;
+
+        for (const file of files) {
+            const filePath = path.join(pool, file);
+            try {
+                const stat = fs.statSync(filePath);
+                if (stat.isFile()) {
+                    freedBytes += stat.size;
+                    fs.unlinkSync(filePath);
+                    deletedCount++;
+                }
+            } catch (_) {}
+        }
+
+        return { deletedCount, freedBytes };
+    }
 }
 
 module.exports = new ModPoolService();

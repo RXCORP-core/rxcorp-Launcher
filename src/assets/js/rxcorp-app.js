@@ -23,6 +23,7 @@ const modrinthService = require(path.join(servicesDir, 'modrinthService.js'));
 const curseforgeService = require(path.join(servicesDir, 'curseforgeService.js'));
 const gameLauncher = require(path.join(servicesDir, 'gameLauncher.js'));
 const microsoftAuthService = require(path.join(servicesDir, 'microsoftAuthService.js'));
+const modPoolService = require(path.join(servicesDir, 'modPoolService.js'));
 
 const utilsDir = fs.existsSync(path.join(__dirname, 'utils'))
     ? path.join(__dirname, 'utils')
@@ -2177,6 +2178,7 @@ class RxcorpApp {
 
         // Language Switcher Handler
         this.initLanguageSelector();
+        this.initLinkSyncPoolSettings();
 
         btnSave?.addEventListener('click', () => {
             store.set('ramMax', currentRam);
@@ -2303,6 +2305,35 @@ class RxcorpApp {
                 langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === chosenLang));
                 this.showNotification('Langue mise à jour', chosenLang === 'fr' ? 'Langue définie sur Français' : 'Language set to English');
             });
+        });
+    }
+
+    initLinkSyncPoolSettings() {
+        const statCount = document.getElementById('pool-stat-count');
+        const statSize = document.getElementById('pool-stat-size');
+        const btnOpenFolder = document.getElementById('btn-open-pool-folder');
+        const btnPurge = document.getElementById('btn-purge-pool');
+
+        const updatePoolDisplay = () => {
+            const poolInfo = modPoolService.calculateSavings();
+            if (statCount) statCount.innerText = poolInfo.poolCount || 0;
+            if (statSize) statSize.innerText = `${(poolInfo.poolBytes / (1024 * 1024)).toFixed(1)} Mo`;
+        };
+
+        updatePoolDisplay();
+
+        btnOpenFolder?.addEventListener('click', () => {
+            const dir = modPoolService.getPoolDir();
+            shell.openPath(dir);
+            this.logDev('UI', `Ouverture du dossier du pool Link-Sync : ${dir}`);
+        });
+
+        btnPurge?.addEventListener('click', () => {
+            const res = modPoolService.purgePool();
+            updatePoolDisplay();
+            const freedMo = (res.freedBytes / (1024 * 1024)).toFixed(1);
+            this.showNotification('Cache Link-Sync vidé', `${res.deletedCount} mod(s) supprimé(s) (${freedMo} Mo libérés).`);
+            this.logDev('PELICAN', `Cache Link-Sync purgé : ${res.deletedCount} mod(s) supprimé(s), ${freedMo} Mo libérés.`);
         });
     }
 
