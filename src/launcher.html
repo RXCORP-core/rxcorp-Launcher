@@ -396,6 +396,37 @@
                 </div>
             </div>
 
+            <!-- Filter & Admin Scope Toolbar -->
+            <div id="cloud-filter-toolbar" class="cloud-filter-toolbar" style="display: none;">
+                <!-- Left: Game Filter Pills -->
+                <div class="cloud-game-filters">
+                    <button type="button" class="cloud-filter-pill active" data-filter="all">
+                        <span>Tous</span>
+                        <span class="pill-count" id="count-filter-all">0</span>
+                    </button>
+                    <button type="button" class="cloud-filter-pill" data-filter="minecraft">
+                        <span>Minecraft</span>
+                        <span class="pill-count" id="count-filter-mc">0</span>
+                    </button>
+                    <button type="button" class="cloud-filter-pill" data-filter="fivem">
+                        <span>FiveM</span>
+                        <span class="pill-count" id="count-filter-fivem">0</span>
+                    </button>
+                </div>
+
+                <!-- Right: Admin Scope Switch (Visible only for admin accounts) -->
+                <div id="cloud-admin-scope-box" class="cloud-admin-scope-box" style="display: none;">
+                    <div class="admin-scope-label">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span>Mode Admin</span>
+                    </div>
+                    <div class="admin-scope-switch-group">
+                        <button type="button" class="admin-scope-btn" id="btn-scope-user" title="Afficher uniquement les serveurs où vous êtes propriétaire ou sous-utilisateur">Mes serveurs</button>
+                        <button type="button" class="admin-scope-btn active" id="btn-scope-admin" title="Afficher l'infrastructure complète du Panel (FiveM & Minecraft)">Tous les serveurs</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- User Pelican Servers Grid -->
             <div id="cloud-servers-grid" class="servers-grid"></div>
 

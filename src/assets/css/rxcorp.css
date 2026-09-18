@@ -1662,6 +1662,113 @@ body {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(244, 63, 94, 0.1);
 }
 
+/* Pelican Cloud Filter & Admin Scope Toolbar */
+.cloud-filter-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: rgba(16, 20, 31, 0.6);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+}
+
+.cloud-game-filters {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cloud-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cloud-filter-pill:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.cloud-filter-pill.active {
+    color: #ffffff;
+    background: rgba(244, 63, 94, 0.15);
+    border-color: rgba(244, 63, 94, 0.35);
+}
+
+.cloud-filter-pill .pill-count {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-muted);
+}
+
+.cloud-filter-pill.active .pill-count {
+    background: rgba(244, 63, 94, 0.3);
+    color: #f43f5e;
+}
+
+.cloud-admin-scope-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-scope-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-scope-switch-group {
+    display: flex;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 6px;
+    padding: 2px;
+}
+
+.admin-scope-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.admin-scope-btn:hover {
+    color: #ffffff;
+}
+
+.admin-scope-btn.active {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    font-weight: 700;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+}
+
 /* Mod Search Bar */
 .mod-search-bar {
     display: flex;

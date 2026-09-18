@@ -61,11 +61,11 @@ class PelicanService {
     /**
      * Get list of all servers owned by or shared with the user
      */
-    async getServers(apiKey, panelUrl = this.defaultPanelUrl) {
+    async getServers(apiKey, panelUrl = this.defaultPanelUrl, adminAll = false) {
         try {
             const baseUrl = panelUrl.replace(/\/+$/, '');
-            let url = `${baseUrl}/api/client`;
-            let res = await fetch(url, {
+            const endpoint = adminAll ? `${baseUrl}/api/client?type=admin-all` : `${baseUrl}/api/client`;
+            let res = await fetch(endpoint, {
                 method: 'GET',
                 headers: this._getHeaders(apiKey)
             });
@@ -77,8 +77,8 @@ class PelicanService {
             let json = await res.json();
             let dataList = json.data || [];
 
-            // If empty, try admin-all in case authenticated user is an administrator
-            if (dataList.length === 0) {
+            // If empty and adminAll was not explicitly false, try admin-all as fallback in case user is an administrator
+            if (dataList.length === 0 && adminAll === 'auto') {
                 try {
                     const adminRes = await fetch(`${baseUrl}/api/client?type=admin-all`, {
                         method: 'GET',
@@ -134,20 +134,38 @@ class PelicanService {
                     }
                 }
 
-                // Detect if it is a Minecraft server
                 const invocation = (attr.invocation || '').toLowerCase();
                 const dockerImage = (attr.docker_image || '').toLowerCase();
-                const hasMcVars = variables.some(v => v.attributes?.env_variable?.includes('MC_VERSION'));
-                const isMinecraft = invocation.includes('server.jar') || 
+                const srvName = (attr.name || '').toLowerCase();
+                const allocNotes = (defaultAlloc?.attributes?.notes || '').toLowerCase();
+
+                // FiveM Detection
+                const isFiveM = invocation.includes('cfx') || 
+                                invocation.includes('fxserver') || 
+                                invocation.includes('fivem') || 
+                                srvName.includes('fivem') ||
+                                allocNotes.includes('fivem') ||
+                                variables.some(v => (v.attributes?.env_variable || '').toLowerCase().includes('fivem'));
+
+                // Minecraft Detection
+                const hasMcVars = variables.some(v => (v.attributes?.env_variable || '').includes('MC_VERSION'));
+                const isMinecraft = !isFiveM && (
+                                    invocation.includes('server.jar') || 
                                     invocation.includes('unix_args.txt') || 
                                     invocation.includes('run.sh') ||
                                     dockerImage.includes('yolks') || 
                                     dockerImage.includes('java') ||
                                     hasMcVars ||
-                                    (attr.egg_features && attr.egg_features.includes('eula'));
+                                    (attr.egg_features && attr.egg_features.includes('eula')) ||
+                                    srvName.includes('minecraft'));
+
+                let gameType = 'other';
+                if (isFiveM) gameType = 'fivem';
+                else if (isMinecraft) gameType = 'minecraft';
 
                 servers.push({
                     id: attr.identifier,
+                    identifier: attr.identifier,
                     internalId: attr.internal_id,
                     uuid: attr.uuid,
                     name: attr.name,
@@ -158,13 +176,15 @@ class PelicanService {
                     port: port,
                     version: mcVersion,
                     loader: detectedLoader,
+                    gameType: gameType,
+                    isMinecraft: isMinecraft,
+                    isFiveM: isFiveM,
                     limits: {
                         memory: attr.limits?.memory || 0,
                         cpu: attr.limits?.cpu || 0,
                         disk: attr.limits?.disk || 0
                     },
-                    dockerImage: attr.docker_image,
-                    isMinecraft: isMinecraft
+                    dockerImage: attr.docker_image
                 });
             }
 

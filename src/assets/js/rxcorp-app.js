@@ -141,6 +141,7 @@ class RxcorpApp {
         this.initSettings();
         this.initAccounts();
         this.initPelicanSync();
+        this.initCloudToolbar();
         this.initModDownloader();
         this.initLaunchDock();
         this.initUpdater();
@@ -350,19 +351,21 @@ class RxcorpApp {
                                        (this.activeInstance?.name && this.activeInstance.name.includes(srv.name));
                     const isOnline = srv.status === 'online' || srv.status === 'running';
                     const ping = srv.ping || 18;
-                    const players = srv.players ? `${srv.players.online}/${srv.players.max}` : (isOnline ? 'En ligne' : 'Prêt');
+                    const gameBadge = srv.isFiveM 
+                        ? `<span class="rx-tag" style="font-size: 9px; padding: 1px 5px; margin-left: 5px; background: rgba(249, 115, 22, 0.15); color: #fb923c; border-color: rgba(249, 115, 22, 0.3);">FiveM</span>`
+                        : `<span class="rx-tag" style="font-size: 9px; padding: 1px 5px; margin-left: 5px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">MC</span>`;
                     return `
                         <div class="dash-item-row ${isSelected ? 'active' : ''}">
                             <div class="dash-item-left">
                                 <span class="srv-dot ${isOnline ? 'online' : 'offline'}"></span>
                                 <div class="dash-item-info">
-                                    <span class="dash-item-name">${srv.name}</span>
-                                    <span class="dash-item-sub">${ping}ms • ${players} • ${srv.ip}:${srv.port}</span>
+                                    <span class="dash-item-name">${srv.name} ${gameBadge}</span>
+                                    <span class="dash-item-sub">${ping}ms • ${srv.ip}:${srv.port}</span>
                                 </div>
                             </div>
                             <div class="dash-item-actions">
                                 <button class="dash-quick-btn btn-dash-select-server" data-name="${srv.name}">
-                                    ${isSelected ? 'Actif' : 'Sélectionner'}
+                                    ${srv.isFiveM ? 'Lancer' : (isSelected ? 'Actif' : 'Sélectionner')}
                                 </button>
                             </div>
                         </div>
@@ -374,7 +377,12 @@ class RxcorpApp {
                         const srvName = e.currentTarget.dataset.name;
                         const srv = this.cloudServers.find(s => s.name === srvName);
                         if (srv) {
-                            await this.selectCloudServer(srv);
+                            if (srv.isFiveM) {
+                                this.showNotification('FiveM', `Lancement et connexion à ${srv.ip}:${srv.port}...`);
+                                shell.openExternal(`fivem://connect/${srv.ip}:${srv.port}`);
+                            } else {
+                                await this.selectCloudServer(srv);
+                            }
                         }
                     });
                 });
@@ -666,13 +674,51 @@ class RxcorpApp {
     // ==========================================
     // RXCORP CLOUD (PELICAN INTEGRATION)
     // ==========================================
+    initCloudToolbar() {
+        // Game filter pills
+        document.querySelectorAll('.cloud-filter-pill').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const pill = e.currentTarget;
+                const filter = pill.getAttribute('data-filter');
+                document.querySelectorAll('.cloud-filter-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                this.activeGameFilter = filter;
+                this.renderFilteredCloudServers();
+            });
+        });
+
+        // Admin scope buttons (Mes serveurs vs Tous les serveurs)
+        const btnUser = document.getElementById('btn-scope-user');
+        const btnAdmin = document.getElementById('btn-scope-admin');
+
+        btnUser?.addEventListener('click', async () => {
+            if (this.adminScope === 'user') return;
+            this.adminScope = 'user';
+            store.set('pelicanAdminScope', 'user');
+            btnUser.classList.add('active');
+            btnAdmin?.classList.remove('active');
+            await this.loadCloudServers();
+        });
+
+        btnAdmin?.addEventListener('click', async () => {
+            if (this.adminScope === 'admin') return;
+            this.adminScope = 'admin';
+            store.set('pelicanAdminScope', 'admin');
+            btnAdmin.classList.add('active');
+            btnUser?.classList.remove('active');
+            await this.loadCloudServers();
+        });
+    }
+
     async loadCloudServers() {
         const apiKey = store.get('apiKey');
         const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
-        const pelicanUser = store.get('pelicanUser');
+        let pelicanUser = store.get('pelicanUser');
 
         const authCard = document.getElementById('cloud-auth-card');
         const userHeader = document.getElementById('cloud-user-header');
+        const toolbar = document.getElementById('cloud-filter-toolbar');
+        const adminScopeBox = document.getElementById('cloud-admin-scope-box');
         const grid = document.getElementById('cloud-servers-grid');
         const pillText = document.getElementById('cloud-pill-text');
         const pillDot = document.querySelector('#cloud-pill .status-dot');
@@ -680,9 +726,11 @@ class RxcorpApp {
         if (!apiKey) {
             if (authCard) authCard.style.display = 'block';
             if (userHeader) userHeader.style.display = 'none';
+            if (toolbar) toolbar.style.display = 'none';
             if (grid) grid.innerHTML = '';
             if (pillText) pillText.innerText = 'Non connecté';
             if (pillDot) pillDot.className = 'status-dot offline';
+            this.cloudServers = [];
             this.renderDashboardLists();
             return;
         }
@@ -690,25 +738,47 @@ class RxcorpApp {
         if (authCard) authCard.style.display = 'none';
         if (userHeader) userHeader.style.display = 'flex';
 
+        // Refresh or fetch admin privileges if not yet resolved
+        if (!pelicanUser || typeof pelicanUser.admin !== 'boolean') {
+            try {
+                const testRes = await pelicanService.testConnection(apiKey, panelUrl);
+                if (testRes.success && testRes.user) {
+                    pelicanUser = {
+                        username: testRes.user.username,
+                        email: testRes.user.email,
+                        admin: !!testRes.user.admin
+                    };
+                    store.set('pelicanUser', pelicanUser);
+                }
+            } catch (_) {}
+        }
+
         // Update Pelican user display in header
         if (pelicanUser?.username) {
             const userNameEl = document.getElementById('cloud-user-name');
             const userEmailEl = document.getElementById('cloud-user-email');
             if (userNameEl) userNameEl.innerText = pelicanUser.username;
             if (userEmailEl) userEmailEl.innerText = pelicanUser.email || '';
+        }
+
+        const isAdmin = pelicanUser?.admin === true;
+
+        // Admin scope box display
+        if (adminScopeBox) {
+            adminScopeBox.style.display = isAdmin ? 'flex' : 'none';
+        }
+
+        if (!isAdmin) {
+            this.adminScope = 'user';
         } else {
-            pelicanService.testConnection(apiKey, panelUrl).then(testRes => {
-                if (testRes.success && testRes.user) {
-                    store.set('pelicanUser', {
-                        username: testRes.user.username,
-                        email: testRes.user.email
-                    });
-                    const userNameEl = document.getElementById('cloud-user-name');
-                    const userEmailEl = document.getElementById('cloud-user-email');
-                    if (userNameEl) userNameEl.innerText = testRes.user.username;
-                    if (userEmailEl) userEmailEl.innerText = testRes.user.email || '';
-                }
-            }).catch(() => {});
+            this.adminScope = store.get('pelicanAdminScope') || 'admin';
+        }
+
+        const btnScopeUser = document.getElementById('btn-scope-user');
+        const btnScopeAdmin = document.getElementById('btn-scope-admin');
+        if (btnScopeUser && btnScopeAdmin) {
+            btnScopeUser.classList.toggle('active', this.adminScope === 'user');
+            btnScopeAdmin.classList.toggle('active', this.adminScope === 'admin');
         }
 
         if (pillText) pillText.innerText = 'Connexion...';
@@ -722,10 +792,12 @@ class RxcorpApp {
             `;
         }
 
-        const res = await pelicanService.getServers(apiKey, panelUrl);
+        const fetchAdminAll = isAdmin && (this.adminScope === 'admin');
+        const res = await pelicanService.getServers(apiKey, panelUrl, fetchAdminAll);
         if (!res.success) {
             if (authCard) authCard.style.display = 'block';
             if (userHeader) userHeader.style.display = 'none';
+            if (toolbar) toolbar.style.display = 'none';
             if (grid) {
                 grid.innerHTML = `
                     <div class="rx-card" style="grid-column: 1/-1; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); margin-bottom: 20px; text-align: center; padding: 20px;">
@@ -736,38 +808,74 @@ class RxcorpApp {
             }
             if (pillText) pillText.innerText = 'Non connecté';
             if (pillDot) pillDot.className = 'status-dot offline';
+            this.cloudServers = [];
             this.renderDashboardLists();
             return;
         }
 
-        this.cloudServers = res.servers.filter(s => s.isMinecraft);
-        if (pillText) pillText.innerText = `${this.cloudServers.length} Serveur(s)`;
+        // Store all servers (FiveM and Minecraft)
+        this.cloudServers = res.servers || [];
+
+        // Show toolbar
+        if (toolbar) toolbar.style.display = 'flex';
+
+        // Update counts
+        const totalCount = this.cloudServers.length;
+        const mcCount = this.cloudServers.filter(s => s.isMinecraft).length;
+        const fivemCount = this.cloudServers.filter(s => s.isFiveM).length;
+
+        const countFilterAll = document.getElementById('count-filter-all');
+        const countFilterMc = document.getElementById('count-filter-mc');
+        const countFilterFivem = document.getElementById('count-filter-fivem');
+        if (countFilterAll) countFilterAll.innerText = totalCount;
+        if (countFilterMc) countFilterMc.innerText = mcCount;
+        if (countFilterFivem) countFilterFivem.innerText = fivemCount;
+
+        if (pillText) pillText.innerText = `${totalCount} Serveur(s)`;
         if (pillDot) pillDot.className = 'status-dot online';
 
-        if (grid) {
-            if (this.cloudServers.length === 0) {
-                grid.innerHTML = `
-                    <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 32px 20px; background: rgba(16, 20, 31, 0.6); border: 1px solid var(--border-card);">
-                        <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">Aucun serveur Minecraft privé trouvé sur votre panel Pelican.</p>
-                        <div style="display: flex; justify-content: center; gap: 10px;">
-                            <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
-                                Commander un serveur Minecraft
-                            </button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                grid.innerHTML = '';
-                for (const server of this.cloudServers) {
-                    const card = this.createServerCard(server);
-                    grid.appendChild(card);
-                    this.fetchServerLiveStatus(server, card);
-                }
-            }
-        }
-
+        this.renderFilteredCloudServers();
         this.renderDashboardLists();
         this.updatePelicanSyncUI();
+    }
+
+    renderFilteredCloudServers() {
+        const grid = document.getElementById('cloud-servers-grid');
+        if (!grid) return;
+
+        if (!this.activeGameFilter) {
+            this.activeGameFilter = 'all';
+        }
+
+        const filter = this.activeGameFilter;
+        let filtered = this.cloudServers || [];
+        if (filter === 'minecraft') {
+            filtered = filtered.filter(s => s.isMinecraft);
+        } else if (filter === 'fivem') {
+            filtered = filtered.filter(s => s.isFiveM);
+        }
+
+        if (filtered.length === 0) {
+            const label = filter === 'minecraft' ? 'Minecraft' : (filter === 'fivem' ? 'FiveM' : '');
+            grid.innerHTML = `
+                <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 32px 20px; background: rgba(16, 20, 31, 0.6); border: 1px solid var(--border-card);">
+                    <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">Aucun serveur ${label ? label + ' ' : ''}trouvé sur votre panel Pelican.</p>
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
+                            Commander un serveur
+                        </button>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = '';
+        for (const server of filtered) {
+            const card = this.createServerCard(server);
+            grid.appendChild(card);
+            this.fetchServerLiveStatus(server, card);
+        }
     }
 
     createServerCard(server) {
@@ -775,11 +883,63 @@ class RxcorpApp {
         card.className = 'server-card';
         card.id = `server-card-${server.id}`;
 
+        const isFiveM = server.isFiveM;
+        const gameTagHtml = isFiveM
+            ? `<span class="rx-tag" style="font-size: 10px; padding: 2px 7px; border-radius: 4px; background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); font-weight: 700; margin-left: 8px;">FiveM</span>`
+            : `<span class="rx-tag" style="font-size: 10px; padding: 2px 7px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; margin-left: 8px;">Minecraft</span>`;
+
+        const middleInfoHtml = isFiveM ? `
+            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: #fb923c; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                    <span style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Serveur GTA V / FiveM</span>
+                </div>
+                <span class="rx-tag" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3);">CFX.re</span>
+            </div>
+        ` : `
+            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: var(--primary); flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span id="mods-summary-${server.id}" style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Détection des mods...</span>
+                </div>
+                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border-subtle);">-</span>
+            </div>
+        `;
+
+        const actionButtonsHtml = isFiveM ? `
+            <button class="rx-btn rx-btn-primary btn-join-fivem" style="flex: 1.5; font-weight: 700; background: linear-gradient(135deg, #ea580c, #f97316); border-color: rgba(249, 115, 22, 0.5);" data-id="${server.id}">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                <span>Lancer FiveM</span>
+            </button>
+            <button class="rx-btn rx-btn-secondary btn-copy-ip" title="Copier l'adresse de connexion" style="flex: 1; font-weight: 600;" data-id="${server.id}">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copier IP</span>
+            </button>
+            <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </button>
+        ` : `
+            <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1.3; font-weight: 700;" data-id="${server.id}">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                <span>Rejoindre</span>
+            </button>
+            <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" style="flex: 1; font-weight: 600;" data-id="${server.id}">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Sync Mods</span>
+            </button>
+            <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </button>
+        `;
+
         card.innerHTML = `
             <div class="server-card-top">
                 <div class="server-name-box">
-                    <h3 class="server-name">${server.name}</h3>
-                    <div class="server-address" title="Cliquer pour copier l'adresse">
+                    <div style="display: flex; align-items: center;">
+                        <h3 class="server-name" style="margin: 0;">${server.name}</h3>
+                        ${gameTagHtml}
+                    </div>
+                    <div class="server-address" title="Cliquer pour copier l'adresse" style="cursor: pointer;">
                         <span>${server.ip}:${server.port}</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px; height:11px; opacity:0.7;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </div>
@@ -804,40 +964,45 @@ class RxcorpApp {
                 </div>
             </div>
 
-            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: var(--primary); flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                    <span id="mods-summary-${server.id}" style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Détection des mods...</span>
-                </div>
-                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border-subtle);">-</span>
-            </div>
+            ${middleInfoHtml}
 
             <div class="server-actions">
-                <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1.3; font-weight: 700;" data-id="${server.id}">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                    <span>Rejoindre</span>
-                </button>
-                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" style="flex: 1; font-weight: 600;" data-id="${server.id}">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                    <span>Sync Mods</span>
-                </button>
-                <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </button>
+                ${actionButtonsHtml}
             </div>
         `;
 
-        card.querySelector('.btn-join-server').addEventListener('click', () => {
-            this.handleJoinServer(server);
-        });
+        const addrEl = card.querySelector('.server-address');
+        if (addrEl) {
+            addrEl.addEventListener('click', () => {
+                const text = `${server.ip}:${server.port}`;
+                clipboard.writeText(text);
+                this.showNotification('Adresse Copiée', `${text} est copié dans le presse-papier.`);
+            });
+        }
 
-        card.querySelector('.btn-sync-mods').addEventListener('click', () => {
-            this.handleSyncServerMods(server);
-        });
+        if (isFiveM) {
+            card.querySelector('.btn-join-fivem')?.addEventListener('click', () => {
+                this.showNotification('FiveM', `Connexion au serveur ${server.name} (${server.ip}:${server.port})...`);
+                shell.openExternal(`fivem://connect/${server.ip}:${server.port}`);
+            });
+            card.querySelector('.btn-copy-ip')?.addEventListener('click', () => {
+                const text = `${server.ip}:${server.port}`;
+                clipboard.writeText(text);
+                this.showNotification('Adresse Copiée', `${text} est copié dans le presse-papier.`);
+            });
+        } else {
+            card.querySelector('.btn-join-server')?.addEventListener('click', () => {
+                this.handleJoinServer(server);
+            });
+            card.querySelector('.btn-sync-mods')?.addEventListener('click', () => {
+                this.handleSyncServerMods(server);
+            });
+        }
 
-        card.querySelector('.btn-open-panel').addEventListener('click', () => {
+        card.querySelector('.btn-open-panel')?.addEventListener('click', () => {
             const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
-            shell.openExternal(`${panelUrl}/server/${server.identifier}`);
+            const serverId = server.identifier || server.id;
+            shell.openExternal(`${panelUrl}/server/${serverId}`);
         });
 
         return card;
@@ -881,29 +1046,31 @@ class RxcorpApp {
             cpuValue.innerText = '0%';
         }
 
-        // Live mods detection
-        try {
-            const modsRes = await pelicanService.listServerMods(server.id, apiKey, panelUrl);
-            const modsSummary = card.querySelector(`#mods-summary-${server.id}`);
-            const modsCount = card.querySelector(`#mods-count-${server.id}`);
-            if (modsSummary && modsCount) {
-                if (modsRes.success && modsRes.mods && modsRes.mods.length > 0) {
-                    const cleanNames = modsRes.mods.map(m => m.name.replace(/\.jar$/i, '').replace(/[-_]mc.*$/i, '')).join(', ');
-                    modsSummary.innerText = cleanNames;
-                    modsSummary.title = modsRes.mods.map(m => m.name).join('\n');
-                    modsCount.innerText = `${modsRes.mods.length} mod(s)`;
-                    modsCount.style.background = 'rgba(244, 63, 94, 0.15)';
-                    modsCount.style.borderColor = 'rgba(244, 63, 94, 0.3)';
-                    modsCount.style.color = '#f43f5e';
-                } else {
-                    modsSummary.innerText = 'Aucun mod requis (Vanilla)';
-                    modsCount.innerText = 'Vanilla';
-                    modsCount.style.background = 'rgba(255, 255, 255, 0.05)';
-                    modsCount.style.borderColor = 'var(--border)';
-                    modsCount.style.color = 'var(--text-muted)';
+        // Live mods detection only for Minecraft servers
+        if (server.isMinecraft) {
+            try {
+                const modsRes = await pelicanService.listServerMods(server.id, apiKey, panelUrl);
+                const modsSummary = card.querySelector(`#mods-summary-${server.id}`);
+                const modsCount = card.querySelector(`#mods-count-${server.id}`);
+                if (modsSummary && modsCount) {
+                    if (modsRes.success && modsRes.mods && modsRes.mods.length > 0) {
+                        const cleanNames = modsRes.mods.map(m => m.name.replace(/\.jar$/i, '').replace(/[-_]mc.*$/i, '')).join(', ');
+                        modsSummary.innerText = cleanNames;
+                        modsSummary.title = modsRes.mods.map(m => m.name).join('\n');
+                        modsCount.innerText = `${modsRes.mods.length} mod(s)`;
+                        modsCount.style.background = 'rgba(244, 63, 94, 0.15)';
+                        modsCount.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                        modsCount.style.color = '#f43f5e';
+                    } else {
+                        modsSummary.innerText = 'Aucun mod requis (Vanilla)';
+                        modsCount.innerText = 'Vanilla';
+                        modsCount.style.background = 'rgba(255, 255, 255, 0.05)';
+                        modsCount.style.borderColor = 'var(--border)';
+                        modsCount.style.color = 'var(--text-muted)';
+                    }
                 }
-            }
-        } catch (_) {}
+            } catch (_) {}
+        }
     }
 
     async handleSyncServerMods(server) {
@@ -1820,7 +1987,8 @@ class RxcorpApp {
             if (res.success) {
                 store.set('pelicanUser', {
                     username: res.user.username,
-                    email: res.user.email
+                    email: res.user.email,
+                    admin: !!res.user.admin
                 });
                 if (btnDisconnectPanel) btnDisconnectPanel.style.display = 'inline-flex';
                 this.showNotification('Connexion réussie !', `Connecté : ${res.user.username} (${res.user.email})`);
@@ -1840,6 +2008,7 @@ class RxcorpApp {
     disconnectPelican() {
         store.set('apiKey', '');
         store.delete('pelicanUser');
+        store.delete('pelicanAdminScope');
         store.delete('pelicanMicrosoftSync');
         const inputKey = document.getElementById('settings-panel-key');
         if (inputKey) inputKey.value = '';
@@ -2394,7 +2563,8 @@ class RxcorpApp {
             if (testRes.success && testRes.user) {
                 store.set('pelicanUser', {
                     username: testRes.user.username,
-                    email: testRes.user.email
+                    email: testRes.user.email,
+                    admin: !!testRes.user.admin
                 });
                 this.showNotification('Connexion réussie', `Connecté en tant que ${testRes.user.username}`);
             } else {
@@ -2456,7 +2626,8 @@ class RxcorpApp {
                     if (resData.user?.username) {
                         store.set('pelicanUser', {
                             username: resData.user.username,
-                            email: resData.user.email || ''
+                            email: resData.user.email || '',
+                            admin: !!(resData.user.admin || resData.user.root_admin)
                         });
                         // Preserve active Minecraft account if already present
                         const activeAcc = this.getActiveAccount();
