@@ -391,14 +391,16 @@ class RxcorpApp {
             } else {
                 instList.innerHTML = locals.map(inst => {
                     const isSelected = this.activeInstance?.id === inst.id;
-                    const loader = (inst.loader || 'fabric').toUpperCase();
+                    const meta = this.getLoaderMeta(inst.loader, inst.name);
                     return `
                         <div class="dash-item-row ${isSelected ? 'active' : ''}">
                             <div class="dash-item-left">
-                                <div style="font-size: 11px; font-weight: 700; padding: 4px 6px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--text-dim);">${loader}</div>
+                                <div style="width: 32px; height: 32px; min-width: 32px; border-radius: 6px; background: ${meta.bg}; border: 1px solid ${meta.border}; display: flex; align-items: center; justify-content: center;">
+                                    <img src="${meta.icon}" alt="${meta.name}" style="width: 20px; height: 20px; object-fit: contain;">
+                                </div>
                                 <div class="dash-item-info">
                                     <span class="dash-item-name">${inst.name}</span>
-                                    <span class="dash-item-sub">MC ${inst.version || '1.21.4'} • ${loader} • ${inst.modCount || 0} mod(s)</span>
+                                    <span class="dash-item-sub">MC ${inst.version || '1.21.4'} • <span style="color: ${meta.color}; font-weight: 600;">${meta.name}</span> • ${inst.modCount || 0} mod(s)</span>
                                 </div>
                             </div>
                             <div class="dash-item-actions">
@@ -1104,6 +1106,57 @@ class RxcorpApp {
     }
 
     // ==========================================
+    // LOADER METADATA & BRANDING (OFFICIAL ASSETS)
+    // ==========================================
+    getLoaderMeta(loader = 'fabric', name = '') {
+        const l = (loader || '').toLowerCase();
+        const n = (name || '').toLowerCase();
+        if (l.includes('vanilla') || n.includes('vanilla')) {
+            return {
+                name: 'VANILLA',
+                icon: 'assets/images/loaders/vanilla.svg',
+                color: '#22c55e',
+                bg: 'rgba(34, 197, 94, 0.12)',
+                border: 'rgba(34, 197, 94, 0.25)'
+            };
+        }
+        if (l.includes('neoforge') || n.includes('neoforge')) {
+            return {
+                name: 'NEOFORGE',
+                icon: 'assets/images/loaders/neoforge.svg',
+                color: '#f97316',
+                bg: 'rgba(249, 115, 22, 0.12)',
+                border: 'rgba(249, 115, 22, 0.25)'
+            };
+        }
+        if (l.includes('forge') || n.includes('forge')) {
+            return {
+                name: 'FORGE',
+                icon: 'assets/images/loaders/forge.png',
+                color: '#ef4444',
+                bg: 'rgba(239, 68, 68, 0.12)',
+                border: 'rgba(239, 68, 68, 0.25)'
+            };
+        }
+        if (l.includes('quilt') || n.includes('quilt')) {
+            return {
+                name: 'QUILT',
+                icon: 'assets/images/loaders/quilt.svg',
+                color: '#a855f7',
+                bg: 'rgba(168, 85, 247, 0.12)',
+                border: 'rgba(168, 85, 247, 0.25)'
+            };
+        }
+        return {
+            name: 'FABRIC',
+            icon: 'assets/images/loaders/fabric.svg',
+            color: '#6366f1',
+            bg: 'rgba(99, 102, 241, 0.12)',
+            border: 'rgba(99, 102, 241, 0.25)'
+        };
+    }
+
+    // ==========================================
     // INSTANCES MANAGEMENT (LOCAL PROFILES)
     // ==========================================
     async loadInstances() {
@@ -1118,7 +1171,10 @@ class RxcorpApp {
         if (selectTarget) {
             let options = '';
             if (localInstances.length > 0) {
-                options = localInstances.map(i => `<option value="${i.id}">${i.name} (${i.version} ${(i.loader || 'fabric').toUpperCase()})</option>`).join('');
+                options = localInstances.map(i => {
+                    const m = this.getLoaderMeta(i.loader, i.name);
+                    return `<option value="${i.id}">${i.name} (${i.version} ${m.name})</option>`;
+                }).join('');
             } else {
                 options = `<option value="">Aucun profil local</option>`;
             }
@@ -1154,37 +1210,20 @@ class RxcorpApp {
                         card.classList.add('active-local-card');
                     }
 
-                    const loaderStr = (inst.loader || 'fabric').toUpperCase();
-                    
-                    // Determine icon based on loader / name
-                    let iconMarkup = '<div style="font-size: 11px; font-weight: 700; width: 38px; height: 38px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: var(--text-dim);">MOD</div>';
-                    if (loaderStr.includes('VANILLA') || (inst.name && inst.name.toLowerCase().includes('vanilla'))) {
-                        iconMarkup = `
-                            <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #15803d 0%, #854d0e 45%, #713f12 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                            </div>
-                        `;
-                    } else if (loaderStr.includes('FABRIC')) {
-                        iconMarkup = `
-                            <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(99,102,241,0.25); border: 1px solid rgba(255,255,255,0.2);">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#4338ca" stroke-width="2.2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                            </div>
-                        `;
-                    } else if (loaderStr.includes('FORGE')) {
-                        iconMarkup = `
-                            <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #334155 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15);">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                            </div>
-                        `;
-                    }
+                    const meta = this.getLoaderMeta(inst.loader, inst.name);
+                    const iconMarkup = `
+                        <div style="width: 44px; height: 44px; min-width: 44px; border-radius: 10px; background: ${meta.bg}; border: 1px solid ${meta.border}; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
+                            <img src="${meta.icon}" alt="${meta.name}" style="width: 28px; height: 28px; object-fit: contain;">
+                        </div>
+                    `;
 
                     card.innerHTML = `
                         <div class="server-card-top">
-                            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                            <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
                                 ${iconMarkup}
                                 <div class="server-name-box">
                                     <h3 class="server-name" title="${inst.name}">${inst.name}</h3>
-                                    <span style="font-size: 11px; color: var(--text-dim);">Minecraft ${inst.version || '1.21.4'} • ${loaderStr}</span>
+                                    <span style="font-size: 11px; color: var(--text-dim);">Minecraft ${inst.version || '1.21.4'} • <span style="color: ${meta.color}; font-weight: 600;">${meta.name}</span></span>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -1205,7 +1244,7 @@ class RxcorpApp {
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">MODLOADER</span>
-                                <span class="stat-value">${loaderStr}</span>
+                                <span class="stat-value" style="color: ${meta.color}; font-weight: 700;">${meta.name}</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">MODS</span>
@@ -1268,6 +1307,7 @@ class RxcorpApp {
     updateDockInstancePill() {
         const nameElem = document.getElementById('dock-instance-name');
         const subElem = document.getElementById('dock-instance-sub');
+        const iconElem = document.getElementById('dock-instance-icon');
         if (!nameElem || !subElem) return;
 
         const curDomain = this.getCurrentDomain();
@@ -1275,12 +1315,19 @@ class RxcorpApp {
 
         if (inst) {
             nameElem.innerText = inst.name;
+            const meta = this.getLoaderMeta(inst.loader, inst.name);
+            if (iconElem) {
+                iconElem.src = inst.domain === 'cloud' ? 'assets/images/loaders/vanilla.svg' : meta.icon;
+                iconElem.alt = meta.name;
+                iconElem.style.display = 'block';
+            }
             if (inst.domain === 'cloud') {
-                subElem.innerText = `Serveur Cloud RXCORP • ${inst.loader ? inst.loader.toUpperCase() : 'FORGE'}`;
+                subElem.innerText = `Serveur Cloud RXCORP • ${inst.loader ? inst.loader.toUpperCase() : 'SURVIE'}`;
             } else {
-                subElem.innerText = `Profil Local • MC ${inst.version || '1.21.4'} • ${(inst.loader || 'fabric').toUpperCase()}`;
+                subElem.innerText = `Profil Local • MC ${inst.version || '1.21.4'} • ${meta.name}`;
             }
         } else {
+            if (iconElem) iconElem.style.display = 'none';
             if (curDomain === 'cloud') {
                 nameElem.innerText = 'Aucun serveur Cloud';
                 subElem.innerText = 'Sélectionnez un serveur Pelican';
@@ -2196,6 +2243,16 @@ class RxcorpApp {
 
         document.getElementById('btn-new-instance')?.addEventListener('click', () => {
             this.openModal('modal-create-instance');
+        });
+
+        // Loader visual selection in create instance modal
+        document.querySelectorAll('#create-loader-selector .loader-choice-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#create-loader-selector .loader-choice-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                const loaderInput = document.getElementById('select-new-loader');
+                if (loaderInput) loaderInput.value = card.dataset.loader;
+            });
         });
 
         document.getElementById('btn-confirm-create-instance')?.addEventListener('click', () => {

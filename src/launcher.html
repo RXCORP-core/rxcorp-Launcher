@@ -146,6 +146,7 @@
 
                             <!-- Discrete Instance / Server Capsule Selector -->
                             <div id="dock-instance-pill" class="hero-instance-select-pill" title="Choisir un profil ou serveur">
+                                <img id="dock-instance-icon" src="assets/images/loaders/vanilla.svg" alt="Loader" style="width: 22px; height: 22px; object-fit: contain; margin-right: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
                                 <div class="capsule-meta">
                                     <span id="dock-instance-name" class="capsule-title">Minecraft 1.21.4</span>
                                     <span id="dock-instance-sub" class="capsule-sub">Serveur Cloud Pelican</span>
@@ -695,12 +696,25 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Chargeur de Mods (Modloader)</label>
-                <select id="select-new-loader" class="form-select">
-                    <option value="fabric" selected>Fabric (Recommandé - Sodium, Iris)</option>
-                    <option value="neoforge">NeoForge (Mods modernes)</option>
-                    <option value="forge">Forge (Classique moddé)</option>
-                    <option value="vanilla">Vanilla (Pur, sans mods)</option>
-                </select>
+                <div class="loader-visual-selector" id="create-loader-selector" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px;">
+                    <div class="loader-choice-card active" data-loader="fabric">
+                        <img src="assets/images/loaders/fabric.svg" alt="Fabric" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div style="font-size: 11px; font-weight: 700; color: #fff;">Fabric</div>
+                    </div>
+                    <div class="loader-choice-card" data-loader="neoforge">
+                        <img src="assets/images/loaders/neoforge.svg" alt="NeoForge" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div style="font-size: 11px; font-weight: 700; color: #fff;">NeoForge</div>
+                    </div>
+                    <div class="loader-choice-card" data-loader="forge">
+                        <img src="assets/images/loaders/forge.png" alt="Forge" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div style="font-size: 11px; font-weight: 700; color: #fff;">Forge</div>
+                    </div>
+                    <div class="loader-choice-card" data-loader="vanilla">
+                        <img src="assets/images/loaders/vanilla.svg" alt="Vanilla" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div style="font-size: 11px; font-weight: 700; color: #fff;">Vanilla</div>
+                    </div>
+                </div>
+                <input type="hidden" id="select-new-loader" value="fabric">
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
                 <button class="rx-btn rx-btn-secondary" data-close="modal-create-instance">Annuler</button>

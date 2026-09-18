@@ -325,21 +325,28 @@ class InstanceService {
                 name: 'Fabric 1.21.4',
                 version: '1.21.4',
                 loader: 'fabric',
-                icon: 'gear',
+                icon: 'fabric',
+                domain: 'local'
+            });
+            this.createInstance({
+                name: 'NeoForge 1.21.1',
+                version: '1.21.1',
+                loader: 'neoforge',
+                icon: 'neoforge',
                 domain: 'local'
             });
             this.createInstance({
                 name: 'Vanilla 1.21.1',
                 version: '1.21.1',
                 loader: 'vanilla',
-                icon: 'dirt',
+                icon: 'vanilla',
                 domain: 'local'
             });
             this.createInstance({
                 name: 'Forge 1.20.1',
                 version: '1.20.1',
                 loader: 'forge',
-                icon: 'anvil',
+                icon: 'forge',
                 domain: 'local'
             });
         }
