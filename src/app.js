@@ -306,7 +306,7 @@ autoUpdater.on('update-available', (info) => {
     if (Notification && Notification.isSupported()) {
         try {
             const notif = new Notification({
-                title: '⚡ RXCORP // MISE À JOUR DISPONIBLE',
+                title: 'RXCORP // MISE À JOUR DISPONIBLE',
                 body: `La version ${ver} est en cours de téléchargement...`,
                 icon: path.join(__dirname, 'assets/images/icon/icon.png')
             });
@@ -370,7 +370,7 @@ autoUpdater.on('update-downloaded', (info) => {
     if (Notification && Notification.isSupported()) {
         try {
             const notif = new Notification({
-                title: '🚀 RXCORP // MISE À JOUR PRÊTE !',
+                title: 'RXCORP // MISE À JOUR PRÊTE !',
                 body: `Version ${ver} téléchargée. Cliquez ici pour redémarrer et appliquer.`,
                 icon: path.join(__dirname, 'assets/images/icon/icon.png')
             });

@@ -28,7 +28,7 @@ export class Notifier {
         if (!sessionStorage.getItem('dz_welcomed')) {
             setTimeout(() => {
                 this.send(
-                    '☣ TERMINAL DELTAZONE OPÉRATIONNEL',
+                    'TERMINAL DELTAZONE OPÉRATIONNEL',
                     'Veille active : Mises à jour des mods, transmissions radio et état du serveur surveillés.'
                 );
                 sessionStorage.setItem('dz_welcomed', 'true');
@@ -80,7 +80,7 @@ export class Notifier {
             if (newOrUpdated.length > 2) modNames += ` (+${newOrUpdated.length - 2})`;
 
             this.send(
-                '📦 MODS ACTUALISÉS // DELTAZONE',
+                'MODS ACTUALISÉS // DELTAZONE',
                 count > 0 
                     ? `${count} mod(s) mis à jour sur le serveur : ${modNames}. Cliquez sur SURVIVRE pour synchroniser !`
                     : 'La liste des mods du serveur a été mise à jour ! Synchronisation disponible.'
@@ -105,7 +105,7 @@ export class Notifier {
         if (savedKey && savedKey !== newsKey) {
             let cleanText = (latest.content || '').replace(/<[^>]*>?/gm, '').trim().substring(0, 80);
             this.send(
-                `📻 TRANSMISSION RADIO // ${latest.title || 'ALERTE'}`,
+                `TRANSMISSION RADIO // ${latest.title || 'ALERTE'}`,
                 cleanText ? `${cleanText}...` : 'Nouveau rapport d\'urgence disponible sur le terminal.'
             );
         }

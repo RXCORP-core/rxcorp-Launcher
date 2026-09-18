@@ -301,7 +301,7 @@ class Home {
                 hasNotifiedGameStart = true;
                 ipcRenderer.send('discord-rpc-playing', options.name || 'deltazone-zombie');
                 ipcRenderer.send('send-notification', {
-                    title: '☣ DELTAZONE SURVIE // EN JEU',
+                    title: 'DELTAZONE SURVIE // EN JEU',
                     body: 'Minecraft est lancé ! Touche [M] pour ouvrir le terminal PDA.'
                 });
             }

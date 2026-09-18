@@ -57,7 +57,7 @@ const defaultDeltaZoneInstances = [
 
 const defaultDeltaZoneNews = [
     {
-        title: "🚀 RXCORP LAUNCHER 2.5",
+        title: "RXCORP LAUNCHER 2.5",
         content: "Bienvenue sur le nouveau launcher RXCORP inspiré du design Behance. Profitez de la synchronisation automatique de vos serveurs Pelican Cloud et de vos profils locaux.",
         author: "Équipe RXCORP",
         publish_date: new Date().toISOString()

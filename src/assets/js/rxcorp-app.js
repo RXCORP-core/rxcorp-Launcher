@@ -297,7 +297,7 @@ class RxcorpApp {
                 ? 'Infrastructure Cloud Pelican officielle avec synchronisation automatique de la whitelist et connexion 1-clic.'
                 : 'Profil Minecraft local autonome haute performance (Fabric, Forge, NeoForge, Vanilla).';
             if (playLabel) playLabel.innerText = domain === 'cloud' ? 'JOUER (SERVEUR)' : 'LANCER (LOCAL)';
-            if (secText) secText.innerText = domain === 'cloud' ? '⚡ Synchroniser les Mods' : '+ Nouveau Profil';
+            if (secText) secText.innerText = domain === 'cloud' ? 'Synchroniser les Mods' : '+ Nouveau Profil';
             this.updateDockInstancePill();
             this.renderDashboardLists();
         } else if (mode === 'cloud') {
@@ -354,7 +354,7 @@ class RxcorpApp {
                             </div>
                             <div class="dash-item-actions">
                                 <button class="dash-quick-btn btn-dash-select-server" data-name="${srv.name}">
-                                    ${isSelected ? '✓ Actif' : 'Sélectionner'}
+                                    ${isSelected ? 'Actif' : 'Sélectionner'}
                                 </button>
                             </div>
                         </div>
@@ -395,7 +395,7 @@ class RxcorpApp {
                     return `
                         <div class="dash-item-row ${isSelected ? 'active' : ''}">
                             <div class="dash-item-left">
-                                <div style="font-size: 15px;">📦</div>
+                                <div style="font-size: 11px; font-weight: 700; padding: 4px 6px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--text-dim);">${loader}</div>
                                 <div class="dash-item-info">
                                     <span class="dash-item-name">${inst.name}</span>
                                     <span class="dash-item-sub">MC ${inst.version || '1.21.4'} • ${loader} • ${inst.modCount || 0} mod(s)</span>
@@ -403,7 +403,7 @@ class RxcorpApp {
                             </div>
                             <div class="dash-item-actions">
                                 <button class="dash-quick-btn btn-dash-select-instance" data-id="${inst.id}">
-                                    ${isSelected ? '✓ Actif' : 'Choisir'}
+                                    ${isSelected ? 'Actif' : 'Choisir'}
                                 </button>
                             </div>
                         </div>
@@ -481,7 +481,7 @@ class RxcorpApp {
                     this.updateDockInstancePill();
                     const readyText = i18n.t('ready_to_play');
                     this.updateDockStatus(readyText, 0);
-                    const langNames = { fr: 'Français 🇫🇷', en: 'English 🇬🇧', es: 'Español 🇪🇸', de: 'Deutsch 🇩🇪', pt: 'Português 🇵🇹' };
+                    const langNames = { fr: 'Français', en: 'English', es: 'Español', de: 'Deutsch', pt: 'Português' };
                     this.showNotification('Langue / Language', `Interface : ${langNames[lang] || lang}`);
                 }
             });
@@ -503,13 +503,13 @@ class RxcorpApp {
         if (btnCheckUpdate) {
             btnCheckUpdate.addEventListener('click', () => {
                 btnCheckUpdate.disabled = true;
-                btnCheckUpdate.innerHTML = '<span>⏳ Recherche...</span>';
+                btnCheckUpdate.innerHTML = '<span>Recherche...</span>';
                 if (feedbackCheck) feedbackCheck.textContent = 'Connexion au serveur...';
                 ipcRenderer.send('check-for-update');
                 setTimeout(() => {
                     if (btnCheckUpdate.disabled) {
                         btnCheckUpdate.disabled = false;
-                        btnCheckUpdate.innerHTML = '<span>🔄 Vérifier les Mises à Jour</span>';
+                        btnCheckUpdate.innerHTML = '<span>Vérifier les Mises à Jour</span>';
                     }
                 }, 8000);
             });
@@ -535,13 +535,13 @@ class RxcorpApp {
                 }
                 if (updateText) {
                     updateText.style.color = 'var(--cyan)';
-                    updateText.textContent = `⚡ Téléchargement v${targetVer}...`;
+                    updateText.textContent = `Téléchargement v${targetVer}...`;
                 }
 
                 if (floatingBanner && floatingText && floatingBtn) {
                     floatingBanner.style.display = 'flex';
                     floatingBanner.style.borderColor = 'var(--cyan)';
-                    floatingText.textContent = `⚡ Version v${targetVer} détectée ! Téléchargement en cours...`;
+                    floatingText.textContent = `Version v${targetVer} détectée ! Téléchargement en cours...`;
                     floatingBtn.textContent = 'Téléchargement...';
                     floatingBtn.disabled = true;
                 }
@@ -551,11 +551,11 @@ class RxcorpApp {
             } else if (data.status === 'downloading') {
                 const pct = data.percent || 0;
                 if (updatePill) updatePill.style.display = 'inline-flex';
-                if (updateText) updateText.textContent = `📥 ${pct}%`;
+                if (updateText) updateText.textContent = `${pct}%`;
 
                 if (floatingBanner && floatingText) {
                     floatingBanner.style.display = 'flex';
-                    floatingText.textContent = `📥 Téléchargement de la mise à jour : ${pct}%`;
+                    floatingText.textContent = `Téléchargement de la mise à jour : ${pct}%`;
                 }
                 if (feedbackCheck) feedbackCheck.textContent = `Téléchargement : ${pct}%`;
             } else if (data.status === 'ready') {
@@ -568,13 +568,13 @@ class RxcorpApp {
                 }
                 if (updateText) {
                     updateText.style.color = 'var(--emerald)';
-                    updateText.textContent = `🚀 Relancer pour v${readyVer}`;
+                    updateText.textContent = `Relancer pour v${readyVer}`;
                 }
 
                 if (floatingBanner && floatingText && floatingBtn) {
                     floatingBanner.style.display = 'flex';
                     floatingBanner.style.borderColor = 'var(--emerald)';
-                    floatingText.textContent = `🚀 Version v${readyVer} prête ! Redémarrez pour installer.`;
+                    floatingText.textContent = `Version v${readyVer} prête ! Redémarrez pour installer.`;
                     floatingBtn.textContent = 'Redémarrer';
                     floatingBtn.disabled = false;
                     floatingBtn.style.background = 'var(--emerald)';
@@ -582,7 +582,7 @@ class RxcorpApp {
                 }
 
                 if (feedbackCheck) feedbackCheck.textContent = `Version v${readyVer} prête !`;
-                this.showNotification('Mise à jour prête ! 🚀', `La version ${readyVer} a été téléchargée. Cliquez pour redémarrer.`);
+                this.showNotification('Mise à jour prête !', `La version ${readyVer} a été téléchargée. Cliquez pour redémarrer.`);
             } else if (data.status === 'not-available') {
                 const currentV = data.version || data.currentVersion || '2.5.1';
                 if (data.isManual) {
@@ -591,9 +591,9 @@ class RxcorpApp {
                 if (feedbackCheck) feedbackCheck.textContent = `À jour (v${currentV})`;
                 if (btnCheckUpdate) {
                     btnCheckUpdate.disabled = false;
-                    btnCheckUpdate.innerHTML = '<span>✓ Vous êtes à jour</span>';
+                    btnCheckUpdate.innerHTML = '<span>Vous êtes à jour</span>';
                     setTimeout(() => {
-                        btnCheckUpdate.innerHTML = '<span>🔄 Vérifier les Mises à Jour</span>';
+                        btnCheckUpdate.innerHTML = '<span>Vérifier les Mises à Jour</span>';
                     }, 4000);
                 }
             } else if (data.status === 'error') {
@@ -604,7 +604,7 @@ class RxcorpApp {
                 }
                 if (btnCheckUpdate) {
                     btnCheckUpdate.disabled = false;
-                    btnCheckUpdate.innerHTML = '<span>🔄 Réessayer</span>';
+                    btnCheckUpdate.innerHTML = '<span>Réessayer</span>';
                 }
             }
         });
@@ -1157,11 +1157,11 @@ class RxcorpApp {
                     const loaderStr = (inst.loader || 'fabric').toUpperCase();
                     
                     // Determine icon based on loader / name
-                    let iconMarkup = '<div style="font-size: 20px; width: 38px; height: 38px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">📦</div>';
+                    let iconMarkup = '<div style="font-size: 11px; font-weight: 700; width: 38px; height: 38px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: var(--text-dim);">MOD</div>';
                     if (loaderStr.includes('VANILLA') || (inst.name && inst.name.toLowerCase().includes('vanilla'))) {
                         iconMarkup = `
                             <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #15803d 0%, #854d0e 45%, #713f12 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
-                                <span style="font-size: 18px;" title="Bloc de Terre (Vanilla)">🌱</span>
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
                             </div>
                         `;
                     } else if (loaderStr.includes('FABRIC')) {
@@ -1173,7 +1173,7 @@ class RxcorpApp {
                     } else if (loaderStr.includes('FORGE')) {
                         iconMarkup = `
                             <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: linear-gradient(135deg, #334155 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15);">
-                                <span style="font-size: 18px;" title="Forge (Enclume / Marteau)">⚒️</span>
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                             </div>
                         `;
                     }
@@ -1188,9 +1188,13 @@ class RxcorpApp {
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                ${isCurrentLocal ? '<span class="instance-active-badge">✔ Actif</span>' : ''}
-                                <button class="icon-tool-btn btn-rename-instance" data-id="${inst.id}" data-name="${inst.name}" title="Renommer">✏️</button>
-                                <button class="icon-tool-btn btn-delete-instance" data-id="${inst.id}" title="Supprimer">🗑️</button>
+                                ${isCurrentLocal ? '<span class="instance-active-badge">Actif</span>' : ''}
+                                <button class="icon-tool-btn btn-rename-instance" data-id="${inst.id}" data-name="${inst.name}" title="Renommer">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="icon-tool-btn btn-delete-instance" data-id="${inst.id}" title="Supprimer">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
                             </div>
                         </div>
 
@@ -1211,7 +1215,7 @@ class RxcorpApp {
 
                         <div class="server-actions">
                             <button class="rx-btn ${isCurrentLocal ? 'rx-btn-secondary' : 'rx-btn-primary'} btn-select-instance" style="flex: 1.2; font-weight: 700;" data-id="${inst.id}">
-                                <span>${isCurrentLocal ? '✓ Profil Actif' : 'Sélectionner'}</span>
+                                <span>${isCurrentLocal ? 'Profil Actif' : 'Sélectionner'}</span>
                             </button>
                             <button class="rx-btn rx-btn-secondary btn-folder-instance" title="Ouvrir le dossier dans l'explorateur" style="flex: 1; font-weight: 600;" data-id="${inst.id}">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -1363,7 +1367,9 @@ class RxcorpApp {
             if (res.needApiKey) {
                 grid.innerHTML = `
                     <div class="rx-card" style="grid-column: 1/-1; padding: 30px; text-align: center; max-width: 480px; margin: 20px auto;">
-                        <div style="font-size: 24px; margin-bottom: 8px;">🔑</div>
+                        <div style="margin-bottom: 8px; opacity: 0.7; display: flex; justify-content: center;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5M7 14l-4 4 2 2 4-4m-2-2l3-3a5.5 5.5 0 1 1 7.78-7.78L21 2l-5.5 5.5"/></svg>
+                        </div>
                         <h3 style="color: #fff; margin-bottom: 8px;">Clé API CurseForge requise</h3>
                         <p style="font-size: 12.5px; color: var(--text-dim); margin-bottom: 16px;">
                             CurseForge requiert une clé API personnelle. Entrez votre clé ci-dessous ou utilisez <strong>Modrinth</strong> (sans clé).
@@ -1460,11 +1466,11 @@ class RxcorpApp {
                 </div>
                 <div class="mod-footer">
                     <div class="mod-stats">
-                        <span title="${rawDownloads} téléchargements">⬇ ${downloadsFormatted}</span>
-                        <span title="${rawFollows} favoris">★ ${followsFormatted}</span>
+                        <span title="${rawDownloads} téléchargements">${downloadsFormatted} dl</span>
+                        <span title="${rawFollows} favoris">${followsFormatted} favoris</span>
                     </div>
                     <button class="rx-btn rx-btn-primary btn-install-mod" data-id="${mod.id || mod.slug}" data-source="${this.activeModSource}">
-                        <span>📥 Installer</span>
+                        <span>Installer</span>
                     </button>
                 </div>
             `;
@@ -1480,7 +1486,7 @@ class RxcorpApp {
                 if (!inst) {
                     this.showNotification('Profil requis', 'Sélectionnez un profil local cible avant d\'installer un mod.');
                     btn.disabled = false;
-                    btn.innerHTML = '<span>📥 Installer</span>';
+                    btn.innerHTML = '<span>Installer</span>';
                     return;
                 }
 
@@ -1490,7 +1496,7 @@ class RxcorpApp {
                         if (!filesRes.success || !filesRes.versions.length) {
                             this.showNotification('Incompatible', `Aucun fichier CurseForge pour MC ${inst.version} (${inst.loader})`);
                             btn.disabled = false;
-                            btn.innerHTML = '<span>📥 Installer</span>';
+                            btn.innerHTML = '<span>Installer</span>';
                             return;
                         }
                         const file = filesRes.versions[0];
@@ -1500,14 +1506,14 @@ class RxcorpApp {
                         if (!versionsRes.success || !versionsRes.versions.length) {
                             this.showNotification('Incompatible', `Aucune version Modrinth pour MC ${inst.version} (${inst.loader})`);
                             btn.disabled = false;
-                            btn.innerHTML = '<span>📥 Installer</span>';
+                            btn.innerHTML = '<span>Installer</span>';
                             return;
                         }
                         const file = versionsRes.versions[0];
                         await modrinthService.installMod(inst.modsPath, file.downloadUrl, file.fileName);
                     }
 
-                    btn.innerHTML = '<span>✓ Installé</span>';
+                    btn.innerHTML = '<span>Installé</span>';
                     btn.classList.remove('rx-btn-primary');
                     btn.classList.add('rx-btn-secondary');
                     this.showNotification('Mod installé !', `« ${mod.title} » a été ajouté à ${inst.name}.`);
@@ -1515,7 +1521,7 @@ class RxcorpApp {
                 } catch (err) {
                     this.showNotification('Erreur de téléchargement', err.message);
                     btn.disabled = false;
-                    btn.innerHTML = '<span>📥 Installer</span>';
+                    btn.innerHTML = '<span>Installer</span>';
                 }
             });
 
@@ -1780,7 +1786,7 @@ class RxcorpApp {
                 const chosenLang = btn.dataset.lang;
                 store.set('lang', chosenLang);
                 langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === chosenLang));
-                this.showNotification('Langue mise à jour', chosenLang === 'fr' ? 'Langue définie sur Français 🇫🇷' : 'Language set to English 🇬🇧');
+                this.showNotification('Langue mise à jour', chosenLang === 'fr' ? 'Langue définie sur Français' : 'Language set to English');
             });
         });
     }
@@ -2145,7 +2151,7 @@ class RxcorpApp {
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         ${isActive 
-                            ? '<span style="color: var(--emerald); font-size: 12px; font-weight: 700; padding: 4px 10px; background: rgba(16, 185, 129, 0.12); border-radius: 6px;">✓ Actif</span>'
+                            ? '<span style="color: var(--emerald); font-size: 12px; font-weight: 700; padding: 4px 10px; background: rgba(16, 185, 129, 0.12); border-radius: 6px;">Actif</span>'
                             : `<button class="rx-btn rx-btn-secondary btn-switch-account" data-name="${acc.name}" style="padding: 4px 10px; font-size: 11px;">Activer</button>`
                         }
                         <button class="rx-btn rx-btn-danger btn-delete-account" data-name="${acc.name}" title="Supprimer ce compte" style="padding: 4px 8px; font-size: 11px; min-width: unset;">✕</button>

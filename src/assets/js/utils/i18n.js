@@ -13,7 +13,7 @@ const translations = {
         cloud_sync_ok: "RXCORP CLOUD • SYNCHRONISÉ",
         cloud_sync_local: "MODE JOUEUR LOCAL",
         update_available: "MAJ DISPONIBLE",
-        config_btn: "⚙️ Configuration",
+        config_btn: "Configuration",
         ready_to_play: "Prêt à jouer",
         launching: "Lancement du jeu...",
         downloading: "Téléchargement...",
@@ -35,7 +35,7 @@ const translations = {
         hero_desc_local: "Profils et modpacks Minecraft locaux autonomes (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "JOUER",
         play_btn_local: "LANCER",
-        sync_mods_btn: "⚡ Synchroniser les Mods",
+        sync_mods_btn: "Synchroniser les Mods",
         create_profile_btn: "+ Nouveau Profil",
 
         // Home View - News
@@ -107,7 +107,7 @@ const translations = {
         cloud_sync_ok: "RXCORP CLOUD • SYNCED",
         cloud_sync_local: "LOCAL PLAYER MODE",
         update_available: "UPDATE READY",
-        config_btn: "⚙️ Settings",
+        config_btn: "Settings",
         ready_to_play: "Ready to play",
         launching: "Launching game...",
         downloading: "Downloading...",
@@ -129,7 +129,7 @@ const translations = {
         hero_desc_local: "Standalone local Minecraft profiles and modpacks (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "PLAY",
         play_btn_local: "LAUNCH",
-        sync_mods_btn: "⚡ Sync Server Mods",
+        sync_mods_btn: "Sync Server Mods",
         create_profile_btn: "+ New Profile",
 
         // Home View - News
@@ -201,7 +201,7 @@ const translations = {
         cloud_sync_ok: "RXCORP CLOUD • SINCRONIZADO",
         cloud_sync_local: "MODO JUGADOR LOCAL",
         update_available: "ACT. DISPONIBLE",
-        config_btn: "⚙️ Configurar",
+        config_btn: "Configurar",
         ready_to_play: "Listo para jugar",
         launching: "Lanzando el juego...",
         downloading: "Descargando...",
@@ -223,7 +223,7 @@ const translations = {
         hero_desc_local: "Perfiles y modpacks locales de Minecraft (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "JUGAR",
         play_btn_local: "LANZAR",
-        sync_mods_btn: "⚡ Sincronizar Mods",
+        sync_mods_btn: "Sincronizar Mods",
         create_profile_btn: "+ Nuevo Perfil",
 
         // News
@@ -295,7 +295,7 @@ const translations = {
         cloud_sync_ok: "RXCORP CLOUD • SYNCHRONISIERT",
         cloud_sync_local: "LOKALER SPIELER MODUS",
         update_available: "UPDATE VERFÜGBAR",
-        config_btn: "⚙️ Einstellungen",
+        config_btn: "Einstellungen",
         ready_to_play: "Bereit zum Spielen",
         launching: "Spiel wird gestartet...",
         downloading: "Wird heruntergeladen...",
@@ -317,7 +317,7 @@ const translations = {
         hero_desc_local: "Lokale Minecraft Profile und Modpacks (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "SPIELEN",
         play_btn_local: "STARTEN",
-        sync_mods_btn: "⚡ Mods synchronisieren",
+        sync_mods_btn: "Mods synchronisieren",
         create_profile_btn: "+ Neues Profil",
 
         // News
@@ -389,7 +389,7 @@ const translations = {
         cloud_sync_ok: "RXCORP CLOUD • SINCRONIZADO",
         cloud_sync_local: "MODO JOGADOR LOCAL",
         update_available: "ATZ. DISPONÍVEL",
-        config_btn: "⚙️ Configurar",
+        config_btn: "Configurar",
         ready_to_play: "Pronto para jogar",
         launching: "Iniciando o jogo...",
         downloading: "A transferir...",
@@ -411,7 +411,7 @@ const translations = {
         hero_desc_local: "Perfis e modpacks locais de Minecraft (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "JOGAR",
         play_btn_local: "LANÇAR",
-        sync_mods_btn: "⚡ Sincronizar Mods",
+        sync_mods_btn: "Sincronizar Mods",
         create_profile_btn: "+ Novo Perfil",
 
         // News

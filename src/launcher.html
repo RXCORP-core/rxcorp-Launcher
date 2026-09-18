@@ -33,15 +33,15 @@
         <div class="titlebar-controls">
             <!-- Language Switcher Pill -->
             <div class="lang-switch-pill" id="titlebar-lang-pill" title="Changer la langue / Change language">
-                <button type="button" class="lang-btn-switch active" data-lang="fr">🇫🇷 FR</button>
-                <button type="button" class="lang-btn-switch" data-lang="en">🇬🇧 EN</button>
-                <button type="button" class="lang-btn-switch" data-lang="es">🇪🇸 ES</button>
-                <button type="button" class="lang-btn-switch" data-lang="de">🇩🇪 DE</button>
-                <button type="button" class="lang-btn-switch" data-lang="pt">🇵🇹 PT</button>
+                <button type="button" class="lang-btn-switch active" data-lang="fr">FR</button>
+                <button type="button" class="lang-btn-switch" data-lang="en">EN</button>
+                <button type="button" class="lang-btn-switch" data-lang="es">ES</button>
+                <button type="button" class="lang-btn-switch" data-lang="de">DE</button>
+                <button type="button" class="lang-btn-switch" data-lang="pt">PT</button>
             </div>
 
             <button id="btn-open-config-wizard" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;" title="Gérer mon compte">
-                <span data-i18n="config_btn">⚙️ Compte</span>
+                <span data-i18n="config_btn">Compte</span>
             </button>
 
             <div id="user-pill" class="user-pill" title="Mon Compte & Profil">
@@ -155,7 +155,7 @@
 
                             <!-- Secondary Action Capsule -->
                             <button id="btn-hero-secondary" class="hero-secondary-tactile" title="Action secondaire">
-                                <span id="hero-sec-text" data-i18n="sync_mods_btn">⚡ Synchroniser les Mods</span>
+                                <span id="hero-sec-text" data-i18n="sync_mods_btn">Synchroniser les Mods</span>
                             </button>
                         </div>
 
@@ -274,13 +274,13 @@
                     <!-- Quick Navigation Links -->
                     <div class="quick-nav-pills">
                         <button class="quick-nav-pill-btn" onclick="document.querySelector('.rail-item[data-view=\'cloud\']')?.click();">
-                            <span>☁️ Serveurs Cloud</span>
+                            <span>Serveurs Cloud</span>
                         </button>
                         <button class="quick-nav-pill-btn" onclick="document.querySelector('.rail-item[data-view=\'instances\']')?.click();">
-                            <span>🎮 Profils Locaux</span>
+                            <span>Profils Locaux</span>
                         </button>
                         <button class="quick-nav-pill-btn" onclick="document.querySelector('.rail-item[data-view=\'modrinth\']')?.click();">
-                            <span>📦 Mods & Shaders</span>
+                            <span>Mods & Shaders</span>
                         </button>
                     </div>
                 </div>
@@ -335,7 +335,9 @@
 
             <!-- Auth Required Card (if not linked) -->
             <div id="cloud-auth-card" class="tactical-card" style="display: none; text-align: center; padding: 36px 20px;">
-                <div style="font-size: 36px; margin-bottom: 12px;">☁️</div>
+                <div style="margin-bottom: 12px; opacity: 0.7; display: flex; justify-content: center;">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                </div>
                 <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">Connexion au Panel Pelican Optionnelle</h3>
                 <p style="font-size: 12px; color: var(--text-dim); max-width: 440px; margin: 0 auto 18px;">
                     Si vous possédez un serveur chez RXCORP, entrez votre clé API Client dans les paramètres pour surveiller vos joueurs et synchroniser vos mods.
@@ -463,11 +465,11 @@
                             <span class="settings-card-title" data-i18n="language_section">Langue du Launcher</span>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="fr" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇫🇷 Français</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="en" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇬🇧 English</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="es" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇪🇸 Español</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="de" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇩🇪 Deutsch</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="pt" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">🇵🇹 Português</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="fr" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Français</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="en" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">English</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="es" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Español</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="de" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Deutsch</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="pt" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Português</button>
                         </div>
                     </div>
 
@@ -554,7 +556,7 @@
                         </p>
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <button type="button" id="btn-check-update" class="rx-btn rx-btn-secondary" style="font-weight: 600; padding: 7px 14px;">
-                                <span>🔄 Vérifier les Mises à Jour</span>
+                                <span>Vérifier les Mises à Jour</span>
                             </button>
                             <span id="update-check-feedback" style="font-size: 11.5px; color: var(--text-dim);"></span>
                         </div>
@@ -612,11 +614,11 @@
             <div class="first-launch-header">
                 <img class="first-launch-logo" src="assets/images/icon/icon.png" alt="RXCORP">
                 <div class="first-launch-lang-row">
-                    <button type="button" class="lang-btn-switch active" data-lang="fr">🇫🇷 FR</button>
-                    <button type="button" class="lang-btn-switch" data-lang="en">🇬🇧 EN</button>
-                    <button type="button" class="lang-btn-switch" data-lang="es">🇪🇸 ES</button>
-                    <button type="button" class="lang-btn-switch" data-lang="de">🇩🇪 DE</button>
-                    <button type="button" class="lang-btn-switch" data-lang="pt">🇵🇹 PT</button>
+                    <button type="button" class="lang-btn-switch active" data-lang="fr">FR</button>
+                    <button type="button" class="lang-btn-switch" data-lang="en">EN</button>
+                    <button type="button" class="lang-btn-switch" data-lang="es">ES</button>
+                    <button type="button" class="lang-btn-switch" data-lang="de">DE</button>
+                    <button type="button" class="lang-btn-switch" data-lang="pt">PT</button>
                     <button type="button" id="btn-close-onboard" class="modal-close-btn" style="display: none; margin-left: 8px;" title="Fermer">✕</button>
                 </div>
             </div>
