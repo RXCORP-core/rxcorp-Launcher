@@ -866,6 +866,35 @@ class RxcorpApp {
             btnUser?.classList.remove('active');
             await this.loadCloudServers();
         });
+
+        // Refresh button on cloud tab
+        const btnRefresh = document.getElementById('btn-refresh-cloud');
+        btnRefresh?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            btnRefresh.disabled = true;
+            const origHtml = btnRefresh.innerHTML;
+            btnRefresh.innerHTML = '<span>Actualisation...</span>';
+            await this.loadCloudServers();
+            setTimeout(() => {
+                btnRefresh.disabled = false;
+                btnRefresh.innerHTML = origHtml;
+            }, 600);
+        });
+
+        // Periodic auto-refresh of server status every 15 seconds
+        if (!this.serverStatusInterval) {
+            this.serverStatusInterval = setInterval(() => {
+                if (this.cloudServers && this.cloudServers.length > 0) {
+                    for (const srv of this.cloudServers) {
+                        const card = document.getElementById(`server-card-${srv.id}`);
+                        if (card) {
+                            this.fetchServerLiveStatus(srv, card);
+                        }
+                    }
+                    this.renderDashboardLists();
+                }
+            }, 15000);
+        }
     }
 
     async loadCloudServers() {
