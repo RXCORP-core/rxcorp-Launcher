@@ -550,7 +550,7 @@
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <span class="settings-card-title">Mises à Jour du Launcher</span>
-                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.5.3</span>
+                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.5.4</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
                             Le launcher vérifie et applique automatiquement les nouvelles versions en arrière-plan. Vous pouvez forcer une vérification immédiate du cloud.
@@ -592,7 +592,7 @@
 
                     <!-- Info Box -->
                     <div class="settings-card" style="font-size: 11px; color: var(--text-dim); line-height: 1.6;">
-                        <strong style="color: #fff;">RXCORP Launcher v2.5.3</strong><br>
+                        <strong style="color: #fff;">RXCORP Launcher v2.5.4</strong><br>
                         Développé avec soin pour la communauté RXCORP.<br>
                         Infrastructure Cloud Pelican • Modpacks • CurseForge & Modrinth.
                     </div>
@@ -609,65 +609,189 @@
         <button class="update-banner-close" onclick="document.getElementById('floating-update-pill').style.display='none';">✕</button>
     </div>
 
-    <!-- FIRST-LAUNCH SIMPLE LOGIN MODAL (BEHANCE SLICE 1: NO FRICTION, ZERO COMPLEX FORMS) -->
+    <!-- FIRST-LAUNCH CONFIGURATION WIZARD -->
     <div id="page-onboarding" class="onboarding-overlay" style="display: none;">
-        <div class="first-launch-card">
-            <div class="first-launch-header">
-                <img class="first-launch-logo" src="assets/images/icon/icon.png" alt="RXCORP">
-                <div class="first-launch-lang-row">
-                    <button type="button" class="lang-btn-switch active" data-lang="fr">FR</button>
-                    <button type="button" class="lang-btn-switch" data-lang="en">EN</button>
-                    <button type="button" class="lang-btn-switch" data-lang="es">ES</button>
-                    <button type="button" class="lang-btn-switch" data-lang="de">DE</button>
-                    <button type="button" class="lang-btn-switch" data-lang="pt">PT</button>
-                    <button type="button" id="btn-close-onboard" class="modal-close-btn" style="display: none; margin-left: 8px;" title="Fermer">✕</button>
+        <div class="first-launch-card wizard-card">
+            <!-- Wizard Header with Stepper -->
+            <div class="wizard-header">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img class="first-launch-logo" src="assets/images/icon/icon.png" alt="RXCORP" style="width: 32px; height: 32px;">
+                        <div>
+                            <div class="wizard-title" data-i18n="welcome_title">Configuration Initiale</div>
+                            <div style="font-size: 11px; color: var(--text-dim);">RXCORP Launcher Setup</div>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-close-onboard" class="modal-close-btn" style="display: none;" title="Fermer">✕</button>
+                </div>
+
+                <!-- 4 Steps Stepper -->
+                <div class="wizard-stepper">
+                    <div class="stepper-step active" id="step-indicator-1">
+                        <div class="stepper-num">1</div>
+                        <span class="stepper-text" data-i18n="wizard_step_lang">Langue</span>
+                    </div>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" id="step-indicator-2">
+                        <div class="stepper-num">2</div>
+                        <span class="stepper-text" data-i18n="wizard_step_account">Compte</span>
+                    </div>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" id="step-indicator-3">
+                        <div class="stepper-num">3</div>
+                        <span class="stepper-text" data-i18n="wizard_step_ram">Mémoire</span>
+                    </div>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" id="step-indicator-4">
+                        <div class="stepper-num">4</div>
+                        <span class="stepper-text" data-i18n="wizard_step_profile">Profil</span>
+                    </div>
                 </div>
             </div>
 
-            <h2 class="first-launch-title" data-i18n="welcome_title">Bienvenue sur RXCORP Launcher</h2>
-            <p class="first-launch-subtitle" data-i18n="welcome_sub">
-                Choisissez votre mode de connexion pour commencer votre aventure :
-            </p>
-
-            <!-- Option 1: Microsoft 1-Click Web Auth -->
-            <div class="first-launch-option">
-                <button id="btn-onboard-microsoft" type="button" class="first-launch-ms-btn">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
-                    <div style="display: flex; flex-direction: column; text-align: left;">
-                        <span style="font-size: 14px; font-weight: 700; color: #0f172a;" data-i18n="login_microsoft_btn">Connexion Compte Microsoft</span>
-                        <span style="font-size: 11px; color: #64748b; font-weight: 500;" data-i18n="login_microsoft_sub">Ouvre votre navigateur pour une connexion officielle sécurisée</span>
+            <!-- STEP 1: LANGUAGE SELECTION -->
+            <div class="wizard-pane" id="wizard-pane-1">
+                <p class="wizard-description" data-i18n="wizard_lang_desc">Sélectionnez la langue principale pour l'interface de votre launcher.</p>
+                <div class="wizard-lang-grid">
+                    <div class="wizard-lang-card active" data-lang="fr">
+                        <span class="lang-tag">FR</span>
+                        <span class="lang-label">Français</span>
                     </div>
-                </button>
-            </div>
-
-            <!-- Option 1b: Pelican Cloud Web SSO -->
-            <div class="first-launch-option" style="margin-top: 8px;">
-                <button id="btn-onboard-web-auth" type="button" class="first-launch-ms-btn" style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35);">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                    <div style="display: flex; flex-direction: column; text-align: left;">
-                        <span style="font-size: 14px; font-weight: 700; color: #ffffff;" data-i18n="login_pelican_web_btn">Lier mon compte Panel RXCORP</span>
-                        <span style="font-size: 11px; color: #f43f5e; font-weight: 500;" data-i18n="login_pelican_web_sub">Ouvre le navigateur web pour synchroniser vos serveurs Cloud</span>
+                    <div class="wizard-lang-card" data-lang="en">
+                        <span class="lang-tag">EN</span>
+                        <span class="lang-label">English</span>
                     </div>
-                </button>
+                    <div class="wizard-lang-card" data-lang="es">
+                        <span class="lang-tag">ES</span>
+                        <span class="lang-label">Español</span>
+                    </div>
+                    <div class="wizard-lang-card" data-lang="de">
+                        <span class="lang-tag">DE</span>
+                        <span class="lang-label">Deutsch</span>
+                    </div>
+                    <div class="wizard-lang-card" data-lang="pt">
+                        <span class="lang-tag">PT</span>
+                        <span class="lang-label">Português</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="first-launch-divider">
-                <span>OU</span>
-            </div>
-
-            <!-- Option 2: Offline Mode (Free Pseudo) -->
-            <div class="first-launch-offline-box">
-                <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px;" data-i18n="login_offline_title">Mode Hors-ligne (Pseudo Libre)</div>
-                <div style="display: flex; gap: 8px;">
-                    <input id="input-onboard-username" type="text" class="form-input" data-i18n-placeholder="login_offline_placeholder" placeholder="Entrez votre pseudo (ex: Salem, Steve...)" style="flex: 1; padding: 10px 12px;">
-                    <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap; padding: 10px 16px;" data-i18n="login_offline_btn">
-                        Jouer
+            <!-- STEP 2: ACCOUNT AUTHENTICATION -->
+            <div class="wizard-pane" id="wizard-pane-2" style="display: none;">
+                <p class="wizard-description" data-i18n="wizard_account_desc">Connectez votre compte officiel ou choisissez un pseudo hors-ligne.</p>
+                
+                <!-- Option 1: Microsoft 1-Click Web Auth -->
+                <div class="first-launch-option">
+                    <button id="btn-onboard-microsoft" type="button" class="first-launch-ms-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
+                        <div style="display: flex; flex-direction: column; text-align: left;">
+                            <span style="font-size: 13.5px; font-weight: 700; color: #0f172a;" data-i18n="login_microsoft_btn">Connexion Compte Microsoft</span>
+                            <span style="font-size: 11px; color: #64748b; font-weight: 500;" data-i18n="login_microsoft_sub">Ouvre votre navigateur pour une connexion officielle sécurisée</span>
+                        </div>
                     </button>
                 </div>
+
+                <!-- Option 1b: Pelican Cloud Web SSO -->
+                <div class="first-launch-option" style="margin-top: 8px;">
+                    <button id="btn-onboard-web-auth" type="button" class="first-launch-ms-btn" style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35);">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        <div style="display: flex; flex-direction: column; text-align: left;">
+                            <span style="font-size: 13.5px; font-weight: 700; color: #ffffff;" data-i18n="login_pelican_web_btn">Lier mon compte Panel RXCORP</span>
+                            <span style="font-size: 11px; color: #f43f5e; font-weight: 500;" data-i18n="login_pelican_web_sub">Ouvre le navigateur web pour synchroniser vos serveurs Cloud</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="first-launch-divider">
+                    <span data-i18n="wizard_or">OU</span>
+                </div>
+
+                <!-- Option 2: Offline Mode (Free Pseudo) -->
+                <div class="first-launch-offline-box">
+                    <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px;" data-i18n="login_offline_title">Mode Hors-ligne (Pseudo Libre)</div>
+                    <div style="display: flex; gap: 8px;">
+                        <input id="input-onboard-username" type="text" class="form-input" data-i18n-placeholder="login_offline_placeholder" placeholder="Entrez votre pseudo (ex: Salem, Steve...)" style="flex: 1; padding: 10px 12px;">
+                        <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap; padding: 10px 16px;" data-i18n="wizard_save">
+                            Valider
+                        </button>
+                    </div>
+                    <div id="wizard-account-confirmed" style="display: none; font-size: 11.5px; color: var(--emerald-light); margin-top: 8px; font-weight: 600;">
+                        Compte sélectionné : <span id="wizard-confirmed-name" style="color: #fff;"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="first-launch-footer" data-i18n="login_terms">
-                Non affilié à Mojang, AB. Tous droits réservés.
+            <!-- STEP 3: MEMORY ALLOCATION -->
+            <div class="wizard-pane" id="wizard-pane-3" style="display: none;">
+                <p class="wizard-description" data-i18n="wizard_ram_desc">Allouez la mémoire vive recommandée pour Minecraft selon votre configuration.</p>
+                <div class="wizard-ram-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 12px; font-weight: 600; color: #fff;" data-i18n="wizard_ram_alloc">Mémoire Allouée</span>
+                        <span id="wizard-ram-val" style="font-size: 14px; font-weight: 800; color: var(--emerald-light);">6 Go</span>
+                    </div>
+                    <input type="range" id="wizard-ram-slider" class="rx-slider" min="2" max="16" step="1" value="6" style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-dim); margin-top: 4px;">
+                        <span>2 Go</span>
+                        <span id="wizard-total-ram-label">Total Détecté : 16 Go</span>
+                        <span id="wizard-max-ram-label">16 Go</span>
+                    </div>
+                    <div class="wizard-ram-presets">
+                        <button type="button" class="ram-preset-btn" data-ram="4">4 Go (Standard)</button>
+                        <button type="button" class="ram-preset-btn active" data-ram="6">6 Go (Optimum)</button>
+                        <button type="button" class="ram-preset-btn" data-ram="8">8 Go (Modpacks)</button>
+                        <button type="button" class="ram-preset-btn" data-ram="12">12 Go (Ultra)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: STARTER PROFILE -->
+            <div class="wizard-pane" id="wizard-pane-4" style="display: none;">
+                <p class="wizard-description" data-i18n="wizard_profile_desc">Choisissez le profil initial prêt à jouer qui sera installé dans votre launcher.</p>
+                <div class="wizard-profiles-grid">
+                    <div class="wizard-profile-card active" data-loader="fabric" data-version="1.21.4" data-name="RX Fabric 1.21.4">
+                        <img src="assets/images/loaders/fabric.svg" alt="Fabric">
+                        <div class="wizard-profile-info">
+                            <div class="wizard-profile-name">RX Fabric 1.21.4</div>
+                            <div class="wizard-profile-sub">Ultra fluide, mods Sodium et shaders compatibles</div>
+                        </div>
+                        <span class="wizard-profile-badge" data-i18n="recommended">Recommandé</span>
+                    </div>
+                    <div class="wizard-profile-card" data-loader="neoforge" data-version="1.21.4" data-name="RX NeoForge 1.21.4">
+                        <img src="assets/images/loaders/neoforge.svg" alt="NeoForge">
+                        <div class="wizard-profile-info">
+                            <div class="wizard-profile-name">RX NeoForge 1.21.4</div>
+                            <div class="wizard-profile-sub">Nouveau standard moderne pour les grands mods récents</div>
+                        </div>
+                    </div>
+                    <div class="wizard-profile-card" data-loader="forge" data-version="1.20.1" data-name="RX Forge 1.20.1">
+                        <img src="assets/images/loaders/forge.png" alt="Forge">
+                        <div class="wizard-profile-info">
+                            <div class="wizard-profile-name">RX Forge 1.20.1</div>
+                            <div class="wizard-profile-sub">L'écosystème classique pour les modpacks complets</div>
+                        </div>
+                    </div>
+                    <div class="wizard-profile-card" data-loader="vanilla" data-version="1.21.4" data-name="RX Vanilla 1.21.4">
+                        <img src="assets/images/loaders/vanilla.svg" alt="Vanilla">
+                        <div class="wizard-profile-info">
+                            <div class="wizard-profile-name">RX Vanilla 1.21.4</div>
+                            <div class="wizard-profile-sub">Minecraft officiel pur sans modificateurs ni plugins</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Footer Navigation -->
+            <div class="wizard-footer">
+                <button id="btn-wizard-prev" type="button" class="rx-btn rx-btn-ghost" style="display: none; padding: 9px 16px;" data-i18n="wizard_prev">
+                    Précédent
+                </button>
+                <div style="flex: 1;"></div>
+                <button id="btn-wizard-next" type="button" class="rx-btn rx-btn-primary" style="padding: 9px 20px;" data-i18n="wizard_next">
+                    Suivant
+                </button>
+                <button id="btn-wizard-finish" type="button" class="rx-btn rx-btn-primary" style="display: none; padding: 9px 22px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" data-i18n="wizard_finish">
+                    Terminer la configuration
+                </button>
             </div>
         </div>
     </div>

@@ -1875,3 +1875,267 @@ body {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
+/* =========================================================================
+   ONBOARDING CONFIGURATION WIZARD STYLES
+   ========================================================================= */
+.wizard-card {
+    max-width: 520px;
+    padding: 24px 28px;
+    gap: 18px;
+}
+
+.wizard-header {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 14px;
+}
+
+.wizard-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 2px 0 0 0;
+}
+
+.wizard-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.stepper-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.45;
+    transition: all 0.2s ease;
+}
+
+.stepper-step.active {
+    opacity: 1;
+}
+
+.stepper-step.done {
+    opacity: 0.85;
+}
+
+.stepper-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.stepper-step.active .stepper-num {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.stepper-step.done .stepper-num {
+    background: var(--emerald);
+    color: #ffffff;
+    border-color: var(--emerald);
+}
+
+.stepper-text {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.stepper-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 0 8px;
+}
+
+.wizard-description {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0 0 14px 0;
+}
+
+.wizard-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 210px;
+    justify-content: center;
+}
+
+/* Wizard Step 1: Lang Grid */
+.wizard-lang-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.wizard-lang-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 12px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wizard-lang-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.wizard-lang-card.active {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: var(--primary);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+.lang-tag {
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 3px 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #ffffff;
+}
+
+.wizard-lang-card.active .lang-tag {
+    background: var(--primary);
+}
+
+.lang-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Wizard Step 3: RAM Box */
+.wizard-ram-box {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.wizard-ram-presets {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.ram-preset-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ram-preset-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.ram-preset-btn.active {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--emerald);
+    color: var(--emerald-light);
+    font-weight: 700;
+}
+
+/* Wizard Step 4: Profile Selection Cards */
+.wizard-profiles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wizard-profile-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wizard-profile-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.wizard-profile-card.active {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: var(--primary);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+.wizard-profile-card img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.wizard-profile-info {
+    flex: 1;
+}
+
+.wizard-profile-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.wizard-profile-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.wizard-profile-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald-light);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Wizard Footer */
+.wizard-footer {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 14px;
+    margin-top: 4px;
+}
+
+

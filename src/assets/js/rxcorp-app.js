@@ -7,6 +7,7 @@
 const { ipcRenderer, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const Store = require('electron-store');
 
 // Services
@@ -144,6 +145,7 @@ class RxcorpApp {
         this.initUpdater();
         this.initWebAuth();
         this.initOnboardingWizard();
+        this.fetchBootstrapData();
 
         // Load initial instances
         await this.loadInstances();
@@ -1858,51 +1860,115 @@ class RxcorpApp {
     }
 
     // ==========================================
-    // ONBOARDING SETUP WIZARD (FIRST LAUNCH SIMPLE LOGIN)
+    // ONBOARDING SETUP WIZARD (FIRST LAUNCH MULTI-STEP WIZARD)
     // ==========================================
     initOnboardingWizard() {
         const overlay = document.getElementById('page-onboarding');
         const btnOpen = document.getElementById('btn-open-config-wizard');
         const btnClose = document.getElementById('btn-close-onboard');
-        const btnMicrosoft = document.getElementById('btn-onboard-microsoft');
-        const inputUsername = document.getElementById('input-onboard-username');
-        const btnConfirmOffline = document.getElementById('btn-onboard-confirm-offline');
+        const btnPrev = document.getElementById('btn-wizard-prev');
+        const btnNext = document.getElementById('btn-wizard-next');
+        const btnFinish = document.getElementById('btn-wizard-finish');
 
         if (!overlay) return;
 
-        // Check if user already configured an account
-        const isConfigured = store.get('configured');
-        const accounts = store.get('accounts') || [];
-        const hasRealAccount = accounts.some(a => a.name && a.name !== 'Player');
+        // Current wizard state
+        let currentStep = 1;
+        let selectedLang = store.get('language') || 'fr';
+        let selectedAccount = null;
+        let selectedRam = 6;
+        let selectedProfile = {
+            loader: 'fabric',
+            version: '1.21.4',
+            name: 'RX Fabric 1.21.4'
+        };
 
-        if (!isConfigured && !hasRealAccount) {
-            overlay.style.display = 'flex';
-            if (btnClose) btnClose.style.display = 'none';
-        } else {
-            overlay.style.display = 'none';
+        // Detect system RAM
+        let totalRamGB = 16;
+        try {
+            totalRamGB = Math.max(4, Math.round(os.totalmem() / (1024 * 1024 * 1024)));
+        } catch (e) {
+            console.warn('[RXCORP] Could not detect total RAM:', e);
         }
 
-        // Open config modal from top titlebar
-        btnOpen?.addEventListener('click', () => {
-            if (btnClose) btnClose.style.display = 'inline-flex';
-            overlay.style.display = 'flex';
-            if (inputUsername) inputUsername.focus();
+        selectedRam = Math.min(8, Math.max(4, Math.floor(totalRamGB / 2)));
+        if (store.get('ramMax')) {
+            selectedRam = Math.min(totalRamGB, Math.max(2, parseInt(store.get('ramMax'), 10)));
+        }
+
+        // Initialize RAM UI
+        const ramSlider = document.getElementById('wizard-ram-slider');
+        const ramVal = document.getElementById('wizard-ram-val');
+        const ramTotalLabel = document.getElementById('wizard-total-ram-label');
+        const ramMaxLabel = document.getElementById('wizard-max-ram-label');
+        const ramPresets = document.querySelectorAll('.ram-preset-btn');
+
+        if (ramSlider) {
+            ramSlider.max = Math.min(32, totalRamGB);
+            ramSlider.value = selectedRam;
+        }
+        if (ramVal) ramVal.innerText = `${selectedRam} Go`;
+        if (ramTotalLabel) ramTotalLabel.innerText = `Total Détecté : ${totalRamGB} Go`;
+        if (ramMaxLabel) ramMaxLabel.innerText = `${Math.min(32, totalRamGB)} Go`;
+
+        const updateRamUI = (val) => {
+            selectedRam = parseInt(val, 10);
+            if (ramSlider) ramSlider.value = selectedRam;
+            if (ramVal) ramVal.innerText = `${selectedRam} Go`;
+            ramPresets.forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.ram, 10) === selectedRam);
+            });
+        };
+
+        ramSlider?.addEventListener('input', (e) => updateRamUI(e.target.value));
+        ramPresets.forEach(btn => {
+            btn.addEventListener('click', () => updateRamUI(btn.dataset.ram));
+        });
+        updateRamUI(selectedRam);
+
+        // Language selection cards
+        const langCards = document.querySelectorAll('.wizard-lang-card');
+        langCards.forEach(card => {
+            if (card.dataset.lang === selectedLang) card.classList.add('active');
+            else card.classList.remove('active');
+
+            card.addEventListener('click', () => {
+                langCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedLang = card.dataset.lang;
+                store.set('language', selectedLang);
+                i18n.setLanguage(selectedLang);
+            });
         });
 
-        // Close modal if user already has an account
-        btnClose?.addEventListener('click', () => {
-            overlay.style.display = 'none';
-        });
+        // Account management in Step 2
+        const inputUsername = document.getElementById('input-onboard-username');
+        const btnConfirmOffline = document.getElementById('btn-onboard-confirm-offline');
+        const accountConfirmedBox = document.getElementById('wizard-account-confirmed');
+        const confirmedNameSpan = document.getElementById('wizard-confirmed-name');
+        const btnMicrosoft = document.getElementById('btn-onboard-microsoft');
 
-        // Handle offline pseudo login
+        const displayConfirmedAccount = (name) => {
+            if (accountConfirmedBox && confirmedNameSpan) {
+                confirmedNameSpan.innerText = name;
+                accountConfirmedBox.style.display = 'block';
+            }
+        };
+
+        const currentActive = store.get('activeAccountName');
+        if (currentActive && currentActive !== 'Player') {
+            displayConfirmedAccount(currentActive);
+            selectedAccount = currentActive;
+            if (inputUsername) inputUsername.value = currentActive;
+        }
+
         const handleOfflineSubmit = () => {
             const val = (inputUsername?.value || '').trim();
             if (!val) {
-                this.showNotification('Pseudo requis', 'Entrez un pseudo valide pour continuer.');
-                return;
+                this.showNotification('Pseudo requis', 'Entrez un pseudo pour continuer.');
+                return false;
             }
             let accList = store.get('accounts') || [];
-            // Remove placeholder 'Player'
             accList = accList.filter(a => a.name !== 'Player');
             if (!accList.some(a => a.name.toLowerCase() === val.toLowerCase())) {
                 accList.push({
@@ -1913,10 +1979,11 @@ class RxcorpApp {
             }
             store.set('accounts', accList);
             store.set('activeAccountName', val);
-            store.set('configured', true);
+            selectedAccount = val;
+            displayConfirmedAccount(val);
             this.renderAccountsList();
-            overlay.style.display = 'none';
-            this.showNotification('Bienvenue', `Joueur ${val} prêt à jouer !`);
+            this.showNotification('Compte Validé', `Joueur ${val} configuré avec succès.`);
+            return true;
         };
 
         btnConfirmOffline?.addEventListener('click', handleOfflineSubmit);
@@ -1924,13 +1991,13 @@ class RxcorpApp {
             if (e.key === 'Enter') handleOfflineSubmit();
         });
 
-        // Handle Pelican Web Auth
+        // Pelican Web Auth
         document.getElementById('btn-onboard-web-auth')?.addEventListener('click', () => {
             this.showNotification('Connexion Web', 'Ouverture de votre navigateur pour validation...');
             ipcRenderer.send('start-web-auth');
         });
 
-        // Handle Microsoft 1-Click login
+        // Microsoft 1-Click login
         btnMicrosoft?.addEventListener('click', async () => {
             try {
                 this.updateDockStatus(i18n.t('launching') || 'Connexion Microsoft en cours...');
@@ -1947,13 +2014,12 @@ class RxcorpApp {
                     }
                     store.set('accounts', accList);
                     store.set('activeAccountName', auth.name);
-                    store.set('configured', true);
+                    selectedAccount = auth.name;
+                    displayConfirmedAccount(auth.name);
                     this.renderAccountsList();
                     this.updatePelicanSyncUI();
-                    overlay.style.display = 'none';
                     this.showNotification('Compte Microsoft Connecté', `Bienvenue ${auth.name} !`);
 
-                    // Propagate to Pelican whitelist if configured
                     if (store.get('apiKey')) {
                         this.handlePelicanSync(true);
                     }
@@ -1964,6 +2030,214 @@ class RxcorpApp {
                 this.updateDockStatus(i18n.t('ready_to_play'), 0);
             }
         });
+
+        // Step 4 Profile selection cards
+        const profileCards = document.querySelectorAll('.wizard-profile-card');
+        profileCards.forEach(card => {
+            card.addEventListener('click', () => {
+                profileCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedProfile = {
+                    loader: card.dataset.loader,
+                    version: card.dataset.version,
+                    name: card.dataset.name
+                };
+            });
+        });
+
+        // Stepper navigation logic
+        const goToStep = (step) => {
+            currentStep = Math.max(1, Math.min(4, step));
+
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`step-indicator-${i}`);
+                const pane = document.getElementById(`wizard-pane-${i}`);
+
+                if (indicator) {
+                    indicator.classList.toggle('active', i === currentStep);
+                    indicator.classList.toggle('done', i < currentStep);
+                }
+                if (pane) {
+                    pane.style.display = (i === currentStep) ? 'flex' : 'none';
+                }
+            }
+
+            if (btnPrev) btnPrev.style.display = (currentStep === 1) ? 'none' : 'inline-flex';
+            if (btnNext) btnNext.style.display = (currentStep === 4) ? 'none' : 'inline-flex';
+            if (btnFinish) btnFinish.style.display = (currentStep === 4) ? 'inline-flex' : 'none';
+        };
+
+        btnPrev?.addEventListener('click', () => {
+            goToStep(currentStep - 1);
+        });
+
+        btnNext?.addEventListener('click', () => {
+            if (currentStep === 2 && !selectedAccount) {
+                const val = (inputUsername?.value || '').trim();
+                if (val) {
+                    handleOfflineSubmit();
+                } else {
+                    const defaultName = 'Player';
+                    store.set('activeAccountName', defaultName);
+                    selectedAccount = defaultName;
+                }
+            }
+            goToStep(currentStep + 1);
+        });
+
+        // Finish button: finalize setup & send telemetry
+        btnFinish?.addEventListener('click', async () => {
+            btnFinish.disabled = true;
+            btnFinish.innerText = 'Enregistrement...';
+
+            try {
+                // Save RAM settings
+                store.set('ramMax', selectedRam);
+                store.set('ramMin', 2);
+                const ramSliderMain = document.getElementById('ram-slider');
+                if (ramSliderMain) ramSliderMain.value = selectedRam;
+                const ramDisplayMain = document.getElementById('ram-display');
+                if (ramDisplayMain) ramDisplayMain.innerText = `${selectedRam} GB`;
+
+                // Save configured state
+                store.set('configured', true);
+                store.set('hasCompletedWizard', true);
+
+                // Create starter profile if needed
+                const existingInstances = instanceService.getLocalInstances();
+                let matchingInst = existingInstances.find(i => 
+                    i.loader?.toLowerCase() === selectedProfile.loader.toLowerCase() &&
+                    i.version === selectedProfile.version
+                );
+
+                if (!matchingInst) {
+                    matchingInst = instanceService.createInstance({
+                        name: selectedProfile.name,
+                        version: selectedProfile.version,
+                        loader: selectedProfile.loader,
+                        domain: 'local'
+                    });
+                }
+
+                if (matchingInst && matchingInst.id) {
+                    this.activeLocalInstanceId = matchingInst.id;
+                    store.set('activeLocalInstanceId', matchingInst.id);
+                    store.set('activeInstanceId', matchingInst.id);
+                }
+
+                // Register telemetry with VPS Database API
+                let clientUuid = store.get('client_uuid');
+                if (!clientUuid) {
+                    clientUuid = 'c-' + Math.random().toString(36).substring(2, 10) + '-' + Date.now().toString(36);
+                    store.set('client_uuid', clientUuid);
+                }
+
+                const telemetryPayload = {
+                    client_uuid: clientUuid,
+                    launcher_version: '2.5.4',
+                    os: `${os.type()} ${os.release()} (${os.arch()})`,
+                    selected_loader: selectedProfile.loader,
+                    allocated_ram_gb: selectedRam,
+                    language: selectedLang,
+                    account_type: selectedAccount ? (selectedAccount.startsWith('offline') ? 'Offline' : 'Microsoft/Custom') : 'Offline'
+                };
+
+                fetch('https://rxcorp.fr/launcher/api/index.php?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(telemetryPayload)
+                }).catch(err => console.warn('[RXCORP] Telemetry registration error:', err.message));
+
+                overlay.style.display = 'none';
+                await this.loadInstances();
+                this.updateDockInstancePill();
+                this.showNotification('Bienvenue sur RXCORP !', `Profil ${selectedProfile.name} prêt. Bon jeu !`);
+            } catch (err) {
+                console.error('[RXCORP] Wizard completion error:', err);
+                overlay.style.display = 'none';
+            } finally {
+                btnFinish.disabled = false;
+                btnFinish.innerText = i18n.t('wizard_finish') || 'Terminer la configuration';
+            }
+        });
+
+        // Check if user already configured
+        const isConfigured = store.get('configured');
+        const hasWizardCompleted = store.get('hasCompletedWizard');
+
+        if (!isConfigured && !hasWizardCompleted) {
+            overlay.style.display = 'flex';
+            if (btnClose) btnClose.style.display = 'none';
+            goToStep(1);
+        } else {
+            overlay.style.display = 'none';
+        }
+
+        // Open config modal from top titlebar
+        btnOpen?.addEventListener('click', () => {
+            if (btnClose) btnClose.style.display = 'inline-flex';
+            overlay.style.display = 'flex';
+            goToStep(1);
+        });
+
+        // Close modal if user manually closes
+        btnClose?.addEventListener('click', () => {
+            overlay.style.display = 'none';
+        });
+    }
+
+    // ==========================================
+    // VPS CENTRAL API INTEGRATION (BOOTSTRAP & NEWS)
+    // ==========================================
+    async fetchBootstrapData() {
+        try {
+            console.log('[RXCORP] Fetching bootstrap data from central VPS API...');
+            const res = await fetch('https://rxcorp.fr/launcher/api/index.php?action=bootstrap', {
+                signal: AbortSignal.timeout(5000)
+            });
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json || !json.success) return;
+
+            const config = json.config || json.data?.config;
+            const news = json.news || json.data?.news;
+            const servers = json.servers || json.data?.servers;
+
+            // 1. Dynamic News rendering
+            if (news && Array.isArray(news) && news.length > 0) {
+                const newsContainer = document.querySelector('.home-news-section .news-cards-row');
+                if (newsContainer) {
+                    newsContainer.innerHTML = '';
+                    news.slice(0, 3).forEach(item => {
+                        const article = document.createElement('article');
+                        article.className = 'modern-news-card';
+                        article.onclick = () => {
+                            if (item.link_url) shell.openExternal(item.link_url);
+                        };
+
+                        const tagColor = item.tag_color ? `style="color: ${item.tag_color};"` : '';
+                        const tagText = item.badge_tag || item.tag || 'INFO';
+                        const pubDate = item.published_date || item.published_at || '';
+                        article.innerHTML = `
+                            <div class="news-thumb-box">
+                                <img class="news-thumb-img" src="${item.image_url || 'assets/images/heroes/hero_cloud.jpg'}" alt="${item.title}">
+                                <span class="news-tag-badge" ${tagColor}>${tagText}</span>
+                            </div>
+                            <div class="news-body-box">
+                                <span class="news-date-text">${pubDate}</span>
+                                <h3 class="news-card-title">${item.title}</h3>
+                                <p class="news-card-desc">${item.summary || ''}</p>
+                            </div>
+                        `;
+                        newsContainer.appendChild(article);
+                    });
+                }
+            }
+
+            console.log('[RXCORP] Bootstrap data synchronized successfully.');
+        } catch (err) {
+            console.warn('[RXCORP] Could not sync bootstrap data (offline mode active):', err.message);
+        }
     }
 
     // ==========================================
