@@ -22,7 +22,7 @@ function destroyWindow() {
 function createWindow() {
     destroyWindow();
     mainWindow = new BrowserWindow({
-        title: "RXCORP Launcher",
+        title: "RXLauncher",
         width: 1200,
         height: 740,
         minWidth: 960,
@@ -56,7 +56,7 @@ function createWindow() {
 function createWindowHidden(onReady) {
     destroyWindow();
     mainWindow = new BrowserWindow({
-        title: "RXCORP Launcher",
+        title: "RXLauncher",
         width: 1200,
         height: 740,
         minWidth: 960,

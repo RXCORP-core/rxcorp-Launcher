@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RXCORP Launcher 2.5</title>
+    <title>RXLauncher</title>
     <link rel="stylesheet" href="assets/css/rxcorp.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
     <!-- Custom Window Titlebar (Sleek, Clean, Minimal & Draggable) -->
     <header class="app-titlebar">
         <div class="titlebar-drag-area">
-            <span class="titlebar-app-name">RXCORP LAUNCHER</span>
+            <span class="titlebar-app-name">RXLAUNCHER</span>
         </div>
 
         <div class="titlebar-right">
@@ -29,8 +29,8 @@
                 </div>
             </div>
 
-            <!-- Live Dev Terminal Toggle Button -->
-            <button id="btn-open-dev-terminal" class="titlebar-dev-btn" title="Console & Terminal Développeur en direct (F12 ou Ctrl+Shift+D)">
+            <!-- Live Dev Terminal Toggle Button (Hidden by default, toggleable in Settings or F12) -->
+            <button id="btn-open-dev-terminal" class="titlebar-dev-btn" style="display: none;" title="Console & Terminal Développeur (F12 ou Ctrl+Shift+D)">
                 <span class="dev-btn-pulse"></span>
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
                 <span>DEV CONSOLE</span>
@@ -49,71 +49,78 @@
     <aside class="dribbble-rail behance-rail">
         <div class="rail-top">
             <!-- Brand Logo at Top of Rail -->
-            <div class="rail-brand-box" title="RXCORP Launcher 2.6">
+            <div class="rail-brand-box" title="RXLauncher">
                 <img class="rail-brand-logo" src="assets/images/icon/icon.png" alt="RX">
             </div>
 
             <div class="rail-divider"></div>
 
             <!-- 1. Home / Actualités -->
-            <button class="rail-item active" data-view="home" data-i18n-title="nav_home" title="Accueil & Actualités">
+            <button class="rail-item active" data-view="home" data-i18n-title="nav_home">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
+                <span class="rail-tooltip" data-i18n="nav_home">Accueil & Actualités</span>
             </button>
 
             <!-- 2. Serveurs Cloud Pelican -->
-            <button class="rail-item" data-view="cloud" data-i18n-title="nav_cloud" title="Serveurs Cloud Pelican">
+            <button class="rail-item" data-view="cloud" data-i18n-title="nav_cloud">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                     <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
                     <line x1="6" y1="6" x2="6.01" y2="6"></line>
                     <line x1="6" y1="18" x2="6.01" y2="18"></line>
                 </svg>
+                <span class="rail-tooltip" data-i18n="nav_cloud">Serveurs Cloud Pelican</span>
             </button>
 
             <!-- 3. Profils Locaux & Modpacks -->
-            <button class="rail-item" data-view="instances" data-i18n-title="nav_instances" title="Profils & Modpacks Locaux">
+            <button class="rail-item" data-view="instances" data-i18n-title="nav_instances">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                     <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
+                <span class="rail-tooltip" data-i18n="nav_instances">Profils & Modpacks Locaux</span>
             </button>
 
             <!-- 4. Catalogue Mods & Shaders -->
-            <button class="rail-item" data-view="modrinth" data-i18n-title="nav_mods" title="Catalogue Mods & Shaders">
+            <button class="rail-item" data-view="modrinth" data-i18n-title="nav_mods">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                     <line x1="7" y1="7" x2="7.01" y2="7"></line>
                 </svg>
+                <span class="rail-tooltip" data-i18n="nav_mods">Catalogue Mods & Shaders</span>
             </button>
         </div>
 
         <div class="rail-bottom">
             <!-- Add Instance Quick Action -->
-            <button id="btn-rail-add" class="rail-item rail-add-btn" data-i18n-title="nav_add_instance" title="Créer un nouveau profil local">
+            <button id="btn-rail-add" class="rail-item rail-add-btn" data-i18n-title="nav_add_instance">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
+                <span class="rail-tooltip" data-i18n="nav_add_instance">Nouveau Profil Local</span>
             </button>
 
             <!-- Settings & Whitelist Sync -->
-            <button class="rail-item" data-view="settings" data-i18n-title="nav_settings" title="Paramètres & Whitelist">
+            <button class="rail-item" data-view="settings" data-i18n-title="nav_settings">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
+                <span class="rail-tooltip" data-i18n="nav_settings">Paramètres & Whitelist</span>
             </button>
 
             <div class="rail-divider"></div>
 
             <!-- User Account Profile Capsule (Minecraft Avatar + Status Dot) -->
-            <button type="button" class="rail-item rail-user-pill" id="rail-user-pill" title="Mon Compte & Profil">
+            <button type="button" class="rail-item rail-user-pill" id="rail-user-pill">
                 <img id="rail-user-avatar" class="rail-user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
                 <span id="rail-user-dot" class="rail-user-dot online"></span>
+                <span class="rail-tooltip">Mon Compte & Profil</span>
             </button>
         </div>
     </aside>
@@ -557,6 +564,18 @@
                 <button id="btn-search-mods" class="rx-btn rx-btn-primary" style="padding: 5px 12px; font-size: 11px;" data-i18n="mods_search_btn">Rechercher</button>
             </div>
 
+            <!-- Categories Filters Row -->
+            <div class="mod-categories-bar" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary active" data-cat="" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Tous</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="optimization" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Optimisation</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="decoration" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Graphismes & Déco</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="technology" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Technologie</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="magic" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Magie</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="storage" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Stockage</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="adventure" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Aventure & Gameplay</button>
+                <button type="button" class="mod-chip rx-btn rx-btn-secondary" data-cat="utility" style="font-size: 11px; padding: 4px 12px; border-radius: 20px;">Utilitaires (QoL)</button>
+            </div>
+
             <!-- Source & Target Instance Selector Row -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; gap: 8px;">
@@ -618,20 +637,6 @@
 
                         <!-- Active Accounts List -->
                         <div id="accounts-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                    </div>
-
-                    <!-- Language Selection Card -->
-                    <div class="settings-card">
-                        <div class="settings-card-header">
-                            <span class="settings-card-title" data-i18n="language_section">Langue du Launcher</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="fr" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Français</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="en" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">English</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="es" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Español</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="de" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Deutsch</button>
-                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="pt" style="flex: 1; min-width: 90px; padding: 8px 10px; font-size: 12px;">Português</button>
-                        </div>
                     </div>
 
                     <!-- Pelican Sync & Whitelist Settings Card -->
@@ -702,14 +707,14 @@
 
                         <div class="form-group">
                             <label class="form-label">Clé API CurseForge (Optionnelle)</label>
-                            <input id="input-curseforge-key" type="password" class="form-input" placeholder="$2a$10$WiePrlPNrhm64t5neMiRGul2uculPVwZo56ZU0A1qZos02AChjqMa">
+                            <input id="input-curseforge-key" type="password" class="form-input" placeholder="Entrez votre clé API CurseForge (Optionnel)">
                         </div>
                     </div>
 
-                    <!-- Langue de l'Interface (Déplacé depuis le haut) -->
+                    <!-- Langue de l'Interface -->
                     <div class="settings-card">
                         <div class="settings-card-header">
-                            <span class="settings-card-title">Langue de l'Interface</span>
+                            <span class="settings-card-title" data-i18n="language_section">Langue de l'Interface</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
                             Choisissez la langue d'affichage du launcher et des notifications.
@@ -727,7 +732,7 @@
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <span class="settings-card-title">Mises à Jour du Launcher</span>
-                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.6.0</span>
+                            <span class="app-version-display" id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.7.0</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
                             Le launcher vérifie et applique automatiquement les nouvelles versions en arrière-plan. Vous pouvez forcer une vérification immédiate du cloud.
@@ -767,14 +772,14 @@
                         </div>
                     </div>
 
-                    <!-- Link-Sync Cache Management Card -->
+                    <!-- RXSync Cache Management Card -->
                     <div class="settings-card" id="settings-card-pool">
                         <div class="settings-card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="settings-card-title">Cache & Pool Central Link-Sync</span>
+                            <span class="settings-card-title">Cache & Pool Central RXSync</span>
                             <span id="label-pool-status" style="font-size: 10px; color: #34d399; font-weight: 700; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">Actif (NTFS)</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
-                            Reservoir partage de mods permettant des liaisons hardlinks instantanees a 0 Mo entre instances.
+                            Réservoir partagé de mods permettant des liaisons hardlinks instantanées à 0 Mo entre instances.
                         </p>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
                             <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;">
@@ -786,12 +791,15 @@
                                 <span id="pool-stat-size" style="font-size: 16px; font-weight: 800; color: #60a5fa;">- Mo</span>
                             </div>
                         </div>
+                        <div id="pool-empty-state-msg" style="font-size: 11px; color: var(--text-dim); margin-bottom: 12px; font-style: italic; display: none;">
+                            Aucun mod synchronisé pour l'instant. Les mods téléchargés depuis vos serveurs Pelican seront mis en cache ici pour des transferts instantanés.
+                        </div>
                         <div style="display: flex; gap: 8px;">
                             <button type="button" id="btn-open-pool-folder" class="rx-btn rx-btn-secondary" style="flex: 1; font-size: 11px; justify-content: center;">
                                 Ouvrir le Dossier
                             </button>
                             <button type="button" id="btn-purge-pool" class="rx-btn rx-btn-danger" style="flex: 1; font-size: 11px; justify-content: center;">
-                                Vider le Cache Link-Sync
+                                Vider le Cache RXSync
                             </button>
                         </div>
                     </div>
@@ -805,6 +813,13 @@
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
                             Ouvre une fenêtre séparée affichant en temps réel chaque clic, navigation, requête Pelican, téléchargement et les logs du jeu Minecraft.
                         </p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 9px 12px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid var(--border-subtle);">
+                            <div>
+                                <span style="font-size: 11.5px; color: #fff; font-weight: 600; display: block;">Bouton DEV CONSOLE dans la barre de titre</span>
+                                <span style="font-size: 10.5px; color: var(--text-dim);">Affiche le bouton dans la barre de titre (F12 reste actif)</span>
+                            </div>
+                            <input type="checkbox" id="toggle-dev-terminal-btn" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
+                        </div>
                         <button type="button" id="btn-settings-open-terminal" class="rx-btn rx-btn-secondary" style="width: 100%; justify-content: center; gap: 8px;">
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#34d399" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
                             <span>Ouvrir la Fenêtre Terminal Dev</span>
@@ -813,9 +828,9 @@
 
                     <!-- Info Box -->
                     <div class="settings-card" style="font-size: 11px; color: var(--text-dim); line-height: 1.6;">
-                        <strong style="color: #fff;">RXCORP Launcher v2.6.5</strong><br>
-                        Développé avec soin pour la communauté RXCORP.<br>
-                        Infrastructure Cloud Pelican • Modpacks • CurseForge & Modrinth.
+                        <strong style="color: #fff;">RXLauncher <span class="app-version-display">v2.7.0</span></strong><br>
+                        Développé avec soin pour la communauté.<br>
+                        Technologie RXSync • Infrastructure Cloud Pelican • Modpacks • CurseForge & Modrinth.
                     </div>
                 </div>
             </div>
@@ -837,10 +852,10 @@
             <div class="wizard-header">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img class="first-launch-logo" src="assets/images/icon/icon.png" alt="RXCORP" style="width: 32px; height: 32px;">
+                        <img class="first-launch-logo" src="assets/images/icon/icon.png" alt="RX" style="width: 32px; height: 32px;">
                         <div>
                             <div class="wizard-title" data-i18n="welcome_title">Configuration Initiale</div>
-                            <div style="font-size: 11px; color: var(--text-dim);">RXCORP Launcher Setup</div>
+                            <div style="font-size: 11px; color: var(--text-dim);">RXLauncher Setup</div>
                         </div>
                     </div>
                     <button type="button" id="btn-close-onboard" class="modal-close-btn" style="display: none;" title="Fermer">✕</button>
@@ -1187,7 +1202,7 @@
         </div>
     </div>
 
-    <!-- Link-Sync Mods Modal with Live Terminal -->
+    <!-- RXSync Mods Modal with Live Terminal -->
     <div id="modal-mods-sync" class="rx-modal-overlay">
         <div class="rx-modal-card sync-modal-card">
             <div class="modal-header">
@@ -1196,21 +1211,21 @@
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#34d399" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
                     </div>
                     <div>
-                        <h3 class="modal-title" style="margin: 0; font-size: 15px; letter-spacing: 0.3px;">Link-Sync Terminal Engine</h3>
+                        <h3 class="modal-title" style="margin: 0; font-size: 15px; letter-spacing: 0.3px;">RXSync Terminal Engine</h3>
                         <span id="sync-server-title" style="font-size: 11.5px; color: var(--text-muted);">Serveur Pelican</span>
                     </div>
                 </div>
                 <button class="modal-close-btn" data-close="modal-mods-sync">✕</button>
             </div>
             <div class="modal-body" style="padding: 18px 20px;">
-                <!-- Link-Sync Stat Cards Grid (4 columns) -->
+                <!-- RXSync Stat Cards Grid (4 columns) -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;">
                     <div class="sync-stat-box">
                         <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase; font-weight: 600;">Total Serveur</span>
                         <span id="sync-stat-total" style="font-size: 17px; font-weight: 800; color: var(--text);">-</span>
                     </div>
                     <div class="sync-stat-box highlight-pool">
-                        <span style="font-size: 10px; color: #4ade80; display: block; text-transform: uppercase; font-weight: 600;">Link-Sync (0 Mo)</span>
+                        <span style="font-size: 10px; color: #4ade80; display: block; text-transform: uppercase; font-weight: 600;">RXSync (0 Mo)</span>
                         <span id="sync-stat-pool" style="font-size: 17px; font-weight: 800; color: #4ade80;">-</span>
                     </div>
                     <div class="sync-stat-box highlight-dl">
@@ -1247,7 +1262,7 @@
                                 <span class="terminal-dot yellow"></span>
                                 <span class="terminal-dot green"></span>
                             </div>
-                            <span class="terminal-title">LIVE CONSOLE // PELICAN LINK-SYNC</span>
+                            <span class="terminal-title">LIVE CONSOLE // PELICAN RXSYNC</span>
                         </div>
                         <div style="display: flex; gap: 6px;">
                             <button type="button" class="rx-btn rx-btn-secondary" id="btn-copy-sync-logs" style="font-size: 10px; padding: 2px 8px; height: 22px;">Copier les logs</button>
@@ -1255,7 +1270,7 @@
                         </div>
                     </div>
                     <div id="sync-terminal-output" class="sync-terminal-body">
-                        <div class="term-line"><span class="term-time">[00:00:00]</span> <span class="term-tag-info">[INIT]</span> Initialisation du moteur Link-Sync RXCORP...</div>
+                        <div class="term-line"><span class="term-time">[00:00:00]</span> <span class="term-tag-info">[INIT]</span> Initialisation du moteur RXSync...</div>
                     </div>
                 </div>
             </div>

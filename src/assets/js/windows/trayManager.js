@@ -22,11 +22,11 @@ function createTray(getMainWindow) {
     }
 
     tray = new Tray(icon);
-    tray.setToolTip('RXCORP Launcher');
+    tray.setToolTip('RXLauncher');
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'RXCORP Launcher',
+            label: 'RXLauncher',
             enabled: false
         },
         { type: 'separator' },
@@ -50,7 +50,7 @@ function createTray(getMainWindow) {
         },
         { type: 'separator' },
         {
-            label: 'Quitter RXCORP',
+            label: 'Quitter RXLauncher',
             click: () => {
                 app.isQuitting = true;
                 if (mainWindowGetter) {
@@ -92,7 +92,7 @@ function hideWindow(showNotif = true) {
             hasShownBalloon = true;
             try {
                 const notif = new Notification({
-                    title: 'RXCORP Launcher Réduit',
+                    title: 'RXLauncher Réduit',
                     body: 'Le launcher reste actif en arrière-plan dans la barre des tâches.',
                     icon: path.join(__dirname, '../../images/icon/icon.png'),
                     silent: true

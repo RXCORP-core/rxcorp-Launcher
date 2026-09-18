@@ -9,8 +9,8 @@ const store = new Store();
 const translations = {
     fr: {
         // Titlebar & Status
-        brand_title: "RXCORP",
-        cloud_sync_ok: "RXCORP CLOUD • SYNCHRONISÉ",
+        brand_title: "RXLauncher",
+        cloud_sync_ok: "RX CLOUD • SYNCHRONISÉ",
         cloud_sync_local: "MODE JOUEUR LOCAL",
         update_available: "MAJ DISPONIBLE",
         config_btn: "Configuration",
@@ -29,13 +29,13 @@ const translations = {
         // Home View - Showcase
         hero_tag_cloud: "OFFICIEL RXCORP • SERVEUR CLOUD",
         hero_tag_local: "PROFIL LOCAL • MINECRAFT",
-        hero_title_cloud: "RXCORP CLOUD & SURVIE",
+        hero_title_cloud: "RX CLOUD & SURVIE",
         hero_desc_cloud: "Infrastructure Cloud Pelican officielle avec synchronisation automatique de la whitelist et connexion instantanée.",
         hero_title_local: "GESTIONNAIRE LOCAL",
         hero_desc_local: "Profils et modpacks Minecraft locaux autonomes (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "JOUER",
         play_btn_local: "LANCER",
-        sync_mods_btn: "Synchroniser les Mods",
+        sync_mods_btn: "Synchroniser (RXSync)",
         create_profile_btn: "+ Nouveau Profil",
 
         // Home View - News
@@ -55,7 +55,7 @@ const translations = {
         news_3_desc: "Événements hebdomadaires, annonces de tournois et support technique en direct.",
 
         // First Launch Modal
-        welcome_title: "Bienvenue sur RXCORP Launcher",
+        welcome_title: "Bienvenue sur RXLauncher",
         welcome_sub: "Choisissez votre mode de connexion pour commencer votre aventure :",
         login_microsoft_btn: "Connexion Compte Microsoft",
         login_microsoft_sub: "Ouvre votre navigateur pour une connexion officielle sécurisée",
@@ -120,8 +120,8 @@ const translations = {
     },
     en: {
         // Titlebar & Status
-        brand_title: "RXCORP",
-        cloud_sync_ok: "RXCORP CLOUD • SYNCED",
+        brand_title: "RXLauncher",
+        cloud_sync_ok: "RX CLOUD • SYNCED",
         cloud_sync_local: "LOCAL PLAYER MODE",
         update_available: "UPDATE READY",
         config_btn: "Settings",
@@ -140,13 +140,13 @@ const translations = {
         // Home View - Showcase
         hero_tag_cloud: "OFFICIAL RXCORP • CLOUD SERVER",
         hero_tag_local: "LOCAL PROFILE • MINECRAFT",
-        hero_title_cloud: "RXCORP CLOUD & SURVIVAL",
+        hero_title_cloud: "RX CLOUD & SURVIVAL",
         hero_desc_cloud: "Official Pelican Cloud infrastructure with automatic whitelist sync and 1-click connect.",
         hero_title_local: "LOCAL MANAGER",
         hero_desc_local: "Standalone local Minecraft profiles and modpacks (Fabric, Forge, NeoForge, Vanilla).",
         play_btn: "PLAY",
         play_btn_local: "LAUNCH",
-        sync_mods_btn: "Sync Server Mods",
+        sync_mods_btn: "Sync Mods (RXSync)",
         create_profile_btn: "+ New Profile",
 
         // Home View - News
@@ -166,7 +166,7 @@ const translations = {
         news_3_desc: "Weekly events, build contests, and 24/7 technical live assistance.",
 
         // First Launch Modal
-        welcome_title: "Welcome to RXCORP Launcher",
+        welcome_title: "Welcome to RXLauncher",
         welcome_sub: "Choose your authentication method to start your journey:",
         login_microsoft_btn: "Login with Microsoft",
         login_microsoft_sub: "Opens your web browser for a secure 1-click login",
@@ -277,7 +277,7 @@ const translations = {
         news_3_desc: "Eventos semanales, torneos y soporte técnico en directo.",
 
         // First Launch Modal
-        welcome_title: "Bienvenido a RXCORP Launcher",
+        welcome_title: "Bienvenido a RXLauncher",
         welcome_sub: "Elige tu método de autenticación para comenzar:",
         login_microsoft_btn: "Iniciar sesión con Microsoft",
         login_microsoft_sub: "Abre tu navegador para un inicio de sesión seguro",
@@ -388,7 +388,7 @@ const translations = {
         news_3_desc: "Wöchentliche Events, Turniere und Live-Support.",
 
         // First Launch Modal
-        welcome_title: "Willkommen bei RXCORP Launcher",
+        welcome_title: "Willkommen bei RXLauncher",
         welcome_sub: "Wähle deine Authentifizierungsmethode:",
         login_microsoft_btn: "Mit Microsoft anmelden",
         login_microsoft_sub: "Öffnet deinen Browser für sicheres 1-Klick-Login",
@@ -499,7 +499,7 @@ const translations = {
         news_3_desc: "Eventos semanais, torneios e suporte técnico em direto.",
 
         // First Launch Modal
-        welcome_title: "Bem-vindo ao RXCORP Launcher",
+        welcome_title: "Bem-vindo ao RXLauncher",
         welcome_sub: "Escolhe o teu método de autenticação para começar:",
         login_microsoft_btn: "Entrar com Microsoft",
         login_microsoft_sub: "Abre o teu browser para login seguro com 1 clique",
@@ -566,7 +566,9 @@ const translations = {
 
 class I18nManager {
     constructor() {
-        this.currentLang = store.get('launcher_lang') || 'fr';
+        let savedLang = store.get('launcher_lang') || store.get('language') || 'fr';
+        if (!translations[savedLang]) savedLang = 'fr';
+        this.currentLang = savedLang;
     }
 
     getLang() {
@@ -577,7 +579,12 @@ class I18nManager {
         if (!translations[lang]) lang = 'fr';
         this.currentLang = lang;
         store.set('launcher_lang', lang);
+        store.set('language', lang);
         this.applyTranslations();
+    }
+
+    setLanguage(lang) {
+        this.setLang(lang);
     }
 
     t(key) {

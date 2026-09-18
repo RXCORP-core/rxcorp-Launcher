@@ -51,12 +51,14 @@ fs.copyFileSync(path.join(DIST_DIR, exeFile), path.join(TARGET_UPDATE_DIR, exeFi
 
 // Also copy as direct download root
 fs.copyFileSync(path.join(DIST_DIR, exeFile), TARGET_EXE);
+fs.copyFileSync(path.join(DIST_DIR, exeFile), '/var/www/landing/RXLauncher.exe');
 fs.copyFileSync(path.join(DIST_DIR, exeFile), '/var/www/landing/RXCORP-Launcher-v2.exe');
 
 // Check if standalone portable .exe was built
 const portableExe = files.find(f => f.includes('Portable') && f.endsWith('.exe'));
 if (portableExe && fs.existsSync(path.join(DIST_DIR, portableExe))) {
     console.log(`[2b/4] Copie de la version portable autonome ${portableExe}...`);
+    fs.copyFileSync(path.join(DIST_DIR, portableExe), '/var/www/landing/RXLauncher-Portable.exe');
     fs.copyFileSync(path.join(DIST_DIR, portableExe), '/var/www/landing/RXCORP-Launcher-Portable.exe');
 }
 

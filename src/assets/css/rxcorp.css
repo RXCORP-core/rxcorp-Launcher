@@ -458,6 +458,117 @@ body {
     border-color: var(--primary-hover);
 }
 
+/* Floating Navigation Rail Tooltip */
+.rail-tooltip {
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    background: #141824;
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    z-index: 10000;
+}
+
+.rail-tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 4px 6px 4px 0;
+    border-style: solid;
+    border-color: transparent #141824 transparent transparent;
+}
+
+.rail-item:hover .rail-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+
+/* Category Chips in Mod Store */
+.mod-categories-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.mod-chip {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 5px 14px !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.mod-chip:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.mod-chip.active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-hover) !important;
+    box-shadow: 0 2px 10px var(--primary-glow) !important;
+}
+
+/* Dashboard quick select button */
+.dash-quick-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.dash-quick-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dash-item-row.active .dash-quick-btn {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Disabled Button State */
+.rx-btn:disabled,
+.rx-btn.disabled,
+.rx-btn-disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-dim) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
 /* =========================================================================
    AUTHENTIC TACTILE BUTTONS (ZERO AI BUBBLE PILLS)
    ========================================================================= */
@@ -2689,7 +2800,7 @@ body {
 }
 
 /* ==========================================
-   LINK-SYNC TERMINAL & MODAL STYLING
+   RXSYNC TERMINAL & MODAL STYLING
    ========================================== */
 .sync-modal-card {
     max-width: 660px !important;

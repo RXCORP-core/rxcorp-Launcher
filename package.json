@@ -1,8 +1,8 @@
 {
     "name": "rxcorp-launcher",
-    "productName": "RXCORP Launcher",
-    "version": "2.6.6",
-    "description": "Launcher RXCORP 2.5 - Design Behance, Infrastructure Pelican Cloud, Gestionnaire d'instances locales et Mods",
+    "productName": "RXLauncher",
+    "version": "2.7.0",
+    "description": "RXLauncher - Design Behance, Moteur RXSync, Infrastructure Cloud Pelican et Gestionnaire de Profils Minecraft",
     "main": "src/app.js",
     "author": {
         "name": "RXCORP Team"

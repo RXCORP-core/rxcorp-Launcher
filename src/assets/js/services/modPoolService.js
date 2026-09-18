@@ -1,5 +1,5 @@
 /**
- * RXCORP Launcher - Link-Sync Central Mod Pool Service
+ * RXLauncher - RXSync Central Mod Pool Service
  * Manages shared mod storage and NTFS hardlinks across instances
  * Zero duplication, instant sync, and jar integrity validation
  */
@@ -126,7 +126,7 @@ class ModPoolService {
             fs.linkSync(poolFile, targetFile);
             return { success: true, method: 'hardlink', file: modName };
         } catch (linkErr) {
-            console.warn(`[Link-Sync] Hardlink impossible pour ${modName}, fallback copie:`, linkErr.message);
+            console.warn(`[RXSync] Hardlink impossible pour ${modName}, fallback copie:`, linkErr.message);
             try {
                 fs.copyFileSync(poolFile, targetFile);
                 return { success: true, method: 'copy', file: modName };
@@ -152,7 +152,7 @@ class ModPoolService {
                     fs.unlinkSync(filePath);
                     removed.push(file);
                 } catch (e) {
-                    console.warn(`[Link-Sync] Impossible de retirer ${file}:`, e);
+                    console.warn(`[RXSync] Impossible de retirer ${file}:`, e);
                 }
             }
         }

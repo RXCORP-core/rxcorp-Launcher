@@ -57,6 +57,13 @@ const store = new Store({
 
 class RxcorpApp {
     constructor() {
+        let appVer = '2.7.0';
+        try {
+            const pkg = require('../../../package.json');
+            if (pkg && pkg.version) appVer = pkg.version;
+        } catch (_) {}
+        this.appVersion = appVer;
+
         this.activeView = 'cloud';
         this.activeDribbbleMode = store.get('activeDribbbleMode') || 'cloud';
         this.activeCloudInstanceId = store.get('activeCloudInstanceId') || null;
@@ -152,6 +159,13 @@ class RxcorpApp {
         this.initOnboardingWizard();
         this.fetchBootstrapData();
 
+        // Populate all version displays dynamically
+        document.querySelectorAll('.app-version-display').forEach(el => {
+            el.textContent = `v${this.appVersion}`;
+        });
+        const appVerLabel = document.getElementById('label-app-version');
+        if (appVerLabel) appVerLabel.textContent = `v${this.appVersion}`;
+
         // Load initial instances
         await this.loadInstances();
 
@@ -161,7 +175,7 @@ class RxcorpApp {
         // Initial Discord RPC state
         ipcRenderer.send('discord-rpc-idle');
 
-        console.log('[RXCORP] Launcher ready.');
+        console.log('[RXLauncher] Launcher ready.');
     }
 
     // ==========================================
@@ -170,10 +184,25 @@ class RxcorpApp {
     initDevTerminalLogger() {
         // Toggle button in titlebar
         const btnToggleDev = document.getElementById('btn-open-dev-terminal');
+        const checkToggleDev = document.getElementById('toggle-dev-terminal-btn');
+        const isDevBtnVisible = store.get('showDevTerminalBtn') === true;
+
         if (btnToggleDev) {
+            btnToggleDev.style.display = isDevBtnVisible ? 'inline-flex' : 'none';
             btnToggleDev.addEventListener('click', () => {
                 ipcRenderer.send('dev-terminal-toggle');
                 this.logDev('UI', 'Bascule de la fenetre Dev Console via la barre de titre');
+            });
+        }
+
+        if (checkToggleDev) {
+            checkToggleDev.checked = isDevBtnVisible;
+            checkToggleDev.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                store.set('showDevTerminalBtn', checked);
+                if (btnToggleDev) {
+                    btnToggleDev.style.display = checked ? 'inline-flex' : 'none';
+                }
             });
         }
 
@@ -250,7 +279,7 @@ class RxcorpApp {
             const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
             let cat = 'CONSOLE';
             if (msg.startsWith('[Minecraft]') || msg.includes('Minecraft')) cat = 'MINECRAFT';
-            else if (msg.startsWith('[Link-Sync]') || msg.includes('Pelican')) cat = 'PELICAN';
+            else if (msg.startsWith('[RXSync]') || msg.startsWith('[Link-Sync]') || msg.includes('Pelican')) cat = 'PELICAN';
             else if (msg.includes('Microsoft') || msg.includes('Auth')) cat = 'AUTH';
             this.logDev(cat, msg);
         };
@@ -629,23 +658,7 @@ class RxcorpApp {
     initI18n() {
         // Initial application of active language
         i18n.applyTranslations();
-
-        // Bind all language switch pills/buttons
-        document.querySelectorAll('.lang-btn-switch').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const lang = btn.dataset.lang;
-                if (lang) {
-                    i18n.setLang(lang);
-                    this.renderAccountsList();
-                    this.updateDockInstancePill();
-                    const readyText = i18n.t('ready_to_play');
-                    this.updateDockStatus(readyText, 0);
-                    const langNames = { fr: 'Français', en: 'English', es: 'Español', de: 'Deutsch', pt: 'Português' };
-                    this.showNotification('Langue / Language', `Interface : ${langNames[lang] || lang}`);
-                }
-            });
-        });
+        this.initLanguageSelector();
     }
 
     // ==========================================
@@ -744,7 +757,7 @@ class RxcorpApp {
                 if (feedbackCheck) feedbackCheck.textContent = `Version v${readyVer} prête !`;
                 this.showNotification('Mise à jour prête !', `La version ${readyVer} a été téléchargée. Cliquez pour redémarrer.`);
             } else if (data.status === 'not-available') {
-                const currentV = data.version || data.currentVersion || '2.5.1';
+                const currentV = data.version || data.currentVersion || this.appVersion;
                 if (data.isManual) {
                     this.showNotification('À jour !', `Votre launcher est à la version la plus récente (v${currentV}).`);
                 }
@@ -1054,9 +1067,9 @@ class RxcorpApp {
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                     <span>Rejoindre</span>
                 </button>
-                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger et lier les mods via Link-Sync" style="flex: 1; font-weight: 600;" data-id="${server.id}">
+                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger et lier les mods via RXSync" style="flex: 1; font-weight: 600;" data-id="${server.id}">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                    <span>Link-Sync</span>
+                    <span>RXSync</span>
                 </button>
                 <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -1096,6 +1109,7 @@ class RxcorpApp {
         const badge = card.querySelector(`#badge-${server.id}`);
         const ramValue = card.querySelector(`#ram-used-${server.id}`);
         const cpuValue = card.querySelector(`#cpu-used-${server.id}`);
+        const joinBtn = card.querySelector('.btn-join-server');
 
         try {
             const res = await pelicanService.getServerResources(server.id, apiKey, panelUrl);
@@ -1104,12 +1118,36 @@ class RxcorpApp {
                 if (state === 'running') {
                     badge.className = 'server-badge online';
                     badge.innerHTML = '<span class="badge-text">● En Ligne</span>';
+                    if (joinBtn) {
+                        joinBtn.disabled = false;
+                        joinBtn.classList.remove('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                        joinBtn.classList.add('rx-btn-primary');
+                        joinBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                            <span>Rejoindre</span>
+                        `;
+                        joinBtn.title = 'Rejoindre le serveur';
+                    }
                 } else if (state === 'starting') {
                     badge.className = 'server-badge starting';
                     badge.innerHTML = '<span class="badge-text">● Démarrage...</span>';
+                    if (joinBtn) {
+                        joinBtn.disabled = true;
+                        joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                        joinBtn.classList.remove('rx-btn-primary');
+                        joinBtn.innerHTML = '<span>Démarrage...</span>';
+                        joinBtn.title = 'Le serveur est en cours de démarrage';
+                    }
                 } else {
                     badge.className = 'server-badge offline';
                     badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
+                    if (joinBtn) {
+                        joinBtn.disabled = true;
+                        joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                        joinBtn.classList.remove('rx-btn-primary');
+                        joinBtn.innerHTML = '<span>Hors-Ligne</span>';
+                        joinBtn.title = 'Ce serveur est actuellement éteint ou inaccessible';
+                    }
                 }
 
                 const ramMb = (res.resources.resources.memory_bytes / (1024 * 1024)).toFixed(0);
@@ -1118,12 +1156,26 @@ class RxcorpApp {
             } else {
                 badge.className = 'server-badge offline';
                 badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
+                if (joinBtn) {
+                    joinBtn.disabled = true;
+                    joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                    joinBtn.classList.remove('rx-btn-primary');
+                    joinBtn.innerHTML = '<span>Hors-Ligne</span>';
+                    joinBtn.title = 'Ce serveur est actuellement éteint ou inaccessible';
+                }
                 ramValue.innerText = '-';
                 cpuValue.innerText = '0%';
             }
         } catch (_) {
             badge.className = 'server-badge offline';
             badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
+            if (joinBtn) {
+                joinBtn.disabled = true;
+                joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                joinBtn.classList.remove('rx-btn-primary');
+                joinBtn.innerHTML = '<span>Hors-Ligne</span>';
+                joinBtn.title = 'Ce serveur est actuellement éteint ou inaccessible';
+            }
             ramValue.innerText = '-';
             cpuValue.innerText = '0%';
         }
@@ -1233,7 +1285,7 @@ class RxcorpApp {
         const instance = instanceService.getOrCreateServerInstance(server);
         const modsPath = instance.modsPath || (instance.path ? path.join(instance.path, 'mods') : path.join(instanceService.getBaseDir(), instance.id, 'mods'));
 
-        // Open Link-Sync Modal
+        // Open RXSync Modal
         this.openModal('modal-mods-sync');
 
         const titleEl = document.getElementById('sync-server-title');
@@ -1250,7 +1302,7 @@ class RxcorpApp {
 
         // Reset UI & prepare terminal
         this.clearSyncTerminal();
-        this.logToSyncTerminal('init', `Initialisation Link-Sync pour "${server.name}" (${server.ip}:${server.port})`);
+        this.logToSyncTerminal('init', `Initialisation RXSync pour "${server.name}" (${server.ip}:${server.port})`);
 
         if (titleEl) titleEl.innerText = `${server.name} (${server.ip}:${server.port})`;
         if (statTotal) statTotal.innerText = '-';
@@ -1307,7 +1359,7 @@ class RxcorpApp {
                         if (countStepEl) countStepEl.innerText = `${progress.filePercent || 0}%`;
                     } else if (progress.status === 'completed') {
                         if (progressLabel) progressLabel.innerText = 'Synchronisation terminee !';
-                        if (currentModEl) currentModEl.innerText = `${progress.downloadedCount || 0} nouveau(x) mod(s) telecharge(s), ${progress.linkedFromPool || 0} lie(s) en Link-Sync.`;
+                        if (currentModEl) currentModEl.innerText = `${progress.downloadedCount || 0} nouveau(x) mod(s) telecharge(s), ${progress.linkedFromPool || 0} lie(s) en RXSync.`;
                         if (countStepEl) countStepEl.innerText = 'Pret';
                     }
                 },
@@ -1327,7 +1379,7 @@ class RxcorpApp {
             if (btnPlay) btnPlay.style.display = 'inline-flex';
 
             this.showNotification(
-                'Link-Sync Termine',
+                'RXSync Termine',
                 `${result.downloadedCount} mod(s) telecharge(s), ${result.linkedFromPool} lie(s) sans duplication d'espace.`
             );
             this.setActiveInstanceForDomain('cloud', instance.id);
@@ -1371,7 +1423,7 @@ class RxcorpApp {
             } catch (_) {}
         }
 
-        // 1. Sync mods via Link-Sync and automatically launch when done
+        // 1. Sync mods via RXSync and automatically launch when done
         await this.handleSyncServerMods(server, true);
     }
 
@@ -1863,7 +1915,7 @@ class RxcorpApp {
                         <p style="font-size: 12.5px; color: var(--text-dim); margin-bottom: 16px;">
                             CurseForge requiert une clé API personnelle. Entrez votre clé ci-dessous ou utilisez <strong>Modrinth</strong> (sans clé).
                         </p>
-                        <input id="input-inline-curseforge" type="password" class="form-input" placeholder="$2a$10$..." style="margin-bottom: 12px;">
+                        <input id="input-inline-curseforge" type="password" class="form-input" placeholder="Entrez votre clé API CurseForge (Optionnel)" style="margin-bottom: 12px;">
                         <button id="btn-save-inline-curseforge" class="rx-btn rx-btn-primary" style="width: 100%;">
                             Enregistrer la clé CurseForge
                         </button>
@@ -1958,7 +2010,7 @@ class RxcorpApp {
                         <span title="${rawDownloads} téléchargements">${downloadsFormatted} dl</span>
                         <span title="${rawFollows} favoris">${followsFormatted} favoris</span>
                     </div>
-                    <button class="rx-btn rx-btn-primary btn-install-mod" data-id="${mod.id || mod.slug}" data-source="${this.activeModSource}">
+                    <button class="rx-btn rx-btn-secondary btn-install-mod" data-id="${mod.id || mod.slug}" data-source="${this.activeModSource}">
                         <span>Installer</span>
                     </button>
                 </div>
@@ -2175,9 +2227,6 @@ class RxcorpApp {
 
         // Mode Selection Handler (Cloud Server vs Local Player / Friends)
         this.initModeSelector();
-
-        // Language Switcher Handler
-        this.initLanguageSelector();
         this.initLinkSyncPoolSettings();
 
         btnSave?.addEventListener('click', () => {
@@ -2294,16 +2343,24 @@ class RxcorpApp {
     }
 
     initLanguageSelector() {
-        const langBtns = document.querySelectorAll('.lang-btn');
-        const currentLang = store.get('lang') || 'fr';
+        const langBtns = document.querySelectorAll('.lang-btn-switch, .lang-btn');
+        const currentLang = i18n.getLang() || 'fr';
 
         langBtns.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === currentLang);
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 const chosenLang = btn.dataset.lang;
-                store.set('lang', chosenLang);
-                langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === chosenLang));
-                this.showNotification('Langue mise à jour', chosenLang === 'fr' ? 'Langue définie sur Français' : 'Language set to English');
+                if (chosenLang) {
+                    i18n.setLang(chosenLang);
+                    langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === chosenLang));
+                    this.renderAccountsList();
+                    this.updateDockInstancePill();
+                    const readyText = i18n.t('ready_to_play');
+                    this.updateDockStatus(readyText, 0);
+                    const langNames = { fr: 'Français', en: 'English', es: 'Español', de: 'Deutsch', pt: 'Português' };
+                    this.showNotification('Langue / Language', `Interface : ${langNames[chosenLang] || chosenLang}`);
+                }
             });
         });
     }
@@ -2311,13 +2368,18 @@ class RxcorpApp {
     initLinkSyncPoolSettings() {
         const statCount = document.getElementById('pool-stat-count');
         const statSize = document.getElementById('pool-stat-size');
+        const emptyMsg = document.getElementById('pool-empty-state-msg');
         const btnOpenFolder = document.getElementById('btn-open-pool-folder');
         const btnPurge = document.getElementById('btn-purge-pool');
 
         const updatePoolDisplay = () => {
             const poolInfo = modPoolService.calculateSavings();
-            if (statCount) statCount.innerText = poolInfo.poolCount || 0;
+            const count = poolInfo.poolCount || 0;
+            if (statCount) statCount.innerText = count;
             if (statSize) statSize.innerText = `${(poolInfo.poolBytes / (1024 * 1024)).toFixed(1)} Mo`;
+            if (emptyMsg) {
+                emptyMsg.style.display = count === 0 ? 'block' : 'none';
+            }
         };
 
         updatePoolDisplay();
@@ -2325,15 +2387,15 @@ class RxcorpApp {
         btnOpenFolder?.addEventListener('click', () => {
             const dir = modPoolService.getPoolDir();
             shell.openPath(dir);
-            this.logDev('UI', `Ouverture du dossier du pool Link-Sync : ${dir}`);
+            this.logDev('UI', `Ouverture du dossier du pool RXSync : ${dir}`);
         });
 
         btnPurge?.addEventListener('click', () => {
             const res = modPoolService.purgePool();
             updatePoolDisplay();
             const freedMo = (res.freedBytes / (1024 * 1024)).toFixed(1);
-            this.showNotification('Cache Link-Sync vidé', `${res.deletedCount} mod(s) supprimé(s) (${freedMo} Mo libérés).`);
-            this.logDev('PELICAN', `Cache Link-Sync purgé : ${res.deletedCount} mod(s) supprimé(s), ${freedMo} Mo libérés.`);
+            this.showNotification('Cache RXSync vidé', `${res.deletedCount} mod(s) supprimé(s) (${freedMo} Mo libérés).`);
+            this.logDev('PELICAN', `Cache RXSync purgé : ${res.deletedCount} mod(s) supprimé(s), ${freedMo} Mo libérés.`);
         });
     }
 

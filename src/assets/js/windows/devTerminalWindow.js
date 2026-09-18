@@ -39,7 +39,7 @@ function openTerminal() {
     }
 
     terminalWindow = new BrowserWindow({
-        title: "RXCORP Dev Console // Live Engine Terminal",
+        title: "RXLauncher Dev Console // Live Engine Terminal",
         width: 900,
         height: 600,
         minWidth: 680,

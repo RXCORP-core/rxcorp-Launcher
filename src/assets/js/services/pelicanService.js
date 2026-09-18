@@ -423,7 +423,7 @@ class PelicanService {
     }
 
     /**
-     * Synchronize server mods to local instance /mods directory using Link-Sync
+     * Synchronize server mods to local instance /mods directory using RXSync
      * 1. Inspects server mods
      * 2. Checks central mod pool (instant 0 ms hardlinks for cached mods)
      * 3. Downloads missing mods with integrity validation
@@ -447,7 +447,7 @@ class PelicanService {
             fs.mkdirSync(localModsDir, { recursive: true });
         }
 
-        logCallback('init', 'Demarrage du processus Pelican Link-Sync...');
+        logCallback('init', 'Demarrage du processus Pelican RXSync...');
         logCallback('init', `Serveur Cible : ${serverIdentifier}`);
         logCallback('init', `Repertoire Local : ${localModsDir}`);
 
@@ -499,11 +499,11 @@ class PelicanService {
                     modPoolService.linkModToInstance(mod.name, localModsDir);
                     poolLinkedCount++;
                     totalLinkedBytes += mod.size;
-                    logCallback('link', `[Link-Sync 0 Mo] ${mod.name} lie instantanement depuis le pool`);
+                    logCallback('link', `[RXSync 0 Mo] ${mod.name} lie instantanement depuis le pool`);
                     progressCallback({
                         status: 'linking',
                         modName: mod.name,
-                        message: `Liaison instantanee de ${mod.name} (Link-Sync)`
+                        message: `Liaison instantanee de ${mod.name} (RXSync)`
                     });
                     continue;
                 } catch (linkErr) {
@@ -601,7 +601,7 @@ class PelicanService {
                 logCallback('verify', `[Valide & Lie] ${mod.name} mis en cache central et injecte dans l'instance.`);
             } catch (dlErr) {
                 logCallback('error', `Erreur lors du telechargement de ${mod.name}: ${dlErr.message}`);
-                console.error(`[Link-Sync] Erreur lors du telechargement de ${mod.name}:`, dlErr);
+                console.error(`[RXSync] Erreur lors du telechargement de ${mod.name}:`, dlErr);
                 try { if (fs.existsSync(tempDestPath)) fs.unlinkSync(tempDestPath); } catch (_) {}
             }
         }
@@ -615,10 +615,10 @@ class PelicanService {
             downloadedCount: downloadedCount,
             removedCount: removedMods.length,
             savedSpaceMo: savedMo,
-            message: 'Synchronisation Link-Sync terminee avec succes !'
+            message: 'Synchronisation RXSync terminee avec succes !'
         });
 
-        logCallback('success', `Synchronisation Link-Sync terminee : ${serverMods.length} mods au total (${poolLinkedCount} lies en 0 Mo, ${downloadedCount} telecharges, ${removedMods.length} nettoyes).`);
+        logCallback('success', `Synchronisation RXSync terminee : ${serverMods.length} mods au total (${poolLinkedCount} lies en 0 Mo, ${downloadedCount} telecharges, ${removedMods.length} nettoyes).`);
 
         return {
             success: true,

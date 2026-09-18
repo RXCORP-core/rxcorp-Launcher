@@ -65,7 +65,7 @@ class DiscordManager {
 
         try {
             const data = {
-                details: activity.details || 'RXCORP Launcher',
+                details: activity.details || 'RXLauncher',
                 state: activity.state || 'Dans le launcher • Prêt',
                 largeImageKey: activity.largeImageKey || 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
                 largeImageText: activity.largeImageText || 'RXCORP - Infrastructure Gaming & Cloud',
@@ -96,10 +96,10 @@ class DiscordManager {
 
     setIdle() {
         this.setActivity({
-            details: 'RXCORP Launcher',
+            details: 'RXLauncher',
             state: 'Menu Principal • Prêt à jouer',
             largeImageKey: 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
-            largeImageText: 'RXCORP - Infrastructure Gaming & Cloud',
+            largeImageText: 'RXLauncher - Minecraft & Pelican Cloud',
             smallImageKey: 'https://rxcorp.fr/assets/logo.png',
             smallImageText: 'En attente',
             startTimestamp: this.startTimestamp
@@ -108,7 +108,7 @@ class DiscordManager {
 
     setLaunching(targetName = 'Minecraft') {
         this.setActivity({
-            details: 'RXCORP Launcher',
+            details: 'RXLauncher',
             state: `Lancement de ${targetName}...`,
             largeImageKey: 'https://rxcorp.fr/logos/assets/discord_asset_logo_1024.png',
             largeImageText: 'RXCORP - Infrastructure Gaming & Cloud',

@@ -143,7 +143,7 @@ ipcMain.on('send-notification', (event, data) => {
     if (Notification && Notification.isSupported()) {
         try {
             const notif = new Notification({
-                title: data.title || 'RXCORP Launcher',
+                title: data.title || 'RXLauncher',
                 body: data.body || '',
                 icon: path.join(__dirname, 'assets/images/icon/icon.png'),
                 silent: data.silent === true
@@ -371,7 +371,7 @@ autoUpdater.on('update-downloaded', (info) => {
             buttons: ['Redémarrer maintenant', 'Plus tard'],
             defaultId: 0,
             cancelId: 1,
-            title: 'RXCORP Launcher - Mise à jour prête',
+            title: 'RXLauncher - Mise à jour prête',
             message: `Mise à jour v${ver} téléchargée avec succès !`,
             detail: 'Le launcher va redémarrer pour installer la nouvelle version.'
         }).then(({ response }) => {
