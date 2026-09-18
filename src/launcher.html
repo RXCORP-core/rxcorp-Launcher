@@ -398,20 +398,10 @@
 
             <!-- Filter & Admin Scope Toolbar -->
             <div id="cloud-filter-toolbar" class="cloud-filter-toolbar" style="display: none;">
-                <!-- Left: Game Filter Pills -->
-                <div class="cloud-game-filters">
-                    <button type="button" class="cloud-filter-pill active" data-filter="all">
-                        <span>Tous</span>
-                        <span class="pill-count" id="count-filter-all">0</span>
-                    </button>
-                    <button type="button" class="cloud-filter-pill" data-filter="minecraft">
-                        <span>Minecraft</span>
-                        <span class="pill-count" id="count-filter-mc">0</span>
-                    </button>
-                    <button type="button" class="cloud-filter-pill" data-filter="fivem">
-                        <span>FiveM</span>
-                        <span class="pill-count" id="count-filter-fivem">0</span>
-                    </button>
+                <!-- Left: Minecraft Cloud Label & Count -->
+                <div class="cloud-toolbar-title" style="display: flex; align-items: center; gap: 10px;">
+                    <span class="rx-tag" style="font-size: 11px; padding: 3px 9px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3); font-weight: 700;">Minecraft Cloud</span>
+                    <span id="cloud-server-counter-text" style="color: var(--text-dim); font-size: 12px; font-weight: 500;">0 serveur(s) disponible(s)</span>
                 </div>
 
                 <!-- Right: Admin Scope Switch (Visible only for admin accounts) -->
@@ -422,7 +412,7 @@
                     </div>
                     <div class="admin-scope-switch-group">
                         <button type="button" class="admin-scope-btn" id="btn-scope-user" title="Afficher uniquement les serveurs où vous êtes propriétaire ou sous-utilisateur">Mes serveurs</button>
-                        <button type="button" class="admin-scope-btn active" id="btn-scope-admin" title="Afficher l'infrastructure complète du Panel (FiveM & Minecraft)">Tous les serveurs</button>
+                        <button type="button" class="admin-scope-btn active" id="btn-scope-admin" title="Afficher l'infrastructure complète du Panel">Tous les serveurs</button>
                     </div>
                 </div>
             </div>
@@ -1142,6 +1132,65 @@
                     <span id="ms-auth-status-text">En attente de votre validation sur mobile ou navigateur...</span>
                 </div>
                 <button type="button" class="rx-btn rx-btn-secondary" id="btn-cancel-ms-auth" data-close="modal-microsoft-auth" style="padding: 6px 14px; font-size: 11px;">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link-Sync Mods Modal -->
+    <div id="modal-mods-sync" class="rx-modal-overlay">
+        <div class="rx-modal-card" style="max-width: 520px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4ade80" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title" style="margin: 0; font-size: 15px;">Synchronisation Link-Sync</h3>
+                        <span id="sync-server-title" style="font-size: 11.5px; color: var(--text-muted);">Serveur Pelican</span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" data-close="modal-mods-sync">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 18px 20px;">
+                <!-- Link-Sync Stat Cards Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; text-align: center;">
+                        <span style="font-size: 10px; color: var(--text-dim); display: block; text-transform: uppercase;">Total Mods</span>
+                        <span id="sync-stat-total" style="font-size: 18px; font-weight: 700; color: var(--text);">-</span>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; padding: 10px; text-align: center;">
+                        <span style="font-size: 10px; color: #4ade80; display: block; text-transform: uppercase;">Link-Sync (0 Mo)</span>
+                        <span id="sync-stat-pool" style="font-size: 18px; font-weight: 700; color: #4ade80;">-</span>
+                    </div>
+                    <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 10px; text-align: center;">
+                        <span style="font-size: 10px; color: #60a5fa; display: block; text-transform: uppercase;">À Télécharger</span>
+                        <span id="sync-stat-download" style="font-size: 18px; font-weight: 700; color: #60a5fa;">-</span>
+                    </div>
+                </div>
+
+                <!-- Live Status Banner -->
+                <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span id="sync-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text);">Initialisation...</span>
+                        <span id="sync-progress-percent" style="font-size: 12px; font-weight: 700; color: var(--primary);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden;">
+                        <div id="sync-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); transition: width 0.2s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-dim);">
+                        <span id="sync-current-mod" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">En attente...</span>
+                        <span id="sync-count-step">-</span>
+                    </div>
+                </div>
+
+                <!-- Info callout -->
+                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 12px;">
+                    Grâce au Link-Sync RXCORP, les mods déjà en cache sont liés instantanément par hardlink sans occuper d'espace disque additionnel ni saturer votre connexion.
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="rx-btn rx-btn-secondary" id="btn-close-sync-modal" data-close="modal-mods-sync">Fermer</button>
+                <button type="button" class="rx-btn rx-btn-primary" id="btn-sync-and-play" style="display: none; font-weight: 700;">Lancer le Jeu</button>
             </div>
         </div>
     </div>

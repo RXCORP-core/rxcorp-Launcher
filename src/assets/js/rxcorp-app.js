@@ -346,46 +346,49 @@ class RxcorpApp {
                     this.openDrawer('cloud', 'SERVEURS PELICAN CLOUD');
                 });
             } else {
-                cloudList.innerHTML = this.cloudServers.map(srv => {
-                    const isSelected = this.activeInstance?.serverAddress === `${srv.ip}:${srv.port}` || 
-                                       (this.activeInstance?.name && this.activeInstance.name.includes(srv.name));
-                    const isOnline = srv.status === 'online' || srv.status === 'running';
-                    const ping = srv.ping || 18;
-                    const gameBadge = srv.isFiveM 
-                        ? `<span class="rx-tag" style="font-size: 9px; padding: 1px 5px; margin-left: 5px; background: rgba(249, 115, 22, 0.15); color: #fb923c; border-color: rgba(249, 115, 22, 0.3);">FiveM</span>`
-                        : `<span class="rx-tag" style="font-size: 9px; padding: 1px 5px; margin-left: 5px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">MC</span>`;
-                    return `
-                        <div class="dash-item-row ${isSelected ? 'active' : ''}">
-                            <div class="dash-item-left">
-                                <span class="srv-dot ${isOnline ? 'online' : 'offline'}"></span>
-                                <div class="dash-item-info">
-                                    <span class="dash-item-name">${srv.name} ${gameBadge}</span>
-                                    <span class="dash-item-sub">${ping}ms • ${srv.ip}:${srv.port}</span>
-                                </div>
-                            </div>
-                            <div class="dash-item-actions">
-                                <button class="dash-quick-btn btn-dash-select-server" data-name="${srv.name}">
-                                    ${srv.isFiveM ? 'Lancer' : (isSelected ? 'Actif' : 'Sélectionner')}
-                                </button>
-                            </div>
+                const mcServers = (this.cloudServers || []).filter(s => s.isMinecraft);
+                if (mcServers.length === 0) {
+                    cloudList.innerHTML = `
+                        <div style="font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 10px;">
+                            Aucun serveur Minecraft actif sur votre compte.<br>
+                            <a href="#" id="link-connect-cloud-dash" style="color: var(--primary); text-decoration: underline; font-weight: 600;">Gérer dans l'onglet Cloud ↗</a>
                         </div>
                     `;
-                }).join('');
+                } else {
+                    cloudList.innerHTML = mcServers.map(srv => {
+                        const isSelected = this.activeInstance?.serverAddress === `${srv.ip}:${srv.port}` || 
+                                           (this.activeInstance?.name && this.activeInstance.name.includes(srv.name));
+                        const isOnline = srv.status === 'online' || srv.status === 'running';
+                        const ping = srv.ping || 18;
+                        const loaderBadge = (srv.loader && srv.loader !== 'vanilla') ? srv.loader.toUpperCase() : 'MC';
+                        return `
+                            <div class="dash-item-row ${isSelected ? 'active' : ''}">
+                                <div class="dash-item-left">
+                                    <span class="srv-dot ${isOnline ? 'online' : 'offline'}"></span>
+                                    <div class="dash-item-info">
+                                        <span class="dash-item-name">${srv.name} <span class="rx-tag" style="font-size: 9px; padding: 1px 5px; margin-left: 5px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">${loaderBadge} ${srv.version || '1.20.1'}</span></span>
+                                        <span class="dash-item-sub">${ping}ms • ${srv.ip}:${srv.port}</span>
+                                    </div>
+                                </div>
+                                <div class="dash-item-actions">
+                                    <button class="dash-quick-btn btn-dash-select-server" data-name="${srv.name}">
+                                        ${isSelected ? 'Actif' : 'Sélectionner'}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
 
-                cloudList.querySelectorAll('.btn-dash-select-server').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const srvName = e.currentTarget.dataset.name;
-                        const srv = this.cloudServers.find(s => s.name === srvName);
-                        if (srv) {
-                            if (srv.isFiveM) {
-                                this.showNotification('FiveM', `Lancement et connexion à ${srv.ip}:${srv.port}...`);
-                                shell.openExternal(`fivem://connect/${srv.ip}:${srv.port}`);
-                            } else {
+                    cloudList.querySelectorAll('.btn-dash-select-server').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const srvName = e.currentTarget.dataset.name;
+                            const srv = mcServers.find(s => s.name === srvName);
+                            if (srv) {
                                 await this.selectCloudServer(srv);
                             }
-                        }
+                        });
                     });
-                });
+                }
             }
         }
 
@@ -720,6 +723,7 @@ class RxcorpApp {
         const toolbar = document.getElementById('cloud-filter-toolbar');
         const adminScopeBox = document.getElementById('cloud-admin-scope-box');
         const grid = document.getElementById('cloud-servers-grid');
+        const counterEl = document.getElementById('cloud-server-counter-text');
         const pillText = document.getElementById('cloud-pill-text');
         const pillDot = document.querySelector('#cloud-pill .status-dot');
 
@@ -787,7 +791,7 @@ class RxcorpApp {
         if (grid) {
             grid.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim);">
-                    <span>Chargement de vos serveurs RXCORP...</span>
+                    <span>Chargement de vos serveurs Minecraft...</span>
                 </div>
             `;
         }
@@ -813,25 +817,17 @@ class RxcorpApp {
             return;
         }
 
-        // Store all servers (FiveM and Minecraft)
-        this.cloudServers = res.servers || [];
+        // Filter strictly to Minecraft servers (FiveM and other games deferred as requested)
+        this.cloudServers = (res.servers || []).filter(s => s.isMinecraft);
 
         // Show toolbar
         if (toolbar) toolbar.style.display = 'flex';
 
-        // Update counts
-        const totalCount = this.cloudServers.length;
-        const mcCount = this.cloudServers.filter(s => s.isMinecraft).length;
-        const fivemCount = this.cloudServers.filter(s => s.isFiveM).length;
+        if (counterEl) {
+            counterEl.innerText = `${this.cloudServers.length} serveur(s) disponible(s)`;
+        }
 
-        const countFilterAll = document.getElementById('count-filter-all');
-        const countFilterMc = document.getElementById('count-filter-mc');
-        const countFilterFivem = document.getElementById('count-filter-fivem');
-        if (countFilterAll) countFilterAll.innerText = totalCount;
-        if (countFilterMc) countFilterMc.innerText = mcCount;
-        if (countFilterFivem) countFilterFivem.innerText = fivemCount;
-
-        if (pillText) pillText.innerText = `${totalCount} Serveur(s)`;
+        if (pillText) pillText.innerText = `${this.cloudServers.length} Serveur(s)`;
         if (pillDot) pillDot.className = 'status-dot online';
 
         this.renderFilteredCloudServers();
@@ -843,26 +839,15 @@ class RxcorpApp {
         const grid = document.getElementById('cloud-servers-grid');
         if (!grid) return;
 
-        if (!this.activeGameFilter) {
-            this.activeGameFilter = 'all';
-        }
+        const servers = this.cloudServers || [];
 
-        const filter = this.activeGameFilter;
-        let filtered = this.cloudServers || [];
-        if (filter === 'minecraft') {
-            filtered = filtered.filter(s => s.isMinecraft);
-        } else if (filter === 'fivem') {
-            filtered = filtered.filter(s => s.isFiveM);
-        }
-
-        if (filtered.length === 0) {
-            const label = filter === 'minecraft' ? 'Minecraft' : (filter === 'fivem' ? 'FiveM' : '');
+        if (servers.length === 0) {
             grid.innerHTML = `
                 <div class="rx-card" style="grid-column: 1/-1; text-align: center; padding: 32px 20px; background: rgba(16, 20, 31, 0.6); border: 1px solid var(--border-card);">
-                    <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">Aucun serveur ${label ? label + ' ' : ''}trouvé sur votre panel Pelican.</p>
+                    <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">Aucun serveur Minecraft privé trouvé sur votre panel Pelican.</p>
                     <div style="display: flex; justify-content: center; gap: 10px;">
                         <button class="rx-btn rx-btn-primary" onclick="shell.openExternal('https://billing.rxcorp.fr')">
-                            Commander un serveur
+                            Commander un serveur Minecraft
                         </button>
                     </div>
                 </div>
@@ -871,7 +856,7 @@ class RxcorpApp {
         }
 
         grid.innerHTML = '';
-        for (const server of filtered) {
+        for (const server of servers) {
             const card = this.createServerCard(server);
             grid.appendChild(card);
             this.fetchServerLiveStatus(server, card);
@@ -883,61 +868,14 @@ class RxcorpApp {
         card.className = 'server-card';
         card.id = `server-card-${server.id}`;
 
-        const isFiveM = server.isFiveM;
-        const gameTagHtml = isFiveM
-            ? `<span class="rx-tag" style="font-size: 10px; padding: 2px 7px; border-radius: 4px; background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); font-weight: 700; margin-left: 8px;">FiveM</span>`
-            : `<span class="rx-tag" style="font-size: 10px; padding: 2px 7px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; margin-left: 8px;">Minecraft</span>`;
-
-        const middleInfoHtml = isFiveM ? `
-            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: #fb923c; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-                    <span style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Serveur GTA V / FiveM</span>
-                </div>
-                <span class="rx-tag" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3);">CFX.re</span>
-            </div>
-        ` : `
-            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: var(--primary); flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                    <span id="mods-summary-${server.id}" style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Détection des mods...</span>
-                </div>
-                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border-subtle);">-</span>
-            </div>
-        `;
-
-        const actionButtonsHtml = isFiveM ? `
-            <button class="rx-btn rx-btn-primary btn-join-fivem" style="flex: 1.5; font-weight: 700; background: linear-gradient(135deg, #ea580c, #f97316); border-color: rgba(249, 115, 22, 0.5);" data-id="${server.id}">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                <span>Lancer FiveM</span>
-            </button>
-            <button class="rx-btn rx-btn-secondary btn-copy-ip" title="Copier l'adresse de connexion" style="flex: 1; font-weight: 600;" data-id="${server.id}">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                <span>Copier IP</span>
-            </button>
-            <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </button>
-        ` : `
-            <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1.3; font-weight: 700;" data-id="${server.id}">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                <span>Rejoindre</span>
-            </button>
-            <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger les mods du serveur" style="flex: 1; font-weight: 600;" data-id="${server.id}">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                <span>Sync Mods</span>
-            </button>
-            <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </button>
-        `;
+        const loaderText = (server.loader && server.loader !== 'vanilla') ? server.loader.toUpperCase() : 'VANILLA';
 
         card.innerHTML = `
             <div class="server-card-top">
                 <div class="server-name-box">
-                    <div style="display: flex; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
                         <h3 class="server-name" style="margin: 0;">${server.name}</h3>
-                        ${gameTagHtml}
+                        <span class="rx-tag" style="font-size: 10px; padding: 2px 7px; border-radius: 4px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); font-weight: 700;">${loaderText} ${server.version || '1.20.1'}</span>
                     </div>
                     <div class="server-address" title="Cliquer pour copier l'adresse" style="cursor: pointer;">
                         <span>${server.ip}:${server.port}</span>
@@ -964,10 +902,26 @@ class RxcorpApp {
                 </div>
             </div>
 
-            ${middleInfoHtml}
+            <div class="server-mods-preview" id="mods-preview-${server.id}" style="margin-top: 6px; margin-bottom: 6px; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; stroke: var(--primary); flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span id="mods-summary-${server.id}" style="color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">Détection des mods...</span>
+                </div>
+                <span class="rx-tag" id="mods-count-${server.id}" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border-subtle);">-</span>
+            </div>
 
             <div class="server-actions">
-                ${actionButtonsHtml}
+                <button class="rx-btn rx-btn-primary btn-join-server" style="flex: 1.3; font-weight: 700;" data-id="${server.id}">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                    <span>Rejoindre</span>
+                </button>
+                <button class="rx-btn rx-btn-secondary btn-sync-mods" title="Télécharger et lier les mods via Link-Sync" style="flex: 1; font-weight: 600;" data-id="${server.id}">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Link-Sync</span>
+                </button>
+                <button class="rx-btn rx-btn-secondary btn-open-panel" title="Gérer sur le Panel" style="padding: 9px 12px;" data-id="${server.id}">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </button>
             </div>
         `;
 
@@ -980,24 +934,13 @@ class RxcorpApp {
             });
         }
 
-        if (isFiveM) {
-            card.querySelector('.btn-join-fivem')?.addEventListener('click', () => {
-                this.showNotification('FiveM', `Connexion au serveur ${server.name} (${server.ip}:${server.port})...`);
-                shell.openExternal(`fivem://connect/${server.ip}:${server.port}`);
-            });
-            card.querySelector('.btn-copy-ip')?.addEventListener('click', () => {
-                const text = `${server.ip}:${server.port}`;
-                clipboard.writeText(text);
-                this.showNotification('Adresse Copiée', `${text} est copié dans le presse-papier.`);
-            });
-        } else {
-            card.querySelector('.btn-join-server')?.addEventListener('click', () => {
-                this.handleJoinServer(server);
-            });
-            card.querySelector('.btn-sync-mods')?.addEventListener('click', () => {
-                this.handleSyncServerMods(server);
-            });
-        }
+        card.querySelector('.btn-join-server')?.addEventListener('click', () => {
+            this.handleJoinServer(server);
+        });
+
+        card.querySelector('.btn-sync-mods')?.addEventListener('click', () => {
+            this.handleSyncServerMods(server, false);
+        });
 
         card.querySelector('.btn-open-panel')?.addEventListener('click', () => {
             const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
@@ -1073,14 +1016,47 @@ class RxcorpApp {
         }
     }
 
-    async handleSyncServerMods(server) {
+    async handleSyncServerMods(server, autoLaunch = false) {
         if (this.isSyncing) return;
         this.isSyncing = true;
 
         const apiKey = store.get('apiKey');
-        const panelUrl = store.get('panelUrl');
+        const panelUrl = store.get('panelUrl') || 'https://panel.rxcorp.fr';
         const instance = instanceService.getOrCreateServerInstance(server);
         const modsPath = instance.modsPath || (instance.path ? path.join(instance.path, 'mods') : path.join(instanceService.getBaseDir(), instance.id, 'mods'));
+
+        // Open Link-Sync Modal
+        this.openModal('modal-mods-sync');
+
+        const titleEl = document.getElementById('sync-server-title');
+        const statTotal = document.getElementById('sync-stat-total');
+        const statPool = document.getElementById('sync-stat-pool');
+        const statDownload = document.getElementById('sync-stat-download');
+        const progressLabel = document.getElementById('sync-progress-label');
+        const progressPercent = document.getElementById('sync-progress-percent');
+        const progressBar = document.getElementById('sync-progress-bar');
+        const currentModEl = document.getElementById('sync-current-mod');
+        const countStepEl = document.getElementById('sync-count-step');
+        const btnPlay = document.getElementById('btn-sync-and-play');
+
+        if (titleEl) titleEl.innerText = `${server.name} (${server.ip}:${server.port})`;
+        if (statTotal) statTotal.innerText = '-';
+        if (statPool) statPool.innerText = '-';
+        if (statDownload) statDownload.innerText = '-';
+        if (progressLabel) progressLabel.innerText = 'Connexion à Pelican...';
+        if (progressPercent) progressPercent.innerText = '0%';
+        if (progressBar) progressBar.style.width = '0%';
+        if (currentModEl) currentModEl.innerText = 'Analyse des mods du serveur...';
+        if (countStepEl) countStepEl.innerText = '-';
+        if (btnPlay) {
+            btnPlay.style.display = 'none';
+            btnPlay.onclick = async () => {
+                this.closeModal('modal-mods-sync');
+                this.setActiveInstanceForDomain('cloud', instance.id);
+                this.selectDribbbleMode('cloud');
+                await this.launchCurrentInstance();
+            };
+        }
 
         this.updateDockStatus(`Synchronisation avec ${server.name}...`, 0);
 
@@ -1091,18 +1067,61 @@ class RxcorpApp {
                 apiKey,
                 panelUrl,
                 (progress) => {
-                    this.updateDockStatus(progress.message, progress.percent || 0);
+                    if (progress.percent !== undefined) {
+                        this.updateDockStatus(progress.message, progress.percent);
+                        if (progressPercent) progressPercent.innerText = `${progress.percent}%`;
+                        if (progressBar) progressBar.style.width = `${progress.percent}%`;
+                    }
+
+                    if (progress.status === 'scan') {
+                        if (progressLabel) progressLabel.innerText = 'Analyse des mods distants...';
+                        if (currentModEl) currentModEl.innerText = progress.message;
+                    } else if (progress.status === 'plan') {
+                        if (statTotal) statTotal.innerText = progress.totalServerMods || 0;
+                        if (statPool) statPool.innerText = `${progress.linkedFromPool || 0}`;
+                        if (statDownload) statDownload.innerText = `${progress.toDownloadCount || 0}`;
+                        if (progressLabel) progressLabel.innerText = progress.message;
+                    } else if (progress.status === 'linking') {
+                        if (currentModEl) currentModEl.innerText = progress.message;
+                    } else if (progress.status === 'downloading') {
+                        if (progressLabel) progressLabel.innerText = `Téléchargement (${progress.current}/${progress.total})`;
+                        if (currentModEl) currentModEl.innerText = progress.modName || '';
+                        if (countStepEl) countStepEl.innerText = `${progress.filePercent || 0}%`;
+                    } else if (progress.status === 'completed') {
+                        if (progressLabel) progressLabel.innerText = 'Synchronisation terminée !';
+                        if (currentModEl) currentModEl.innerText = `${result?.downloadedCount || 0} nouveau(x) mod(s) téléchargé(s), ${result?.linkedFromPool || 0} lié(s) en Link-Sync.`;
+                        if (countStepEl) countStepEl.innerText = 'Prêt';
+                    }
                 }
             );
 
+            if (statTotal) statTotal.innerText = result.totalServerMods || 0;
+            if (statPool) statPool.innerText = `${result.linkedFromPool || 0}`;
+            if (statDownload) statDownload.innerText = `${result.downloadedCount || 0}`;
+            if (progressPercent) progressPercent.innerText = '100%';
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressLabel) progressLabel.innerText = 'Instance prête !';
+            if (currentModEl) currentModEl.innerText = `${result.downloadedCount} téléchargé(s), ${result.linkedFromPool} lié(s) depuis le cache.`;
+            if (btnPlay) btnPlay.style.display = 'inline-flex';
+
             this.showNotification(
-                'Synchronisation réussie',
-                `${result.downloadedCount || 0} mod(s) synchronisé(s) avec succès pour ${server.name}.`
+                'Link-Sync Terminé',
+                `${result.downloadedCount} mod(s) téléchargé(s), ${result.linkedFromPool} lié(s) sans duplication d'espace.`
             );
             this.setActiveInstanceForDomain('cloud', instance.id);
             this.loadInstances();
+
+            if (autoLaunch) {
+                setTimeout(async () => {
+                    this.closeModal('modal-mods-sync');
+                    this.selectDribbbleMode('cloud');
+                    await this.launchCurrentInstance();
+                }, 800);
+            }
         } catch (err) {
             console.error('[Sync error]:', err);
+            if (progressLabel) progressLabel.innerText = 'Erreur de synchronisation';
+            if (currentModEl) currentModEl.innerText = err.message;
             this.showNotification('Erreur de synchronisation', err.message);
         } finally {
             this.isSyncing = false;
@@ -1129,16 +1148,8 @@ class RxcorpApp {
             } catch (_) {}
         }
 
-        // 1. Sync mods first
-        await this.handleSyncServerMods(server);
-
-        // 2. Select the server instance
-        const instance = instanceService.getOrCreateServerInstance(server);
-        this.setActiveInstanceForDomain('cloud', instance.id);
-        this.selectDribbbleMode('cloud');
-
-        // 3. Launch game with server auto-connect!
-        await this.launchCurrentInstance();
+        // 1. Sync mods via Link-Sync and automatically launch when done
+        await this.handleSyncServerMods(server, true);
     }
 
     // ==========================================

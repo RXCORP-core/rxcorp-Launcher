@@ -8,6 +8,7 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
+const modPoolService = require('./modPoolService');
 
 class PelicanService {
     constructor() {
@@ -339,10 +340,11 @@ class PelicanService {
     }
 
     /**
-     * Synchronize server mods to local instance /mods directory
+     * Synchronize server mods to local instance /mods directory using Link-Sync
      * 1. Inspects server mods
-     * 2. Compares with local mods
-     * 3. Downloads missing or updated mods
+     * 2. Checks central mod pool (instant 0 ms hardlinks for cached mods)
+     * 3. Downloads missing mods with integrity validation
+     * 4. Cleans obsolete mods from instance
      */
     async syncModsToInstance(serverIdentifier, localModsDir, apiKey, panelUrl = this.defaultPanelUrl, progressCallback = () => {}) {
         if (!localModsDir) {
@@ -353,58 +355,81 @@ class PelicanService {
             fs.mkdirSync(localModsDir, { recursive: true });
         }
 
-        progressCallback({ status: 'scan', message: 'Analyse des mods du serveur...' });
+        progressCallback({ status: 'scan', percent: 5, message: 'Analyse des mods du serveur Pelican...' });
         const serverModsRes = await this.listServerMods(serverIdentifier, apiKey, panelUrl);
         if (!serverModsRes.success) {
             throw new Error(serverModsRes.error || 'Impossible de lister les mods du serveur');
         }
 
-        const serverMods = serverModsRes.mods;
-        const localFiles = fs.readdirSync(localModsDir).filter(f => f.endsWith('.jar'));
+        const serverMods = serverModsRes.mods || [];
+        const serverModNamesSet = new Set(serverMods.map(m => m.name));
 
-        // Clean up obsolete mods that are no longer on the server
-        const serverModNames = new Set(serverMods.map(m => m.name));
-        for (const localFile of localFiles) {
-            if (!serverModNames.has(localFile)) {
-                try {
-                    fs.unlinkSync(path.join(localModsDir, localFile));
-                    console.log(`[Sync] Supprimé mod obsolète local : ${localFile}`);
-                } catch (e) {
-                    console.warn(`[Sync] Impossible de supprimer le mod obsolète ${localFile}:`, e);
-                }
-            }
-        }
+        // Clean obsolete mods from instance (preserved in pool)
+        const removedMods = modPoolService.cleanInstanceMods(serverModNamesSet, localModsDir);
 
-        // Determine which mods need to be downloaded
+        let alreadyLinkedCount = 0;
+        let poolLinkedCount = 0;
         const toDownload = [];
+
+        // Determine what is already up to date, what can be linked from pool, and what must be downloaded
         for (const mod of serverMods) {
             const localFilePath = path.join(localModsDir, mod.name);
-            if (!fs.existsSync(localFilePath)) {
-                toDownload.push(mod);
-            } else {
-                const stat = fs.statSync(localFilePath);
-                // If local size differs significantly from server size, redownload
-                if (Math.abs(stat.size - mod.size) > 100) {
-                    toDownload.push(mod);
+
+            if (fs.existsSync(localFilePath) && modPoolService.isJarValid(localFilePath)) {
+                const statLocal = fs.statSync(localFilePath);
+                if (Math.abs(statLocal.size - mod.size) <= 100) {
+                    alreadyLinkedCount++;
+                    continue;
                 }
             }
+
+            // Check if it exists in central pool
+            if (modPoolService.hasModInPool(mod.name, mod.size)) {
+                try {
+                    modPoolService.linkModToInstance(mod.name, localModsDir);
+                    poolLinkedCount++;
+                    progressCallback({
+                        status: 'linking',
+                        modName: mod.name,
+                        message: `Liaison instantanée de ${mod.name} (Link-Sync)`
+                    });
+                    continue;
+                } catch (_) {}
+            }
+
+            toDownload.push(mod);
         }
 
-        progressCallback({ 
-            status: 'found', 
-            totalServerMods: serverMods.length, 
+        progressCallback({
+            status: 'plan',
+            percent: 25,
+            totalServerMods: serverMods.length,
+            alreadyUpToDate: alreadyLinkedCount,
+            linkedFromPool: poolLinkedCount,
             toDownloadCount: toDownload.length,
-            message: `${toDownload.length} mod(s) à télécharger sur ${serverMods.length} total.`
+            removedCount: removedMods.length,
+            message: toDownload.length === 0 
+                ? `${serverMods.length} mod(s) prêts (${poolLinkedCount} lié(s) instantanément).`
+                : `${toDownload.length} mod(s) à télécharger (${poolLinkedCount} lié(s) depuis le cache).`
         });
 
         let downloadedCount = 0;
-        for (const mod of toDownload) {
+        const tempDownloadDir = path.join(modPoolService.getPoolDir(), '.temp');
+        if (!fs.existsSync(tempDownloadDir)) {
+            fs.mkdirSync(tempDownloadDir, { recursive: true });
+        }
+
+        for (let i = 0; i < toDownload.length; i++) {
+            const mod = toDownload[i];
+            const currentStep = i + 1;
+            const stepPercent = Math.round(25 + ((currentStep - 1) / toDownload.length) * 70);
+
             progressCallback({
                 status: 'downloading',
                 modName: mod.name,
-                current: downloadedCount + 1,
+                current: currentStep,
                 total: toDownload.length,
-                percent: 0,
+                percent: stepPercent,
                 message: `Téléchargement de ${mod.name}...`
             });
 
@@ -414,32 +439,59 @@ class PelicanService {
                 continue;
             }
 
-            const destPath = path.join(localModsDir, mod.name);
-            await this.downloadFile(dlRes.url, destPath, (loaded, total) => {
-                const percent = Math.round((loaded / total) * 100);
-                progressCallback({
-                    status: 'downloading',
-                    modName: mod.name,
-                    current: downloadedCount + 1,
-                    total: toDownload.length,
-                    percent: percent,
-                    message: `Téléchargement de ${mod.name} (${percent}%)`
+            const tempDestPath = path.join(tempDownloadDir, `temp_${Date.now()}_${mod.name}`);
+            try {
+                await this.downloadFile(dlRes.url, tempDestPath, (loaded, total) => {
+                    const filePct = Math.round((loaded / total) * 100);
+                    const overallPct = Math.round(25 + ((i + (loaded / total)) / toDownload.length) * 70);
+                    progressCallback({
+                        status: 'downloading',
+                        modName: mod.name,
+                        current: currentStep,
+                        total: toDownload.length,
+                        percent: Math.min(overallPct, 95),
+                        filePercent: filePct,
+                        message: `Téléchargement de ${mod.name} (${filePct}%)`
+                    });
                 });
-            });
 
-            downloadedCount++;
+                // Anti-conflict verification: check JAR integrity before storing in pool
+                if (!modPoolService.isJarValid(tempDestPath)) {
+                    console.error(`[Link-Sync] Fichier corrompu ou invalide reçu pour ${mod.name}`);
+                    try { fs.unlinkSync(tempDestPath); } catch (_) {}
+                    continue;
+                }
+
+                // Add to central pool
+                modPoolService.storeModInPool(mod.name, tempDestPath);
+
+                // Link to instance
+                modPoolService.linkModToInstance(mod.name, localModsDir);
+                downloadedCount++;
+            } catch (dlErr) {
+                console.error(`[Link-Sync] Erreur lors du téléchargement de ${mod.name}:`, dlErr);
+                try { if (fs.existsSync(tempDestPath)) fs.unlinkSync(tempDestPath); } catch (_) {}
+            }
         }
 
-        progressCallback({ 
-            status: 'completed', 
-            downloadedCount,
-            message: 'Synchronisation des mods terminée avec succès !' 
+        progressCallback({
+            status: 'completed',
+            percent: 100,
+            totalServerMods: serverMods.length,
+            alreadyUpToDate: alreadyLinkedCount,
+            linkedFromPool: poolLinkedCount,
+            downloadedCount: downloadedCount,
+            removedCount: removedMods.length,
+            message: 'Synchronisation Link-Sync terminée avec succès !'
         });
 
         return {
             success: true,
             totalServerMods: serverMods.length,
-            downloadedCount
+            alreadyUpToDate: alreadyLinkedCount,
+            linkedFromPool: poolLinkedCount,
+            downloadedCount: downloadedCount,
+            removedCount: removedMods.length
         };
     }
 
