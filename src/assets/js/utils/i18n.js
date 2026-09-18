@@ -80,6 +80,8 @@ const translations = {
         wizard_or: "OU",
         wizard_save: "Valider",
         recommended: "Recommandé",
+        login_quick_title: "Jouer Immédiatement (Pseudo Libre)",
+        wizard_play_fast: "Continuer en 1 Clic",
 
         // Cloud View
         cloud_title: "Serveurs Pelican Cloud",
@@ -189,6 +191,8 @@ const translations = {
         wizard_or: "OR",
         wizard_save: "Confirm",
         recommended: "Recommended",
+        login_quick_title: "Play Instantly (Free Username)",
+        wizard_play_fast: "Continue in 1 Click",
 
         // Cloud View
         cloud_title: "Pelican Cloud Servers",
@@ -298,6 +302,8 @@ const translations = {
         wizard_or: "O",
         wizard_save: "Confirmar",
         recommended: "Recomendado",
+        login_quick_title: "Jugar Inmediatamente (Nombre Libre)",
+        wizard_play_fast: "Continuar en 1 Clic",
 
         // Cloud
         cloud_title: "Servidores Cloud Pelican",
@@ -407,6 +413,8 @@ const translations = {
         wizard_or: "ODER",
         wizard_save: "Bestätigen",
         recommended: "Empfohlen",
+        login_quick_title: "Sofort Spielen (Freier Name)",
+        wizard_play_fast: "Mit 1 Klick weiter",
 
         // Cloud
         cloud_title: "Pelican Cloud Server",
@@ -516,6 +524,8 @@ const translations = {
         wizard_or: "OU",
         wizard_save: "Confirmar",
         recommended: "Recomendado",
+        login_quick_title: "Jogar Imediatamente (Nome Livre)",
+        wizard_play_fast: "Continuar com 1 Clique",
 
         // Cloud
         cloud_title: "Servidores Cloud Pelican",

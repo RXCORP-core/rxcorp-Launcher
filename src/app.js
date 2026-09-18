@@ -149,7 +149,7 @@ ipcMain.handle('Microsoft-window', async (_, client_id = "00000000402b5328") => 
     try {
         const ms = new Microsoft(client_id);
         const redirectUri = "https://login.live.com/oauth20_desktop.srf";
-        const authUrl = `https://login.live.com/oauth20_authorize.srf?client_id=${client_id}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=XboxLive.signin%20offline_access&cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d&prompt=select_account`;
+        const authUrl = `https://login.live.com/oauth20_authorize.srf?client_id=${client_id}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=XboxLive.signin%20offline_access&cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d`;
 
         const authWindow = new BrowserWindow({
             title: "Connexion Compte Microsoft // RXCORP",

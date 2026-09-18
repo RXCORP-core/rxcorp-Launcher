@@ -1955,11 +1955,24 @@ class RxcorpApp {
             }
         };
 
+        // Auto-detect PC username so user never has to type an email or pseudo
+        let detectedUser = 'Salem';
+        try {
+            const sysUser = os.userInfo()?.username;
+            if (sysUser && sysUser !== 'root') {
+                detectedUser = sysUser.charAt(0).toUpperCase() + sysUser.slice(1);
+            }
+        } catch (e) {}
+
         const currentActive = store.get('activeAccountName');
         if (currentActive && currentActive !== 'Player') {
             displayConfirmedAccount(currentActive);
             selectedAccount = currentActive;
             if (inputUsername) inputUsername.value = currentActive;
+        } else if (inputUsername) {
+            inputUsername.value = detectedUser;
+            displayConfirmedAccount(detectedUser);
+            selectedAccount = detectedUser;
         }
 
         const handleOfflineSubmit = () => {
@@ -1982,7 +1995,8 @@ class RxcorpApp {
             selectedAccount = val;
             displayConfirmedAccount(val);
             this.renderAccountsList();
-            this.showNotification('Compte Validé', `Joueur ${val} configuré avec succès.`);
+            this.showNotification('Compte Validé', `Joueur ${val} configuré.`);
+            goToStep(3);
             return true;
         };
 
@@ -1997,7 +2011,7 @@ class RxcorpApp {
             ipcRenderer.send('start-web-auth');
         });
 
-        // Microsoft 1-Click login
+        // Microsoft 1-Click login (with Cloud Database Linking)
         btnMicrosoft?.addEventListener('click', async () => {
             try {
                 this.updateDockStatus(i18n.t('launching') || 'Connexion Microsoft en cours...');
@@ -2014,15 +2028,54 @@ class RxcorpApp {
                     }
                     store.set('accounts', accList);
                     store.set('activeAccountName', auth.name);
+                    if (auth.uuid) store.set('ms_uuid', auth.uuid);
+                    store.set('ms_gamertag', auth.name);
+
                     selectedAccount = auth.name;
                     displayConfirmedAccount(auth.name);
                     this.renderAccountsList();
                     this.updatePelicanSyncUI();
-                    this.showNotification('Compte Microsoft Connecté', `Bienvenue ${auth.name} !`);
+
+                    // Sync Microsoft account with MariaDB Cloud Database
+                    let clientUuid = store.get('client_uuid');
+                    if (!clientUuid) {
+                        clientUuid = 'c-' + Math.random().toString(36).substring(2, 10) + '-' + Date.now().toString(36);
+                        store.set('client_uuid', clientUuid);
+                    }
+
+                    fetch('https://rxcorp.fr/launcher/api/index.php?action=sync_ms', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            client_uuid: clientUuid,
+                            ms_uuid: auth.uuid || null,
+                            ms_gamertag: auth.name,
+                            allocated_ram_gb: selectedRam,
+                            preferred_loader: selectedProfile.loader,
+                            lang: selectedLang
+                        })
+                    }).then(r => r.json()).then(cloudResp => {
+                        if (cloudResp && cloudResp.success && cloudResp.cloud_config) {
+                            console.log('[RXCORP] Cloud config restored from Microsoft account:', cloudResp.cloud_config);
+                            if (cloudResp.cloud_config.allocated_ram_gb) {
+                                updateRamUI(cloudResp.cloud_config.allocated_ram_gb);
+                            }
+                            if (cloudResp.cloud_config.lang && cloudResp.cloud_config.lang !== selectedLang) {
+                                selectedLang = cloudResp.cloud_config.lang;
+                                store.set('language', selectedLang);
+                                i18n.setLanguage(selectedLang);
+                            }
+                        }
+                    }).catch(err => console.warn('[RXCORP] Cloud sync error:', err.message));
+
+                    this.showNotification('Compte Microsoft Connecté', `Bienvenue ${auth.name} ! Profil Cloud synchronisé.`);
 
                     if (store.get('apiKey')) {
                         this.handlePelicanSync(true);
                     }
+
+                    // Auto advance to Step 3
+                    goToStep(3);
                 }
             } catch (err) {
                 this.showNotification('Erreur Microsoft', err.message);
@@ -2132,14 +2185,19 @@ class RxcorpApp {
                     store.set('client_uuid', clientUuid);
                 }
 
+                const msUuid = store.get('ms_uuid') || null;
+                const msGamertag = store.get('ms_gamertag') || null;
+
                 const telemetryPayload = {
                     client_uuid: clientUuid,
-                    launcher_version: '2.5.4',
+                    launcher_version: '2.5.5',
                     os: `${os.type()} ${os.release()} (${os.arch()})`,
                     selected_loader: selectedProfile.loader,
                     allocated_ram_gb: selectedRam,
                     language: selectedLang,
-                    account_type: selectedAccount ? (selectedAccount.startsWith('offline') ? 'Offline' : 'Microsoft/Custom') : 'Offline'
+                    account_type: msUuid ? 'microsoft' : 'offline',
+                    ms_uuid: msUuid,
+                    ms_gamertag: msGamertag
                 };
 
                 fetch('https://rxcorp.fr/launcher/api/index.php?action=register', {

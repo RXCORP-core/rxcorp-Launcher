@@ -550,7 +550,7 @@
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <span class="settings-card-title">Mises à Jour du Launcher</span>
-                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.5.4</span>
+                            <span id="label-app-version" style="font-size: 11.5px; font-weight: 700; color: var(--primary);">v2.5.5</span>
                         </div>
                         <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
                             Le launcher vérifie et applique automatiquement les nouvelles versions en arrière-plan. Vous pouvez forcer une vérification immédiate du cloud.
@@ -592,7 +592,7 @@
 
                     <!-- Info Box -->
                     <div class="settings-card" style="font-size: 11px; color: var(--text-dim); line-height: 1.6;">
-                        <strong style="color: #fff;">RXCORP Launcher v2.5.4</strong><br>
+                        <strong style="color: #fff;">RXCORP Launcher v2.5.5</strong><br>
                         Développé avec soin pour la communauté RXCORP.<br>
                         Infrastructure Cloud Pelican • Modpacks • CurseForge & Modrinth.
                     </div>
@@ -678,20 +678,41 @@
 
             <!-- STEP 2: ACCOUNT AUTHENTICATION -->
             <div class="wizard-pane" id="wizard-pane-2" style="display: none;">
-                <p class="wizard-description" data-i18n="wizard_account_desc">Connectez votre compte officiel ou choisissez un pseudo hors-ligne.</p>
+                <p class="wizard-description" data-i18n="wizard_account_desc">Choisissez un pseudo rapide pour jouer immédiatement ou connectez votre compte Microsoft.</p>
                 
-                <!-- Option 1: Microsoft 1-Click Web Auth -->
+                <!-- Option 1: Fast 1-Click Pseudo (Zero Email, Zero Password, Auto-detected) -->
+                <div class="first-launch-offline-box" style="border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.06); padding: 14px 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 12.5px; font-weight: 700; color: #fff;" data-i18n="login_quick_title">Jouer Immédiatement (Pseudo Libre)</span>
+                        <span style="font-size: 10px; font-weight: 700; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 4px;">Sans e-mail</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input id="input-onboard-username" type="text" class="form-input" data-i18n-placeholder="login_offline_placeholder" placeholder="Votre pseudo..." style="flex: 1; padding: 10px 12px; font-weight: 600;">
+                        <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap; padding: 10px 16px;" data-i18n="wizard_play_fast">
+                            Continuer en 1 Clic
+                        </button>
+                    </div>
+                    <div id="wizard-account-confirmed" style="display: none; font-size: 11.5px; color: var(--emerald-light); margin-top: 8px; font-weight: 600;">
+                        Compte sélectionné : <span id="wizard-confirmed-name" style="color: #fff;"></span>
+                    </div>
+                </div>
+
+                <div class="first-launch-divider">
+                    <span data-i18n="wizard_or">OU</span>
+                </div>
+
+                <!-- Option 2: Microsoft Account Link (Cloud Sync) -->
                 <div class="first-launch-option">
                     <button id="btn-onboard-microsoft" type="button" class="first-launch-ms-btn">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg>
                         <div style="display: flex; flex-direction: column; text-align: left;">
-                            <span style="font-size: 13.5px; font-weight: 700; color: #0f172a;" data-i18n="login_microsoft_btn">Connexion Compte Microsoft</span>
-                            <span style="font-size: 11px; color: #64748b; font-weight: 500;" data-i18n="login_microsoft_sub">Ouvre votre navigateur pour une connexion officielle sécurisée</span>
+                            <span style="font-size: 13.5px; font-weight: 700; color: #0f172a;" data-i18n="login_microsoft_btn">Lier mon Compte Microsoft</span>
+                            <span style="font-size: 11px; color: #64748b; font-weight: 500;">Connexion officielle (Skins, serveurs en ligne & profil cloud)</span>
                         </div>
                     </button>
                 </div>
 
-                <!-- Option 1b: Pelican Cloud Web SSO -->
+                <!-- Option 2b: Pelican Cloud Web SSO -->
                 <div class="first-launch-option" style="margin-top: 8px;">
                     <button id="btn-onboard-web-auth" type="button" class="first-launch-ms-btn" style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35);">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -700,24 +721,6 @@
                             <span style="font-size: 11px; color: #f43f5e; font-weight: 500;" data-i18n="login_pelican_web_sub">Ouvre le navigateur web pour synchroniser vos serveurs Cloud</span>
                         </div>
                     </button>
-                </div>
-
-                <div class="first-launch-divider">
-                    <span data-i18n="wizard_or">OU</span>
-                </div>
-
-                <!-- Option 2: Offline Mode (Free Pseudo) -->
-                <div class="first-launch-offline-box">
-                    <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px;" data-i18n="login_offline_title">Mode Hors-ligne (Pseudo Libre)</div>
-                    <div style="display: flex; gap: 8px;">
-                        <input id="input-onboard-username" type="text" class="form-input" data-i18n-placeholder="login_offline_placeholder" placeholder="Entrez votre pseudo (ex: Salem, Steve...)" style="flex: 1; padding: 10px 12px;">
-                        <button id="btn-onboard-confirm-offline" type="button" class="rx-btn rx-btn-primary" style="white-space: nowrap; padding: 10px 16px;" data-i18n="wizard_save">
-                            Valider
-                        </button>
-                    </div>
-                    <div id="wizard-account-confirmed" style="display: none; font-size: 11.5px; color: var(--emerald-light); margin-top: 8px; font-weight: 600;">
-                        Compte sélectionné : <span id="wizard-confirmed-name" style="color: #fff;"></span>
-                    </div>
                 </div>
             </div>
 
