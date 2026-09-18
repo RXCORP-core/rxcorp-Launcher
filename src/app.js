@@ -25,6 +25,7 @@ const MainWindow = require("./assets/js/windows/mainWindow.js");
 const SplashWindow = require("./assets/js/windows/splashWindow.js");
 const discordRpc = require("./assets/js/utils/discordRpc.js");
 const trayManager = require("./assets/js/windows/trayManager.js");
+const DevTerminalWindow = require("./assets/js/windows/devTerminalWindow.js");
 
 let dev = process.env.NODE_ENV === 'dev' || !app.isPackaged;
 
@@ -104,6 +105,28 @@ ipcMain.on('update-window-progress-load', () => UpdateWindow.getWindow().setProg
 
 ipcMain.handle('path-user-data', () => app.getPath('userData'))
 ipcMain.handle('appData', e => app.getPath('appData'))
+
+// Dev Terminal Window IPC
+ipcMain.on('dev-terminal-open', () => DevTerminalWindow.openTerminal());
+ipcMain.on('dev-terminal-toggle', () => DevTerminalWindow.toggleTerminal());
+ipcMain.on('dev-terminal-close', () => DevTerminalWindow.closeTerminal());
+ipcMain.on('dev-terminal-minimize', () => {
+    const win = DevTerminalWindow.getWindow();
+    if (win && !win.isDestroyed()) win.minimize();
+});
+ipcMain.on('dev-terminal-maximize', () => {
+    const win = DevTerminalWindow.getWindow();
+    if (win && !win.isDestroyed()) {
+        if (win.isMaximized()) win.unmaximize();
+        else win.maximize();
+    }
+});
+ipcMain.on('dev-terminal-set-always-on-top', (event, flag) => DevTerminalWindow.setAlwaysOnTop(flag));
+ipcMain.handle('dev-terminal-get-history', () => DevTerminalWindow.getLogHistory());
+ipcMain.on('dev-terminal-clear', () => DevTerminalWindow.clearLogHistory());
+ipcMain.on('dev-terminal-broadcast', (event, logEntry) => {
+    DevTerminalWindow.broadcastLog(logEntry);
+});
 
 ipcMain.on('main-window-maximize', () => {
     if (MainWindow.getWindow().isMaximized()) {

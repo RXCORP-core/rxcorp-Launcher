@@ -135,6 +135,7 @@ class RxcorpApp {
 
     async init() {
         console.log('[RXCORP] Initializing Launcher 2.5...');
+        this.initDevTerminalLogger();
         this.initWindowControls();
         this.initI18n();
         this.initDribbbleShell();
@@ -160,6 +161,142 @@ class RxcorpApp {
         ipcRenderer.send('discord-rpc-idle');
 
         console.log('[RXCORP] Launcher ready.');
+    }
+
+    // ==========================================
+    // GLOBAL DEV TERMINAL & ACTIVITY MONITOR
+    // ==========================================
+    initDevTerminalLogger() {
+        // Toggle button in titlebar
+        const btnToggleDev = document.getElementById('btn-open-dev-terminal');
+        if (btnToggleDev) {
+            btnToggleDev.addEventListener('click', () => {
+                ipcRenderer.send('dev-terminal-toggle');
+                this.logDev('UI', 'Bascule de la fenetre Dev Console via la barre de titre');
+            });
+        }
+
+        // Open button in Settings
+        const btnSettingsDev = document.getElementById('btn-settings-open-terminal');
+        if (btnSettingsDev) {
+            btnSettingsDev.addEventListener('click', () => {
+                ipcRenderer.send('dev-terminal-open');
+                this.logDev('UI', 'Ouverture de la fenetre Dev Console depuis les Parametres');
+            });
+        }
+
+        // Keyboard shortcuts (F12 or Ctrl+Shift+D)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd')) {
+                e.preventDefault();
+                ipcRenderer.send('dev-terminal-toggle');
+                this.logDev('UI', 'Bascule du Terminal Dev (raccourci clavier)');
+            }
+        });
+
+        // Intercept EVERY user click on the entire document
+        document.addEventListener('click', (e) => {
+            try {
+                const target = e.target.closest('button, a, input, select, [data-view], [data-close], [data-server-id], [data-instance-id], .rail-item, .cloud-server-card, .instance-card, .rx-btn, .pill-btn, .ram-pill-btn, .lang-btn-switch') || e.target;
+                if (!target || target === document.body || target === document.documentElement) return;
+
+                let label = '';
+                if (target.dataset?.view) {
+                    label = `Navigation onglet rail: "${target.dataset.view}"`;
+                } else if (target.dataset?.close) {
+                    label = `Fermeture modale: "${target.dataset.close}"`;
+                } else if (target.dataset?.ram) {
+                    label = `Selection RAM: ${target.dataset.ram} Go`;
+                } else if (target.dataset?.lang) {
+                    label = `Changement langue: ${target.dataset.lang}`;
+                } else if (target.id) {
+                    label = `Bouton / Element: #${target.id}`;
+                    if (target.innerText && target.innerText.trim().length < 40) {
+                        label += ` ("${target.innerText.trim().replace(/\s+/g, ' ')}")`;
+                    }
+                } else if (target.getAttribute('title')) {
+                    label = `Element: "${target.getAttribute('title')}"`;
+                } else if (target.innerText && target.innerText.trim().length > 0 && target.innerText.trim().length < 40) {
+                    label = `Clic texte: "${target.innerText.trim().replace(/\s+/g, ' ')}"`;
+                } else {
+                    label = `Clic sur <${target.tagName.toLowerCase()}${target.className ? '.' + target.className.split(' ').join('.') : ''}>`;
+                }
+
+                this.logDev('CLIC', label);
+            } catch (_) {}
+        }, true);
+
+        // Intercept input / select changes
+        document.addEventListener('change', (e) => {
+            try {
+                const target = e.target;
+                const id = target.id ? `#${target.id}` : target.tagName.toLowerCase();
+                let val = target.type === 'password' ? '********' : (target.type === 'checkbox' ? (target.checked ? 'coche' : 'decoche') : target.value);
+                this.logDev('UI', `Changement de valeur sur ${id} : "${val}"`);
+            } catch (_) {}
+        }, true);
+
+        // Intercept console.log / info / warn / error
+        const origConsole = {
+            log: console.log,
+            info: console.info,
+            warn: console.warn,
+            error: console.error
+        };
+
+        console.log = (...args) => {
+            origConsole.log.apply(console, args);
+            const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+            let cat = 'CONSOLE';
+            if (msg.startsWith('[Minecraft]') || msg.includes('Minecraft')) cat = 'MINECRAFT';
+            else if (msg.startsWith('[Link-Sync]') || msg.includes('Pelican')) cat = 'PELICAN';
+            else if (msg.includes('Microsoft') || msg.includes('Auth')) cat = 'AUTH';
+            this.logDev(cat, msg);
+        };
+
+        console.info = (...args) => {
+            origConsole.info.apply(console, args);
+            const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+            this.logDev('INFO', msg);
+        };
+
+        console.warn = (...args) => {
+            origConsole.warn.apply(console, args);
+            const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+            this.logDev('WARN', msg);
+        };
+
+        console.error = (...args) => {
+            origConsole.error.apply(console, args);
+            const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+            this.logDev('ERROR', msg);
+        };
+
+        window.addEventListener('error', (e) => {
+            this.logDev('ERROR', `Exception JavaScript : ${e.message} (${e.filename}:${e.lineno})`);
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            this.logDev('ERROR', `Promesse non geree : ${e.reason}`);
+        });
+
+        this.logDev('INIT', 'Moteur de journalisation globale RXCORP active.');
+    }
+
+    logDev(category, message, details = null) {
+        const now = new Date();
+        const time = `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}]`;
+        const logEntry = {
+            time,
+            timestamp: now.getTime(),
+            category: (category || 'INFO').toUpperCase(),
+            message: String(message),
+            details
+        };
+
+        try {
+            ipcRenderer.send('dev-terminal-broadcast', logEntry);
+        } catch (_) {}
     }
 
     // ==========================================
@@ -1057,6 +1194,8 @@ class RxcorpApp {
             terminalEl.appendChild(line);
             terminalEl.scrollTop = terminalEl.scrollHeight;
         }
+
+        this.logDev('PELICAN', `[${cleanTag}] ${message}`);
     }
 
     clearSyncTerminal() {
@@ -1167,7 +1306,7 @@ class RxcorpApp {
                         if (countStepEl) countStepEl.innerText = `${progress.filePercent || 0}%`;
                     } else if (progress.status === 'completed') {
                         if (progressLabel) progressLabel.innerText = 'Synchronisation terminee !';
-                        if (currentModEl) currentModEl.innerText = `${result?.downloadedCount || 0} nouveau(x) mod(s) telecharge(s), ${result?.linkedFromPool || 0} lie(s) en Link-Sync.`;
+                        if (currentModEl) currentModEl.innerText = `${progress.downloadedCount || 0} nouveau(x) mod(s) telecharge(s), ${progress.linkedFromPool || 0} lie(s) en Link-Sync.`;
                         if (countStepEl) countStepEl.innerText = 'Pret';
                     }
                 },
