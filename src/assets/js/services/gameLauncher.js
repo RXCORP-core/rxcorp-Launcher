@@ -49,13 +49,27 @@ class GameLauncher {
             else if (instance.loader === 'fabric') loaderType = 'fabric';
             else if (instance.loader === 'neoforge') loaderType = 'neoforge';
 
-            // Server auto-connect arguments
+            // Server auto-connect arguments (Quick Play Multiplayer for MC >= 1.20, --server for legacy)
             const gameArgs = [];
-            if (instance.serverAddress) {
-                const parts = instance.serverAddress.split(':');
+            const shouldAutoConnect = (settings.autoConnect !== false) && !!instance.serverAddress;
+            if (shouldAutoConnect) {
+                const cleanAddr = instance.serverAddress.trim();
+                const parts = cleanAddr.split(':');
                 const host = parts[0];
                 const port = parts[1] || '25565';
-                gameArgs.push('--server', host, '--port', port);
+                const version = String(instance.version || '1.21.1');
+
+                const minorMatch = version.match(/1\.(\d+)/);
+                const minorNum = minorMatch ? parseInt(minorMatch[1], 10) : 21;
+
+                if (minorNum >= 20) {
+                    // Minecraft 1.20+ Quick Play Multiplayer direct connect
+                    gameArgs.push('--quickPlayMultiplayer', `${host}:${port}`);
+                } else {
+                    // Legacy Minecraft < 1.20
+                    gameArgs.push('--server', host, '--port', port);
+                }
+                console.log(`[GameLauncher] Auto-connect actif vers ${host}:${port} (${minorNum >= 20 ? 'QuickPlay' : 'Legacy'})`);
             }
 
             // Fallback offline account if none provided

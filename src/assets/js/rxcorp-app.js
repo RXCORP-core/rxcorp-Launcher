@@ -526,16 +526,19 @@ class RxcorpApp {
                     cloudList.innerHTML = mcServers.map(srv => {
                         const isSelected = this.activeInstance?.serverAddress === `${srv.ip}:${srv.port}` || 
                                            (this.activeInstance?.name && this.activeInstance.name.includes(srv.name));
-                        const isOnline = srv.status === 'online' || srv.status === 'running';
+                        const isOnline = srv.isOnline !== undefined ? srv.isOnline : (srv.status === 'online' || srv.status === 'running');
                         const ping = srv.ping || 18;
                         const loaderBadge = (srv.loader && srv.loader !== 'vanilla') ? srv.loader.toUpperCase() : 'MC';
+                        const playerInfo = (srv.playersOnline !== undefined && srv.playersOnline !== null) 
+                            ? `${srv.playersOnline}/${srv.playersMax || 20} joueurs • `
+                            : '';
                         return `
                             <div class="dash-item-row ${isSelected ? 'active' : ''}">
                                 <div class="dash-item-left">
                                     <span class="srv-dot ${isOnline ? 'online' : 'offline'}"></span>
                                     <div class="dash-item-info">
                                         <span class="dash-item-name">${srv.name} <span class="rx-tag" style="font-size: 9px; padding: 1px 5px; margin-left: 5px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">${loaderBadge} ${srv.version || '1.20.1'}</span></span>
-                                        <span class="dash-item-sub">${ping}ms • ${srv.ip}:${srv.port}</span>
+                                        <span class="dash-item-sub">${playerInfo}${isOnline ? `${ping}ms` : 'Hors-ligne'} • ${srv.ip}:${srv.port}</span>
                                     </div>
                                 </div>
                                 <div class="dash-item-actions">
@@ -1112,47 +1115,55 @@ class RxcorpApp {
         const joinBtn = card.querySelector('.btn-join-server');
 
         try {
-            const res = await pelicanService.getServerResources(server.id, apiKey, panelUrl);
-            if (res.success && res.resources) {
-                const state = res.resources.current_state;
-                if (state === 'running') {
-                    badge.className = 'server-badge online';
-                    badge.innerHTML = '<span class="badge-text">● En Ligne</span>';
-                    if (joinBtn) {
-                        joinBtn.disabled = false;
-                        joinBtn.classList.remove('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
-                        joinBtn.classList.add('rx-btn-primary');
-                        joinBtn.innerHTML = `
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                            <span>Rejoindre</span>
-                        `;
-                        joinBtn.title = 'Rejoindre le serveur';
-                    }
-                } else if (state === 'starting') {
-                    badge.className = 'server-badge starting';
-                    badge.innerHTML = '<span class="badge-text">● Démarrage...</span>';
-                    if (joinBtn) {
-                        joinBtn.disabled = true;
-                        joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
-                        joinBtn.classList.remove('rx-btn-primary');
-                        joinBtn.innerHTML = '<span>Démarrage...</span>';
-                        joinBtn.title = 'Le serveur est en cours de démarrage';
-                    }
-                } else {
-                    badge.className = 'server-badge offline';
-                    badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
-                    if (joinBtn) {
-                        joinBtn.disabled = true;
-                        joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
-                        joinBtn.classList.remove('rx-btn-primary');
-                        joinBtn.innerHTML = '<span>Hors-Ligne</span>';
-                        joinBtn.title = 'Ce serveur est actuellement éteint ou inaccessible';
-                    }
-                }
+            // Dual-detection: Query Pelican API and Direct Minecraft TCP/SLP Ping in parallel
+            const [pelicanRes, pingRes] = await Promise.all([
+                pelicanService.getServerResources(server.id, apiKey, panelUrl).catch(() => ({ success: false, state: 'offline' })),
+                pelicanService.pingMinecraftServer(server.ip, server.port, 2800).catch(() => ({ online: false, latency: 0 }))
+            ]);
 
-                const ramMb = (res.resources.resources.memory_bytes / (1024 * 1024)).toFixed(0);
-                ramValue.innerText = `${ramMb} MB`;
-                cpuValue.innerText = `${res.resources.resources.cpu_absolute.toFixed(1)}%`;
+            const pelicanState = pelicanRes?.state || pelicanRes?.current_state || 'offline';
+            const isOnline = (pelicanState === 'running') || (pingRes && pingRes.online === true);
+            const isStarting = (pelicanState === 'starting') && !isOnline;
+
+            // Cache status on server object for dashboard views
+            server.isOnline = isOnline;
+            server.status = isOnline ? 'running' : (isStarting ? 'starting' : 'offline');
+            if (pingRes?.latency) server.ping = pingRes.latency;
+            if (pingRes?.playersOnline !== null && pingRes?.playersOnline !== undefined) {
+                server.playersOnline = pingRes.playersOnline;
+                server.playersMax = pingRes.playersMax || 20;
+            }
+
+            if (isOnline) {
+                badge.className = 'server-badge online';
+                let extraText = '';
+                if (pingRes && pingRes.playersOnline !== null && pingRes.playersOnline !== undefined) {
+                    extraText = ` • ${pingRes.playersOnline}/${pingRes.playersMax || 20}`;
+                } else if (pingRes && pingRes.latency) {
+                    extraText = ` • ${pingRes.latency}ms`;
+                }
+                badge.innerHTML = `<span class="badge-text">● En Ligne${extraText}</span>`;
+
+                if (joinBtn) {
+                    joinBtn.disabled = false;
+                    joinBtn.classList.remove('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                    joinBtn.classList.add('rx-btn-primary');
+                    joinBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                        <span>Rejoindre</span>
+                    `;
+                    joinBtn.title = 'Rejoindre et auto-connecter à ce serveur';
+                }
+            } else if (isStarting) {
+                badge.className = 'server-badge starting';
+                badge.innerHTML = '<span class="badge-text">● Démarrage...</span>';
+                if (joinBtn) {
+                    joinBtn.disabled = true;
+                    joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
+                    joinBtn.classList.remove('rx-btn-primary');
+                    joinBtn.innerHTML = '<span>Démarrage...</span>';
+                    joinBtn.title = 'Le serveur est en cours de démarrage';
+                }
             } else {
                 badge.className = 'server-badge offline';
                 badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
@@ -1163,12 +1174,28 @@ class RxcorpApp {
                     joinBtn.innerHTML = '<span>Hors-Ligne</span>';
                     joinBtn.title = 'Ce serveur est actuellement éteint ou inaccessible';
                 }
-                ramValue.innerText = '-';
-                cpuValue.innerText = '0%';
             }
-        } catch (_) {
-            badge.className = 'server-badge offline';
-            badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
+
+            // Display RAM / CPU stats or Latency fallback
+            if (pelicanRes && pelicanRes.resources) {
+                const mem = pelicanRes.resources.memory_bytes || pelicanRes.resources.memoryBytes || 0;
+                const ramMb = (mem / (1024 * 1024)).toFixed(0);
+                const cpu = pelicanRes.resources.cpu_absolute || pelicanRes.resources.cpuAbsolute || '0.0';
+                if (ramValue) ramValue.innerText = `${ramMb} MB`;
+                if (cpuValue) cpuValue.innerText = `${cpu}%`;
+            } else if (isOnline && pingRes) {
+                if (ramValue) ramValue.innerText = pingRes.latency ? `${pingRes.latency} ms` : 'En ligne';
+                if (cpuValue) cpuValue.innerText = pingRes.version ? `${pingRes.version}` : '-';
+            } else {
+                if (ramValue) ramValue.innerText = '-';
+                if (cpuValue) cpuValue.innerText = '0%';
+            }
+        } catch (err) {
+            console.warn(`[LiveStatus] Erreur pour ${server.name}:`, err);
+            if (badge) {
+                badge.className = 'server-badge offline';
+                badge.innerHTML = '<span class="badge-text">● Hors-Ligne</span>';
+            }
             if (joinBtn) {
                 joinBtn.disabled = true;
                 joinBtn.classList.add('disabled', 'rx-btn-disabled', 'rx-btn-secondary');
@@ -1176,8 +1203,8 @@ class RxcorpApp {
                 joinBtn.innerHTML = '<span>Hors-Ligne</span>';
                 joinBtn.title = 'Ce serveur est actuellement éteint ou inaccessible';
             }
-            ramValue.innerText = '-';
-            cpuValue.innerText = '0%';
+            if (ramValue) ramValue.innerText = '-';
+            if (cpuValue) cpuValue.innerText = '0%';
         }
 
         // Live mods detection only for Minecraft servers
@@ -2124,7 +2151,8 @@ class RxcorpApp {
                 {
                     ramMin: Math.max(1, Math.floor(ramMax / 2)),
                     ramMax: ramMax,
-                    javaPath: javaPath
+                    javaPath: javaPath,
+                    autoConnect: store.get('autoConnect') !== false
                 },
                 {
                     onStatus: (msg) => this.updateDockStatus(msg),
@@ -2225,6 +2253,15 @@ class RxcorpApp {
         if (inputKey) inputKey.value = store.get('apiKey') || '';
         if (inputCurseForge) inputCurseForge.value = store.get('curseforgeApiKey') || '';
 
+        // Auto-connect toggle setting
+        const toggleAutoConnect = document.getElementById('toggle-auto-connect');
+        if (toggleAutoConnect) {
+            toggleAutoConnect.checked = store.get('autoConnect') !== false;
+            toggleAutoConnect.addEventListener('change', () => {
+                store.set('autoConnect', toggleAutoConnect.checked);
+            });
+        }
+
         // Mode Selection Handler (Cloud Server vs Local Player / Friends)
         this.initModeSelector();
         this.initLinkSyncPoolSettings();
@@ -2234,6 +2271,9 @@ class RxcorpApp {
             store.set('javaPath', inputJava ? inputJava.value.trim() : '');
             store.set('panelUrl', inputUrl ? inputUrl.value.trim() : '');
             store.set('apiKey', inputKey ? inputKey.value.trim() : '');
+            if (toggleAutoConnect) {
+                store.set('autoConnect', toggleAutoConnect.checked);
+            }
 
             if (inputCurseForge) {
                 curseforgeService.setApiKey(inputCurseForge.value.trim());

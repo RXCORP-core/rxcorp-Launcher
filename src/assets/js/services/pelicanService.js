@@ -207,26 +207,84 @@ class PelicanService {
             });
 
             if (!res.ok) {
-                return { success: false, status: 'offline', current_state: 'offline' };
+                return { success: false, status: 'offline', current_state: 'offline', state: 'offline' };
             }
 
             const json = await res.json();
             const attr = json.attributes || {};
+            const curState = attr.current_state || 'offline';
 
             return {
                 success: true,
-                state: attr.current_state || 'offline', // running, offline, starting, stopping
+                state: curState, // running, offline, starting, stopping
+                current_state: curState,
                 isSuspended: attr.is_suspended || false,
                 resources: {
                     memoryBytes: attr.resources?.memory_bytes || 0,
+                    memory_bytes: attr.resources?.memory_bytes || 0,
                     cpuAbsolute: (attr.resources?.cpu_absolute || 0).toFixed(1),
+                    cpu_absolute: (attr.resources?.cpu_absolute || 0).toFixed(1),
                     diskBytes: attr.resources?.disk_bytes || 0,
                     uptimeMs: attr.resources?.uptime || 0
                 }
             };
         } catch (err) {
-            return { success: false, state: 'offline', error: err.message };
+            return { success: false, state: 'offline', current_state: 'offline', error: err.message };
         }
+    }
+
+    /**
+     * Direct TCP/SLP Minecraft ping to retrieve live status, latency, and players
+     * @param {string} ip
+     * @param {number|string} port
+     * @param {number} [timeout=2500]
+     * @returns {Promise<{ online: boolean, latency: number, version?: string, playersOnline?: number, playersMax?: number }>}
+     */
+    async pingMinecraftServer(ip, port = 25565, timeout = 2500) {
+        if (!ip) return { online: false, latency: 0 };
+        const cleanPort = parseInt(port, 10) || 25565;
+
+        // Method 1: Minecraft Java Status Ping (returns players, version, latency)
+        try {
+            const { Status } = require('minecraft-java-core');
+            const statusChecker = new Status(ip, cleanPort);
+            const res = await statusChecker.getStatus();
+            if (res && res.error === false) {
+                return {
+                    online: true,
+                    latency: res.ms || 0,
+                    version: res.version || null,
+                    playersOnline: res.playersConnect !== undefined ? res.playersConnect : 0,
+                    playersMax: res.playersMax !== undefined ? res.playersMax : 20
+                };
+            }
+        } catch (_) {}
+
+        // Method 2: Fast raw TCP socket connect probe
+        return new Promise((resolve) => {
+            const net = require('net');
+            const socket = new net.Socket();
+            socket.setTimeout(timeout);
+            const start = Date.now();
+
+            socket.on('connect', () => {
+                const latency = Date.now() - start;
+                socket.destroy();
+                resolve({ online: true, latency, playersOnline: null, playersMax: null });
+            });
+
+            socket.on('timeout', () => {
+                socket.destroy();
+                resolve({ online: false, latency: 0, error: 'Timeout' });
+            });
+
+            socket.on('error', (err) => {
+                socket.destroy();
+                resolve({ online: false, latency: 0, error: err.message });
+            });
+
+            socket.connect(cleanPort, ip);
+        });
     }
 
     /**

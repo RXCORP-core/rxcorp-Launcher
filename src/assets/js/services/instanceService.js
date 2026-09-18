@@ -237,9 +237,14 @@ class InstanceService {
                 modified = true;
             }
 
-            // Ensure domain is cloud
+            // Ensure domain is cloud and serverAddress is strictly synced
             if (found.domain !== 'cloud') {
                 found.domain = 'cloud';
+                modified = true;
+            }
+
+            if (!found.serverAddress || found.serverAddress !== serverAddr) {
+                found.serverAddress = serverAddr;
                 modified = true;
             }
 
@@ -259,6 +264,7 @@ class InstanceService {
                         raw.loader = found.loader;
                         raw.version = found.version;
                         raw.domain = 'cloud';
+                        raw.serverAddress = found.serverAddress;
                         fs.writeFileSync(cfgPath, JSON.stringify(raw, null, 2), 'utf8');
                     }
                 } catch (e) {
