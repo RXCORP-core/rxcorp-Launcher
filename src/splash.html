@@ -171,7 +171,7 @@
 
         <div class="brand-row">
             <div class="brand-name">RXCORP</div>
-            <div class="brand-version">LAUNCHER 2.5</div>
+            <div class="brand-version">LAUNCHER 2.6</div>
         </div>
 
         <div class="progress-container">
@@ -188,25 +188,38 @@
         const progressEl = document.getElementById('splash-progress');
         const labelEl = document.getElementById('splash-label');
 
+        let isFinished = false;
+
+        window.completeSplash = function() {
+            if (isFinished) return;
+            isFinished = true;
+            if (progressEl) progressEl.style.width = '100%';
+            if (labelEl) labelEl.textContent = 'Prêt ! Lancement...';
+        };
+
         const steps = [
-            { pct: 15, label: 'Chargement des ressources...' },
-            { pct: 35, label: 'Connexion au Cloud...' },
-            { pct: 60, label: 'Vérification des mises à jour...' },
-            { pct: 80, label: 'Préparation de l\'interface...' },
-            { pct: 95, label: 'Presque prêt...' },
+            { pct: 30, label: 'Chargement des composants...' },
+            { pct: 60, label: 'Connexion au Cloud RXCORP...' },
+            { pct: 85, label: 'Initialisation des modules...' },
+            { pct: 100, label: 'Prêt ! Lancement...' }
         ];
 
         let i = 0;
         function nextStep() {
+            if (isFinished) return;
             if (i < steps.length) {
                 const s = steps[i++];
-                progressEl.style.width = s.pct + '%';
-                labelEl.textContent = s.label;
-                setTimeout(nextStep, 400 + Math.random() * 200);
+                if (progressEl) progressEl.style.width = s.pct + '%';
+                if (labelEl) labelEl.textContent = s.label;
+                if (s.pct === 100) {
+                    isFinished = true;
+                } else {
+                    setTimeout(nextStep, 260 + Math.random() * 120);
+                }
             }
         }
 
-        setTimeout(nextStep, 300);
+        setTimeout(nextStep, 150);
     </script>
 </body>
 </html>

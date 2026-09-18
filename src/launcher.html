@@ -11,45 +11,25 @@
     <div class="app-background"></div>
     <div class="app-background-overlay"></div>
 
-    <!-- Custom Window Titlebar (Draggable) -->
+    <!-- Custom Window Titlebar (Sleek, Clean, Minimal & Draggable) -->
     <header class="app-titlebar">
-        <div class="brand-section">
-            <img class="brand-logo" src="assets/images/icon/icon.png" alt="RX">
-            <span class="brand-title" data-i18n="brand_title">RXCORP</span>
-            <span class="brand-badge">2.5</span>
+        <div class="titlebar-drag-area">
+            <span class="titlebar-app-name">RXCORP LAUNCHER</span>
         </div>
 
-        <div class="titlebar-center">
-            <div id="cloud-pill" class="status-pill" title="Statut de l'infrastructure Cloud">
-                <span class="status-dot online"></span>
-                <span id="cloud-pill-text" data-i18n="cloud_sync_ok">RXCORP CLOUD • SYNCHRONISÉ</span>
-            </div>
-            <div id="update-pill" class="status-pill" style="display: none; cursor: pointer; border-color: var(--cyan); background: rgba(14, 165, 233, 0.12);" title="Mise à jour disponible">
-                <span class="status-dot" style="background: var(--cyan); box-shadow: 0 0 8px var(--cyan);"></span>
-                <span id="update-pill-text" style="color: var(--cyan); font-weight: 700;" data-i18n="update_available">MAJ DISPONIBLE</span>
-            </div>
-        </div>
-
-        <div class="titlebar-controls">
-            <!-- Language Switcher Pill -->
-            <div class="lang-switch-pill" id="titlebar-lang-pill" title="Changer la langue / Change language">
-                <button type="button" class="lang-btn-switch active" data-lang="fr">FR</button>
-                <button type="button" class="lang-btn-switch" data-lang="en">EN</button>
-                <button type="button" class="lang-btn-switch" data-lang="es">ES</button>
-                <button type="button" class="lang-btn-switch" data-lang="de">DE</button>
-                <button type="button" class="lang-btn-switch" data-lang="pt">PT</button>
+        <div class="titlebar-right">
+            <!-- Hidden compatibility elements to ensure 100% JS reliability without errors -->
+            <div style="display: none;">
+                <div id="cloud-pill"><span id="cloud-pill-text"></span></div>
+                <div id="update-pill"><span id="update-pill-text"></span></div>
+                <button id="btn-open-config-wizard"></button>
+                <div id="user-pill">
+                    <img id="user-avatar" src="assets/images/icon/icon.png">
+                    <span id="user-name">Joueur</span>
+                </div>
             </div>
 
-            <button id="btn-open-config-wizard" class="rx-btn rx-btn-secondary" style="font-size: 11px; padding: 4px 10px;" title="Gérer mon compte">
-                <span data-i18n="config_btn">Compte</span>
-            </button>
-
-            <div id="user-pill" class="user-pill" title="Mon Compte & Profil">
-                <img id="user-avatar" class="user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
-                <span id="user-name" class="user-name">Joueur</span>
-                <span class="user-status-dot"></span>
-            </div>
-
+            <!-- Standard Window Controls -->
             <div class="window-btns">
                 <button id="btn-minimize" class="win-btn" title="Réduire">─</button>
                 <button id="btn-maximize" class="win-btn" title="Agrandir">□</button>
@@ -61,6 +41,13 @@
     <!-- FLOATING LEFT NAVIGATION RAIL (BEHANCE MINECRAFT LAUNCHER) -->
     <aside class="dribbble-rail behance-rail">
         <div class="rail-top">
+            <!-- Brand Logo at Top of Rail -->
+            <div class="rail-brand-box" title="RXCORP Launcher 2.6">
+                <img class="rail-brand-logo" src="assets/images/icon/icon.png" alt="RX">
+            </div>
+
+            <div class="rail-divider"></div>
+
             <!-- 1. Home / Actualités -->
             <button class="rail-item active" data-view="home" data-i18n-title="nav_home" title="Accueil & Actualités">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -112,6 +99,14 @@
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
+            </button>
+
+            <div class="rail-divider"></div>
+
+            <!-- User Account Profile Capsule (Minecraft Avatar + Status Dot) -->
+            <button type="button" class="rail-item rail-user-pill" id="rail-user-pill" title="Mon Compte & Profil">
+                <img id="rail-user-avatar" class="rail-user-avatar" src="assets/images/icon/icon.png" alt="Avatar">
+                <span id="rail-user-dot" class="rail-user-dot online"></span>
             </button>
         </div>
     </aside>
@@ -546,6 +541,23 @@
                         </div>
                     </div>
 
+                    <!-- Langue de l'Interface (Déplacé depuis le haut) -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span class="settings-card-title">Langue de l'Interface</span>
+                        </div>
+                        <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
+                            Choisissez la langue d'affichage du launcher et des notifications.
+                        </p>
+                        <div class="lang-pills-row" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="fr" style="padding: 7px 14px; font-size: 12px; font-weight: 700;">Français</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="en" style="padding: 7px 14px; font-size: 12px; font-weight: 700;">English</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="es" style="padding: 7px 14px; font-size: 12px; font-weight: 700;">Español</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="de" style="padding: 7px 14px; font-size: 12px; font-weight: 700;">Deutsch</button>
+                            <button type="button" class="lang-btn-switch rx-btn rx-btn-secondary" data-lang="pt" style="padding: 7px 14px; font-size: 12px; font-weight: 700;">Português</button>
+                        </div>
+                    </div>
+
                     <!-- Mises à Jour Automatiques -->
                     <div class="settings-card">
                         <div class="settings-card-header">
@@ -564,7 +576,7 @@
                     </div>
                 </div>
 
-                <!-- Right Column: 3D Minecraft Skin & Profile View (Matching Behance Slice 3) -->
+                <!-- Right Column: 3D Minecraft Skin & Profile View -->
                 <div class="settings-col">
                     <div class="skin-preview-card">
                         <div class="skin-viewport-box">
@@ -574,18 +586,18 @@
 
                         <div class="skin-profile-meta">
                             <span id="settings-skin-name" class="skin-player-name">Joueur</span>
-                            <div class="skin-status-tag">
-                                <span class="status-dot online"></span>
-                                <span id="settings-skin-status" data-i18n="skin_ready">Prêt pour Minecraft 1.21.4</span>
+                            <div id="settings-skin-status-tag" class="skin-status-tag">
+                                <span id="settings-skin-dot" class="status-dot online"></span>
+                                <span id="settings-skin-status">Prêt pour Minecraft 1.21.4</span>
                             </div>
                         </div>
 
                         <div style="display: flex; gap: 8px; margin-top: 14px; width: 100%;">
-                            <button class="rx-btn rx-btn-secondary" style="flex: 1; font-size: 11px;" onclick="document.getElementById('modal-add-offline')?.classList.add('active');">
+                            <button type="button" id="btn-settings-change-pseudo" class="rx-btn rx-btn-secondary" style="flex: 1; font-size: 11px; padding: 8px 10px;">
                                 Changer Pseudo
                             </button>
-                            <button class="rx-btn rx-btn-primary" style="flex: 1; font-size: 11px;" onclick="document.getElementById('btn-add-microsoft')?.click();">
-                                Compte Microsoft
+                            <button type="button" id="btn-settings-add-account" class="rx-btn rx-btn-primary" style="flex: 1; font-size: 11px; padding: 8px 10px;">
+                                + Ajouter un Compte
                             </button>
                         </div>
                     </div>

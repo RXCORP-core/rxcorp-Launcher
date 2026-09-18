@@ -4,7 +4,7 @@
    and authentic tactile buttons (Zero AI-style bubble pills)
    ========================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lilita+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 :root {
     /* Background & Surfaces */
@@ -24,7 +24,7 @@
 
     /* Typography & Colors */
     --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-display: 'Lilita One', 'Inter', -apple-system, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
     --text-white: #ffffff;
     --text-main: #f1f5f9;
@@ -125,70 +125,53 @@ body {
 }
 
 /* =========================================================================
-   APP TITLEBAR (Draggable & Minimal)
+   APP TITLEBAR (Sleek, Clean, Draggable & Minimal)
    ========================================================================= */
 .app-titlebar {
-    height: 48px;
-    min-height: 48px;
-    background: rgba(10, 12, 16, 0.96);
-    border-bottom: 1px solid var(--border-subtle);
+    height: 36px;
+    min-height: 36px;
+    background: rgba(10, 12, 16, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0 10px 0 16px;
     -webkit-app-region: drag;
     z-index: 1000;
 }
 
-.brand-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.brand-logo {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    object-fit: cover;
-}
-
-.brand-title {
-    font-family: var(--font-display);
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #ffffff;
-}
-
-.brand-badge {
-    background: var(--primary-subtle);
-    border: 1px solid rgba(244, 63, 94, 0.35);
-    color: var(--primary);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.titlebar-center {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    -webkit-app-region: no-drag;
-}
-
-.status-pill {
+.titlebar-drag-area {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    padding: 4px 12px;
+    user-select: none;
+}
+
+.titlebar-app-name {
     font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+}
+
+.titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    -webkit-app-region: no-drag;
+}
+
+.brand-section {
+    display: none;
+}
+
+.titlebar-center {
+    display: none;
+}
+
+.status-pill {
+    display: none;
 }
 
 .status-dot {
@@ -328,28 +311,93 @@ body {
 .behance-rail {
     position: fixed;
     left: 14px;
-    top: 62px;
-    bottom: 16px;
-    width: 56px;
-    background: rgba(14, 17, 24, 0.92);
-    backdrop-filter: blur(24px);
+    top: 48px;
+    bottom: 14px;
+    width: 58px;
+    background: rgba(14, 17, 24, 0.94);
+    backdrop-filter: blur(28px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 28px;
+    border-radius: 29px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 6px;
+    padding: 12px 6px;
     z-index: 900;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
 }
 
 .rail-top, .rail-bottom {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
+}
+
+.rail-brand-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.28);
+    transition: all 0.2s ease;
+    user-select: none;
+    margin-bottom: 2px;
+}
+
+.rail-brand-box:hover {
+    background: rgba(244, 63, 94, 0.2);
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
+}
+
+.rail-brand-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.rail-divider {
+    width: 26px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 2px 0;
+}
+
+.rail-user-pill {
+    position: relative;
+    padding: 0;
+}
+
+.rail-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #1e2230;
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.rail-user-pill:hover .rail-user-avatar {
+    border-color: var(--primary);
+    transform: scale(1.08);
+}
+
+.rail-user-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid #0e1118;
+    background: var(--emerald);
+    box-shadow: 0 0 6px var(--emerald);
 }
 
 .rail-item {
@@ -503,8 +551,8 @@ body {
 .dribbble-stage,
 .behance-stage {
     margin-left: 82px;
-    padding: 18px 24px 24px 12px;
-    height: calc(100vh - 48px);
+    padding: 14px 24px 24px 12px;
+    height: calc(100vh - 36px);
     overflow-y: auto;
     position: relative;
     z-index: 10;
@@ -2139,17 +2187,22 @@ body {
 }
 
 /* =========================================================================
-   MODERN MICROSOFT AUTH MODAL (QR CODE & DEFAULT BROWSER 1-CLICK)
+   MODERN MICROSOFT AUTH MODAL (ULTRA CLEAN DESIGN)
    ========================================================================= */
 .ms-auth-modal-card {
-    max-width: 580px;
+    max-width: 560px;
+    background: rgba(13, 16, 24, 0.96);
+    backdrop-filter: blur(32px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
     padding: 24px 28px;
+    box-shadow: 0 24px 72px rgba(0, 0, 0, 0.75), 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .ms-auth-grid {
     display: flex;
     align-items: stretch;
-    gap: 20px;
+    gap: 16px;
     margin-bottom: 16px;
 }
 
@@ -2159,30 +2212,37 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 18px 14px;
+    transition: all 0.2s ease;
+}
+
+.ms-auth-col:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.045);
 }
 
 .ms-auth-qr-box {
-    width: 170px;
-    height: 170px;
+    width: 164px;
+    height: 164px;
     background: #ffffff;
-    border-radius: 8px;
-    padding: 6px;
+    border-radius: 12px;
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    margin-bottom: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    position: relative;
 }
 
 .ms-qr-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .ms-auth-step-label {
@@ -2195,7 +2255,7 @@ body {
 .ms-auth-step-desc {
     font-size: 11px;
     color: var(--text-dim);
-    line-height: 1.4;
+    line-height: 1.45;
     margin-top: 4px;
 }
 
@@ -2217,11 +2277,11 @@ body {
 }
 
 .ms-code-badge-box {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px dashed var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 10px;
-    margin: 12px 0 6px 0;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 10px 0 8px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2230,34 +2290,37 @@ body {
 
 .ms-code-display {
     font-family: var(--font-mono, monospace);
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     color: var(--emerald-light);
+    text-shadow: 0 0 12px rgba(74, 222, 128, 0.35);
 }
 
 .ms-code-copy-btn {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--border-subtle);
-    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
     color: #ffffff;
-    font-size: 10.5px;
-    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .ms-code-copy-btn:hover {
-    background: var(--primary);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .ms-auth-status-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
     padding: 10px 14px;
     gap: 12px;
 }
@@ -2282,6 +2345,33 @@ body {
 @keyframes pulseDot {
     0%, 100% { transform: scale(0.9); opacity: 0.6; }
     50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Account Badges for Settings */
+.badge-ms-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.badge-offline-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    padding: 3px 8px;
+    border-radius: 6px;
 }
 
 

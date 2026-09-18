@@ -45,9 +45,17 @@ function createSplash() {
 function closeSplash() {
     if (!splashWindow) return;
     try {
-        splashWindow.close();
-    } catch (e) {}
-    splashWindow = null;
+        splashWindow.webContents.executeJavaScript('if (window.completeSplash) window.completeSplash();').catch(() => {});
+        setTimeout(() => {
+            if (splashWindow) {
+                try { splashWindow.close(); } catch (e) {}
+                splashWindow = null;
+            }
+        }, 400);
+    } catch (e) {
+        try { splashWindow.close(); } catch (err) {}
+        splashWindow = null;
+    }
 }
 
 function getSplash() {

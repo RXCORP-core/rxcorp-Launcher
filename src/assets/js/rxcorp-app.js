@@ -177,6 +177,11 @@ class RxcorpApp {
             document.getElementById('modal-create-instance')?.classList.add('active');
         });
 
+        // User avatar button on left rail -> switch to settings & profile
+        document.getElementById('rail-user-pill')?.addEventListener('click', () => {
+            this.selectDribbbleMode('settings');
+        });
+
         // Drawer back button
         document.getElementById('btn-back-dashboard')?.addEventListener('click', () => {
             this.closeDrawer();
@@ -2225,7 +2230,7 @@ class RxcorpApp {
                         const pubDate = item.published_date || item.published_at || '';
                         article.innerHTML = `
                             <div class="news-thumb-box">
-                                <img class="news-thumb-img" src="${item.image_url || 'assets/images/heroes/hero_cloud.jpg'}" alt="${item.title}">
+                                <img class="news-thumb-img" src="${item.image_url || 'assets/images/heroes/hero_cloud.jpg'}" alt="${item.title}" onerror="this.onerror=null; this.src='assets/images/heroes/hero_cloud.jpg';">
                                 <span class="news-tag-badge" ${tagColor}>${tagText}</span>
                             </div>
                             <div class="news-body-box">
@@ -2388,6 +2393,15 @@ class RxcorpApp {
         document.getElementById('btn-add-microsoft')?.addEventListener('click', () => {
             this.openMicrosoftDeviceAuthModal();
         });
+
+        // Settings Skin card action buttons
+        document.getElementById('btn-settings-change-pseudo')?.addEventListener('click', () => {
+            this.openModal('modal-add-offline');
+        });
+
+        document.getElementById('btn-settings-add-account')?.addEventListener('click', () => {
+            this.openMicrosoftDeviceAuthModal();
+        });
     }
 
     getActiveAccount() {
@@ -2413,19 +2427,38 @@ class RxcorpApp {
         const activeAccount = this.getActiveAccount();
         const userNameElem = document.getElementById('user-name');
         const userAvatarElem = document.getElementById('user-avatar');
+        const railAvatarElem = document.getElementById('rail-user-avatar');
 
         if (activeAccount) {
+            const isMs = activeAccount.meta?.type === 'Microsoft' || 
+                         activeAccount.meta?.type === 'Xbox' || 
+                         (activeAccount.access_token && activeAccount.access_token !== 'null');
+
             if (userNameElem) userNameElem.innerText = activeAccount.name;
             if (userAvatarElem) {
                 userAvatarElem.src = `https://mc-heads.net/avatar/${activeAccount.name}/32`;
                 userAvatarElem.onerror = () => { userAvatarElem.src = 'assets/images/icon/icon.png'; };
             }
+            if (railAvatarElem) {
+                railAvatarElem.src = `https://mc-heads.net/avatar/${activeAccount.name}/34`;
+                railAvatarElem.onerror = () => { railAvatarElem.src = 'assets/images/icon/icon.png'; };
+            }
+
             const skinName = document.getElementById('settings-skin-name');
             const skinBody = document.getElementById('settings-skin-body');
+            const skinStatus = document.getElementById('settings-skin-status');
+
             if (skinName) skinName.innerText = activeAccount.name;
             if (skinBody) {
                 skinBody.src = `https://mc-heads.net/body/${activeAccount.name}/220`;
                 skinBody.onerror = () => { skinBody.src = 'https://mc-heads.net/body/Steve/220'; };
+            }
+            if (skinStatus) {
+                if (isMs) {
+                    skinStatus.innerHTML = '<span class="badge-ms-pill"><svg width="12" height="12" viewBox="0 0 24 24"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#00a4ef" d="M1 13h10v10H1z"/><path fill="#7fba00" d="M13 1h10v10H13z"/><path fill="#ffb900" d="M13 13h10v10H13z"/></svg> Microsoft Officiel • Synchronisé</span>';
+                } else {
+                    skinStatus.innerHTML = '<span class="badge-offline-pill">Joueur Hors-Ligne (Pseudo Libre)</span>';
+                }
             }
         }
 
@@ -2443,7 +2476,7 @@ class RxcorpApp {
 
         list.innerHTML = accounts.map(acc => {
             const isActive = acc.name === activeAccount?.name;
-            const isMicrosoft = acc.meta?.type === 'Xbox' || acc.access_token;
+            const isMicrosoft = acc.meta?.type === 'Microsoft' || acc.meta?.type === 'Xbox' || (acc.access_token && acc.access_token !== 'null');
             return `
                 <div class="clean-account-row ${isActive ? 'active' : ''}">
                     <div class="clean-account-left">
